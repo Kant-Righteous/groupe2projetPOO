@@ -172,7 +172,89 @@ docs: add README setup instructions
 
 ---
 
-## 6. Règles de travail en équipe
+## 6. Organisation du travail en équipe (Git & Branches)
+
+### Règle générale (très importante)
+
+👉 **Personne ne travaille directement sur la branche `master` (ou `main`)**.  
+La branche `master` doit toujours rester **stable, exécutable et présentable**.
+
+Chaque membre de l’équipe travaille sur **sa propre branche**.
+
+---
+
+### Convention de nommage des branches
+
+Merci d’utiliser la convention suivante :
+
+- `feature/nom-fonctionnalite` → nouvelle fonctionnalité
+- `fix/nom-bug` → correction de bug
+- `test/nom-test` → ajout ou modification de tests
+- `docs/nom-doc` → documentation uniquement
+
+**Exemples :**
+
+- `feature/user-controller`
+- `feature/authentication`
+- `fix/startup-error`
+- `docs/readme-update`
+
+---
+
+### Workflow recommandé (pas à pas)
+
+1. Se placer sur `master` et récupérer la dernière version :
+
+   ```bash
+   git checkout master
+   git pull origin master
+   ```
+
+2. Créer une nouvelle branche pour votre travail :
+
+   ```bash
+   git checkout -b feature/ma-fonctionnalite
+   ```
+
+3. Développer, puis commit :
+
+   ```bash
+   git add .
+   git commit -m "feat: description claire de la fonctionnalité"
+   ```
+
+4. Pousser la branche sur GitHub :
+
+   ```bash
+   git push origin feature/ma-fonctionnalite
+   ```
+
+5. Fusion dans `master` (par le responsable du projet ou via Pull Request).
+
+---
+
+### Convention de messages de commit
+
+Les messages de commit doivent **obligatoirement** commencer par un mot-clé :
+
+- `feat:` → nouvelle fonctionnalité
+- `fix:` → correction de bug
+- `test:` → ajout ou modification de tests
+- `docs:` → documentation
+- `refactor:` → amélioration du code sans changement fonctionnel
+
+**Exemples :**
+
+```text
+feat: add user REST controller
+fix: resolve port configuration issue
+test: add unit tests for service layer
+docs: update README with setup instructions
+```
+
+👉 Cette convention est importante pour la lisibilité et sera appréciée lors de l’évaluation du projet.
+
+## 7. Règles de travail en équipe
 
 - Toujours **pull** avant de travailler
 - Ne pas casser la branche principale
@@ -180,7 +262,7 @@ docs: add README setup instructions
 
 ---
 
-## 7. État du projet
+## 8. État du projet
 
 - ✔ Projet Spring Boot initialisé
 - ✔ Java 17 validé
