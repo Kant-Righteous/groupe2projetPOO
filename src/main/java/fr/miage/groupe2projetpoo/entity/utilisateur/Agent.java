@@ -4,7 +4,6 @@ package fr.miage.groupe2projetpoo.entity.utilisateur;
  * Classe abstraite représentant un agent
  */
 public abstract class Agent extends Utilisateur {
-
     public Agent() {
         super();
     }
