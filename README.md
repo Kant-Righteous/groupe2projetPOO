@@ -144,8 +144,10 @@ Pour garder un historique clair, chaque commit doit commencer par un type.
 ### Format
 
 ```text
-type: message clair
+[NOM] type: message clair
 ```
+
+👉 **Chaque commit doit commencer par le nom du membre de l'équipe entre crochets**, suivi du type et du message.
 
 ### Types autorisés
 
@@ -158,9 +160,10 @@ type: message clair
 ### Exemples
 
 ```bash
-feat: add hello endpoint
-fix: correct server port
-docs: add README setup instructions
+[Alice] feat: add hello endpoint
+[Bob] fix: correct server port
+[Charlie] docs: add README setup instructions
+[David] refactor: simplify user validation logic
 ```
 
 ### À éviter absolument
@@ -235,7 +238,11 @@ Merci d’utiliser la convention suivante :
 
 ### Convention de messages de commit
 
-Les messages de commit doivent **obligatoirement** commencer par un mot-clé :
+Les messages de commit doivent **obligatoirement** commencer par le **nom du membre entre crochets**, suivi d'un mot-clé :
+
+```text
+[NOM] type: message clair
+```
 
 - `feat:` → nouvelle fonctionnalité
 - `fix:` → correction de bug
@@ -246,10 +253,10 @@ Les messages de commit doivent **obligatoirement** commencer par un mot-clé :
 **Exemples :**
 
 ```text
-feat: add user REST controller
-fix: resolve port configuration issue
-test: add unit tests for service layer
-docs: update README with setup instructions
+[Alice] feat: add user REST controller
+[Bob] fix: resolve port configuration issue
+[Charlie] test: add unit tests for service layer
+[David] docs: update README with setup instructions
 ```
 
 👉 Cette convention est importante pour la lisibilité et sera appréciée lors de l’évaluation du projet.
