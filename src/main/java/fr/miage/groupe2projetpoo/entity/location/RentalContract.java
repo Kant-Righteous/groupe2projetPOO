@@ -171,6 +171,14 @@ private Assurance assurance;
         Vehicule = vehicule;
     }
 
+    public Assurance getAssurance() {
+        return assurance;
+    }
+
+    public void setAssurance(Assurance assurance) {
+        this.assurance = assurance;
+    }
+
     public Loueur getLoueur() {
         return loueur;
     }
