@@ -1,9 +1,13 @@
 package fr.miage.groupe2projetpoo.service;
 
+import fr.miage.groupe2projetpoo.entity.location.RentalContract;
 import fr.miage.groupe2projetpoo.entity.utilisateur.*;
+import fr.miage.groupe2projetpoo.entity.vehicule.Vehicle;
 import fr.miage.groupe2projetpoo.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -68,5 +72,47 @@ public class UserService {
      */
     public Optional<Utilisateur> findByEmail(String email) {
         return userRepository.findByEmail(email);
+    }
+
+    /**
+     * Récupérer les véhicules d'un utilisateur (Loueur ou Agent)
+     */
+    public List<Vehicle> getVehiclesByUserEmail(String email) {
+        Optional<Utilisateur> userOpt = userRepository.findByEmail(email);
+
+        if (userOpt.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        Utilisateur user = userOpt.get();
+
+        if (user instanceof Loueur) {
+            return ((Loueur) user).getVehicles();
+        } else if (user instanceof Agent) {
+            return ((Agent) user).getVehicleList();
+        }
+
+        return new ArrayList<>();
+    }
+
+    /**
+     * Récupérer les contrats d'un utilisateur (Loueur ou Agent)
+     */
+    public List<RentalContract> getContractsByUserEmail(String email) {
+        Optional<Utilisateur> userOpt = userRepository.findByEmail(email);
+
+        if (userOpt.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        Utilisateur user = userOpt.get();
+
+        if (user instanceof Loueur) {
+            return ((Loueur) user).getContracts();
+        } else if (user instanceof Agent) {
+            return ((Agent) user).getContracts();
+        }
+
+        return new ArrayList<>();
     }
 }
