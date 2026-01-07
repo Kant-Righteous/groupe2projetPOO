@@ -1,4 +1,5 @@
 package fr.miage.groupe2projetpoo.entity.location;
+import fr.miage.groupe2projetpoo.entity.assurance.Assurance;
 import fr.miage.groupe2projetpoo.entity.utilisateur.Loueur;
 import fr.miage.groupe2projetpoo.entity.vehicule.Vehicle;
 
@@ -23,8 +24,8 @@ private double commissionPourcentage ;
 private double commissionFixeParJour ;
 private Vehicle Vehicule;
 private Loueur loueur;
-/*private assurance : Assurance;
-private listeOptions : List<OptionPayante>*/
+private Assurance assurance;
+//private listeOptions : List<OptionPayante>
 
     public int getIdC() {
         return idC;
@@ -179,7 +180,7 @@ private listeOptions : List<OptionPayante>*/
         this.loueur = loueur;
     }
     // Constructeur
-    public RentalContract(Loueur loueur, Vehicle vehicule, Date dateDebut, Date dateFin, String lieuPrise, String lieuDepose) {
+    public RentalContract(Loueur loueur, Vehicle vehicule, Date dateDebut, Date dateFin, String lieuPrise, String lieuDepose, Assurance assurance) {
         // 1. Affectation des données saisies par le loueur
         this.loueur = loueur;
         this.Vehicule = vehicule; // Attention à la majuscule 'V' dans votre attribut
@@ -187,6 +188,7 @@ private listeOptions : List<OptionPayante>*/
         this.dateFin = dateFin;
         this.lieuPrise = lieuPrise;
         this.lieuDepose = lieuDepose;
+        this.assurance= assurance;
 
         // 2. Initialisation automatique des champs système
         this.dateCréationContrat = new Date(); // Date d'aujourd'hui
