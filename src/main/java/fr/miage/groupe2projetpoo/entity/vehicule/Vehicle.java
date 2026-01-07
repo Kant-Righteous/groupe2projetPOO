@@ -8,16 +8,21 @@ public abstract class Vehicle {
     private String couleurVehicule;
     private String modeleVehicule;
     private String villeVehicule;
+    private boolean estDisponible;
+    private double prixVehiculeJour;
 
     // Constructeur
     public Vehicle(int idVehicule, String typeVehicule, String marqueVehicule,
-            String couleurVehicule, String modeleVehicule, String villeVehicule) {
+            String couleurVehicule, String modeleVehicule, String villeVehicule, boolean estDisponible,
+            double prixVehiculeJour) {
         this.idVehicule = idVehicule;
         this.typeVehicule = typeVehicule;
         this.marqueVehicule = marqueVehicule;
         this.couleurVehicule = couleurVehicule;
         this.modeleVehicule = modeleVehicule;
         this.villeVehicule = villeVehicule;
+        this.estDisponible = estDisponible;
+        this.prixVehiculeJour = prixVehiculeJour;
     }
 
     // Getters
@@ -45,6 +50,14 @@ public abstract class Vehicle {
         return villeVehicule;
     }
 
+    public boolean getEstDisponible() {
+        return estDisponible;
+    }
+
+    public double getPrixVehiculeJour() {
+        return prixVehiculeJour;
+    }
+
     // Setters
     public void setIdVehicule(int idV) {
         this.idVehicule = idV;
@@ -68,5 +81,13 @@ public abstract class Vehicle {
 
     public void setVilleVehicule(String ville) {
         this.villeVehicule = ville;
+    }
+
+    public void setEstDisponible(boolean estDisponible) {
+        this.estDisponible = estDisponible;
+    }
+
+    public void setPrixVehiculeJour(double prixVehiculeJour) {
+        this.prixVehiculeJour = prixVehiculeJour;
     }
 }
