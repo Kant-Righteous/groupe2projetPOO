@@ -39,6 +39,8 @@ public abstract class Vehicle {
     }
 
     // Getters
+
+    public abstract TypeVehicule getType();
     public String getIdVehicule() {
         return idVehicule;
     }

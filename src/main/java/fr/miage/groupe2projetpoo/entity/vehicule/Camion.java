@@ -10,4 +10,9 @@ public class Camion extends Vehicle {
         super(idVehicule, typeVehicule, marqueVehicule, couleurVehicule, modeleVehicule, villeVehicule, estDisponible,
                 prixVehiculeParJour, proprietaire);
     }
+
+    @Override
+    public TypeVehicule getType() {
+        return TypeVehicule.CAMION;
+    }
 }
