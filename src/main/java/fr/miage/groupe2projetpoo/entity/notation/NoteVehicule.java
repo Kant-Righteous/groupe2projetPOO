@@ -12,8 +12,8 @@ public class NoteVehicule extends Notation {
         super();
     }
 
-    public NoteVehicule(int id, double confort, double proprete) {
-        super(id);
+    public NoteVehicule(int id, String authorEmail, String targetEmail, String commentaire, double confort, double proprete) {
+        super(id, authorEmail, targetEmail, commentaire);
         this.confort = confort;
         this.proprete = proprete;
     }

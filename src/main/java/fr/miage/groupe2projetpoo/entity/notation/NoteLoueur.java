@@ -11,8 +11,8 @@ public class NoteLoueur extends Notation {
         super();
     }
 
-    public NoteLoueur(int id, double respect) {
-        super(id);
+    public NoteLoueur(int id, String authorEmail, String targetEmail, String commentaire, double respect) {
+        super(id, authorEmail, targetEmail, commentaire);
         this.respect = respect;
     }
 
