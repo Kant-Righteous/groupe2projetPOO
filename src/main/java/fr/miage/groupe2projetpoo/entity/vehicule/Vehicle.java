@@ -14,13 +14,14 @@ public abstract class Vehicle {
     private String villeVehicule;
     private boolean estDisponible;
     private double prixVehiculeParJour;
-    private  Proprietaire;
+    private String Proprietaire;
     private List<LocalDate> listeDisponibilites;
+
 
     // Constructeur
     public Vehicle(String idVehicule, String typeVehicule, String marqueVehicule,
             String couleurVehicule, String modeleVehicule, String villeVehicule, boolean estDisponible,
-            double prixVehiculeJour, Agent proprietaire, List<LocalDate> listeDisponibilites) {
+            double prixVehiculeJour, String proprietaire) {
         this.idVehicule = idVehicule;
         this.typeVehicule = typeVehicule;
         this.marqueVehicule = marqueVehicule;
@@ -30,7 +31,6 @@ public abstract class Vehicle {
         this.estDisponible = estDisponible;
         this.prixVehiculeParJour = prixVehiculeJour;
         this.Proprietaire = proprietaire;
-        this.listeDisponibilites = listeDisponibilites;
     }
 
     // Getters
@@ -66,7 +66,7 @@ public abstract class Vehicle {
         return prixVehiculeParJour;
     }
 
-    public Agent getProprietaire() {
+    public String getProprietaire() {
         return Proprietaire;
     }
 
@@ -107,11 +107,22 @@ public abstract class Vehicle {
         this.prixVehiculeParJour = prixVehiculeJour;
     }
 
-    public void setProprietaire(Agent proprietaire) {
+    public void setProprietaire(String proprietaire) {
         this.Proprietaire = proprietaire;
     }
 
-    public void setListeDisponibilites(List<LocalDate> listeDisponibilites) {
-        this.listeDisponibilites = listeDisponibilites;
+
+    public boolean estDisponible(LocalDate debut, LocalDate fin) {
+        LocalDate d = debut;
+        boolean test = true;
+        while (!d.isAfter(fin)) {
+            if (listeDisponibilites.contains(d)) {
+                d = d.plusDays(1);
+            } else {
+                test = false;
+            }
+        }
+        return test == true;
     }
+
 }

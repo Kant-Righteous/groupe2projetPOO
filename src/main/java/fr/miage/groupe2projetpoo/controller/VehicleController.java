@@ -37,14 +37,24 @@ public class VehicleController {
         String ville = request.get("villeVehicule");
         boolean estDisponible = Boolean.parseBoolean(request.get("estDisponible"));
         double prixVehiculeParJour =Double.parseDouble(request.get("prixVehiculeParJour"));
-        Agent proprietaire = request.get("proprietaire");
-        List< LocalDate > listeDisponibilites
-        Vehicle v = vehicleService.addVehicule(id, type, marque, couleur, modele, ville, estDisponible, prixVehiculeParJour);
-        return ResponseEntity.ok(Map.of(
-                "success", true,
-                "message", "Véhicule ajouté",
-                "immatriculation", v.getImmatriculation()
-        ));
+        String proprietaire = request.get("proprietaire");
+
+        Vehicle vehicule = vehicleService.addVehicule(id, type, marque, couleur, modele, ville, estDisponible, prixVehiculeParJour, proprietaire);
+        if (vehicule != null) {
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "Ajout réussie",
+                    "email", vehicule.getIdVehicule()));
+        } else {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", "Échec de l'inscription, email déjà existant"));
+        }
     }
+
+    @PostMapping("/disponibilites")
+    public ResponseEntity<?> setListeDisponibilites(@RequestBody VehicleService serv) {
+        List<LocalDate> dates = serv.getListeDisponibilites();
+        return ResponseEntity.ok(dates); }
 
 }
