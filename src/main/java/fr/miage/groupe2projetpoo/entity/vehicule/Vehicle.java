@@ -6,19 +6,19 @@ import java.util.List;
 
 public abstract class Vehicle {
     // Propriétés
-    private int idVehicule;
+    private String idVehicule;
     private String typeVehicule;
     private String marqueVehicule;
     private String couleurVehicule;
     private String modeleVehicule;
     private String villeVehicule;
     private boolean estDisponible;
-    private double prixVehiculeJour;
-    private Agent Proprietaire;
+    private double prixVehiculeParJour;
+    private  Proprietaire;
     private List<LocalDate> listeDisponibilites;
 
     // Constructeur
-    public Vehicle(int idVehicule, String typeVehicule, String marqueVehicule,
+    public Vehicle(String idVehicule, String typeVehicule, String marqueVehicule,
             String couleurVehicule, String modeleVehicule, String villeVehicule, boolean estDisponible,
             double prixVehiculeJour, Agent proprietaire, List<LocalDate> listeDisponibilites) {
         this.idVehicule = idVehicule;
@@ -28,13 +28,13 @@ public abstract class Vehicle {
         this.modeleVehicule = modeleVehicule;
         this.villeVehicule = villeVehicule;
         this.estDisponible = estDisponible;
-        this.prixVehiculeJour = prixVehiculeJour;
+        this.prixVehiculeParJour = prixVehiculeJour;
         this.Proprietaire = proprietaire;
         this.listeDisponibilites = listeDisponibilites;
     }
 
     // Getters
-    public int getIdVehicule() {
+    public String getIdVehicule() {
         return idVehicule;
     }
 
@@ -62,8 +62,8 @@ public abstract class Vehicle {
         return estDisponible;
     }
 
-    public double getPrixVehiculeJour() {
-        return prixVehiculeJour;
+    public double getPrixVehiculeParJour() {
+        return prixVehiculeParJour;
     }
 
     public Agent getProprietaire() {
@@ -75,7 +75,7 @@ public abstract class Vehicle {
     }
 
     // Setters
-    public void setIdVehicule(int idV) {
+    public void setIdVehicule(String idV) {
         this.idVehicule = idV;
     }
 
@@ -103,8 +103,8 @@ public abstract class Vehicle {
         this.estDisponible = estDisponible;
     }
 
-    public void setPrixVehiculeJour(double prixVehiculeJour) {
-        this.prixVehiculeJour = prixVehiculeJour;
+    public void setPrixVehiculeParJour(double prixVehiculeJour) {
+        this.prixVehiculeParJour = prixVehiculeJour;
     }
 
     public void setProprietaire(Agent proprietaire) {
