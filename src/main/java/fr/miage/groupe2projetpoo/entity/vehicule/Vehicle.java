@@ -4,6 +4,9 @@ import fr.miage.groupe2projetpoo.entity.notation.NoteVehicule;
 import java.util.ArrayList;
 import java.util.List;
 
+import fr.miage.groupe2projetpoo.entity.utilisateur.Agent;
+import java.time.LocalDate;
+
 public abstract class Vehicle {
     //Propriétés
     private int idVehicule;
@@ -13,23 +16,60 @@ public abstract class Vehicle {
     private String modeleVehicule;
     private String villeVehicule;
     private List<NoteVehicule> notations = new ArrayList<>();
-    // Getters 
-    
+    // Getters
+
+    private boolean estDisponible;
+    private double prixVehiculeJour;
+    private Agent Proprietaire;
+    private List<LocalDate> listeDisponibilites;
+
+    // Constructeur
+    public Vehicle(int idVehicule, String typeVehicule, String marqueVehicule,
+            String couleurVehicule, String modeleVehicule, String villeVehicule, boolean estDisponible,
+            double prixVehiculeJour, Agent proprietaire, List<LocalDate> listeDisponibilites) {
+        this.idVehicule = idVehicule;
+        this.typeVehicule = typeVehicule;
+        this.marqueVehicule = marqueVehicule;
+        this.couleurVehicule = couleurVehicule;
+        this.modeleVehicule = modeleVehicule;
+        this.villeVehicule = villeVehicule;
+        this.estDisponible = estDisponible;
+        this.prixVehiculeJour = prixVehiculeJour;
+        this.Proprietaire = proprietaire;
+        this.listeDisponibilites = listeDisponibilites;
+    }
+
+    // Getters
     public int getIdVehicule() {
         return idVehicule;
     }
+
+    public TypeVehicule getType() {
+        // On suppose que le string typeVehicule correspond aux valeurs de l'Enum
+        // Sinon on pourrait utiliser TypeVehicule.fromString(typeVehicule)
+        try {
+            return TypeVehicule.valueOf(typeVehicule.toUpperCase());
+        } catch (IllegalArgumentException | NullPointerException e) {
+            return TypeVehicule.CITADINE; // Valeur par défaut
+        }
+    }
+
     public String getTypeVehicule() {
         return typeVehicule;
     }
+
     public String getMarqueVehicule() {
         return marqueVehicule;
     }
+
     public String getCouleurVehicule() {
         return couleurVehicule;
     }
+
     public String getModeleVehicule() {
         return modeleVehicule;
     }
+
     public String getVilleVehicule() {
         return villeVehicule;
     }
@@ -37,25 +77,61 @@ public abstract class Vehicle {
         return notations;
     }
 
+    public boolean getEstDisponible() {
+        return estDisponible;
+    }
+
+    public double getPrixVehiculeJour() {
+        return prixVehiculeJour;
+    }
+
+    public Agent getProprietaire() {
+        return Proprietaire;
+    }
+
+    public List<LocalDate> getListeDisponibilites() {
+        return listeDisponibilites;
+    }
 
     // Setters
     public void setIdVehicule(int idV) {
         this.idVehicule = idV;
     }
+
     public void setTypeVehicule(String type) {
         this.typeVehicule = type;
     }
+
     public void setMarqueVehicule(String marque) {
         this.marqueVehicule = marque;
     }
+
     public void setCouleurVehicule(String couleur) {
         this.couleurVehicule = couleur;
     }
+
     public void setModeleVehicule(String modele) {
         this.modeleVehicule = modele;
     }
+
     public void setVilleVehicule(String ville) {
         this.villeVehicule = ville;
+    }
+
+    public void setEstDisponible(boolean estDisponible) {
+        this.estDisponible = estDisponible;
+    }
+
+    public void setPrixVehiculeJour(double prixVehiculeJour) {
+        this.prixVehiculeJour = prixVehiculeJour;
+    }
+
+    public void setProprietaire(Agent proprietaire) {
+        this.Proprietaire = proprietaire;
+    }
+
+    public void setListeDisponibilites(List<LocalDate> listeDisponibilites) {
+        this.listeDisponibilites = listeDisponibilites;
     }
     public void setNotations(List<NoteVehicule> notations) {
         this.notations = notations;

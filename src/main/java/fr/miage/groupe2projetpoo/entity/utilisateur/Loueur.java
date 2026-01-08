@@ -4,6 +4,9 @@ import fr.miage.groupe2projetpoo.entity.notation.NoteLoueur;
 import java.util.ArrayList;
 import java.util.List;
 
+import fr.miage.groupe2projetpoo.entity.location.RentalContract;
+import fr.miage.groupe2projetpoo.entity.vehicule.Vehicle;
+
 /**
  * Loueur - propriétaire qui met en location ses véhicules
  */
@@ -13,13 +16,30 @@ public class Loueur extends Utilisateur {
     private String nomSociete;
     private List<NoteLoueur> notations = new ArrayList<>();
 
+    // Liste des véhicules possédés par le loueur (relation un-à-plusieurs)
+    private List<Vehicle> vehicles;
+
+    // Liste des contrats de location du loueur (relation un-à-plusieurs)
+    private List<RentalContract> contracts;
+
+    // Constructeur par défaut
     public Loueur() {
         super();
+        this.vehicles = new ArrayList<>();
+        this.contracts = new ArrayList<>();
     }
 
-    public Loueur(String email, String password, String nom, String prenom,
+    // Constructeur avec paramètres de base
+    public Loueur(String nom, String prenom, String password, String email, String tel) {
+        super(nom, prenom, password, email, tel);
+        this.vehicles = new ArrayList<>();
+        this.contracts = new ArrayList<>();
+    }
+
+    // Constructeur complet
+    public Loueur(String nom, String prenom, String password, String email, String tel,
             String iban, String nomSociete) {
-        super(email, password, nom, prenom);
+        super(nom, prenom, password, email, tel);
         this.iban = iban;
         this.nomSociete = nomSociete;
     }
@@ -67,5 +87,51 @@ public class Loueur extends Utilisateur {
             somme += note.calculerNoteGlobale();
         }
         return somme / notations.size();
+    }
+
+    // === Gestion des véhicules ===
+
+    public List<Vehicle> getVehicles() {
+        return vehicles;
+    }
+
+    public void setVehicles(List<Vehicle> vehicles) {
+        this.vehicles = vehicles;
+    }
+
+    public void addVehicle(Vehicle vehicle) {
+        if (this.vehicles == null) {
+            this.vehicles = new ArrayList<>();
+        }
+        this.vehicles.add(vehicle);
+    }
+
+    public void removeVehicle(Vehicle vehicle) {
+        if (this.vehicles != null) {
+            this.vehicles.remove(vehicle);
+        }
+    }
+
+    // === Gestion des contrats ===
+
+    public List<RentalContract> getContracts() {
+        return contracts;
+    }
+
+    public void setContracts(List<RentalContract> contracts) {
+        this.contracts = contracts;
+    }
+
+    public void addContract(RentalContract contract) {
+        if (this.contracts == null) {
+            this.contracts = new ArrayList<>();
+        }
+        this.contracts.add(contract);
+    }
+
+    public void removeContract(RentalContract contract) {
+        if (this.contracts != null) {
+            this.contracts.remove(contract);
+        }
     }
 }

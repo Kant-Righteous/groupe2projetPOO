@@ -1,5 +1,5 @@
 package fr.miage.groupe2projetpoo.repository;
 
-public class VehicleRepository {
+public interface VehicleRepository {
 
 }
