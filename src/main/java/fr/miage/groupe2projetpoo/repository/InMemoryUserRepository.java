@@ -29,9 +29,9 @@ public class InMemoryUserRepository implements UserRepository {
     @PostConstruct
     public void init() {
         // === 1. Créer les assurances ===
-        Assurance assuranceBasic = new Assurance(1, "Assurance Basic", "Responsabilité civile", 15.0f);
-        Assurance assuranceComplete = new Assurance(2, "Assurance Tous Risques", "Tous risques", 35.0f);
-        Assurance assurancePremium = new Assurance(3, "Assurance Premium", "Tous risques + vol + bris de glace", 50.0f);
+        Assurance assuranceBasic = new Assurance(1, "Assurance Basic", 15.0);
+        Assurance assuranceComplete = new Assurance(2, "Assurance Tous Risques", 35.0);
+        Assurance assurancePremium = new Assurance(3, "Assurance Premium", 50.0);
         allAssurances.add(assuranceBasic);
         allAssurances.add(assuranceComplete);
         allAssurances.add(assurancePremium);
