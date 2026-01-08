@@ -14,7 +14,7 @@ import java.util.Map;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/vehicles")
+@RequestMapping("/api/vehicules")
 public class VehicleController {
     //Propriétés
     private final VehicleService vehicleService;
