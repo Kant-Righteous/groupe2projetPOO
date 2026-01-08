@@ -7,9 +7,10 @@ public class Visiteur extends Utilisateur {
 
     public Visiteur() {
         super();
-        this.email = "anonymous";
-        this.nom = "Visiteur";
-        this.prenom = "Anonyme";
+        setEmail("anonymous");
+        setNom("Visiteur");
+        setPrenom("Anonyme");
+        setTel("");
     }
 
     @Override

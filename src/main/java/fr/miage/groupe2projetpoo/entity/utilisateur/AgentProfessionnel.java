@@ -12,9 +12,9 @@ public class AgentProfessionnel extends Agent {
         super();
     }
 
-    public AgentProfessionnel(String email, String password, String nom, String prenom,
+    public AgentProfessionnel(String nom, String prenom, String password, String email, String tel,
             String nomEntreprise, String siret) {
-        super(email, password, nom, prenom);
+        super(nom, prenom, password, email, tel);
         this.nomEntreprise = nomEntreprise;
         this.siret = siret;
     }

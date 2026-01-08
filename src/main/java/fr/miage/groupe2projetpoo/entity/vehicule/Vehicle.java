@@ -1,5 +1,9 @@
 package fr.miage.groupe2projetpoo.entity.vehicule;
 
+import fr.miage.groupe2projetpoo.entity.utilisateur.Agent;
+import java.time.LocalDate;
+import java.util.List;
+
 public abstract class Vehicle {
     // Propriétés
     private int idVehicule;
@@ -10,11 +14,13 @@ public abstract class Vehicle {
     private String villeVehicule;
     private boolean estDisponible;
     private double prixVehiculeJour;
+    private Agent Proprietaire;
+    private List<LocalDate> listeDisponibilites;
 
     // Constructeur
     public Vehicle(int idVehicule, String typeVehicule, String marqueVehicule,
             String couleurVehicule, String modeleVehicule, String villeVehicule, boolean estDisponible,
-            double prixVehiculeJour) {
+            double prixVehiculeJour, Agent proprietaire, List<LocalDate> listeDisponibilites) {
         this.idVehicule = idVehicule;
         this.typeVehicule = typeVehicule;
         this.marqueVehicule = marqueVehicule;
@@ -23,6 +29,8 @@ public abstract class Vehicle {
         this.villeVehicule = villeVehicule;
         this.estDisponible = estDisponible;
         this.prixVehiculeJour = prixVehiculeJour;
+        this.Proprietaire = proprietaire;
+        this.listeDisponibilites = listeDisponibilites;
     }
 
     // Getters
@@ -68,6 +76,14 @@ public abstract class Vehicle {
         return prixVehiculeJour;
     }
 
+    public Agent getProprietaire() {
+        return Proprietaire;
+    }
+
+    public List<LocalDate> getListeDisponibilites() {
+        return listeDisponibilites;
+    }
+
     // Setters
     public void setIdVehicule(int idV) {
         this.idVehicule = idV;
@@ -99,5 +115,13 @@ public abstract class Vehicle {
 
     public void setPrixVehiculeJour(double prixVehiculeJour) {
         this.prixVehiculeJour = prixVehiculeJour;
+    }
+
+    public void setProprietaire(Agent proprietaire) {
+        this.Proprietaire = proprietaire;
+    }
+
+    public void setListeDisponibilites(List<LocalDate> listeDisponibilites) {
+        this.listeDisponibilites = listeDisponibilites;
     }
 }
