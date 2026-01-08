@@ -35,9 +35,10 @@ public class UserController {
         String nom = request.get("nom");
         String prenom = request.get("prenom");
         String roleStr = request.get("role");
+        String tel = request.get("tel");
 
         Role role = Role.valueOf(roleStr);
-        Utilisateur user = userService.register(email, password, nom, prenom, role);
+        Utilisateur user = userService.register(nom, prenom, password, email, tel, role);
 
         if (user != null) {
             return ResponseEntity.ok(Map.of(

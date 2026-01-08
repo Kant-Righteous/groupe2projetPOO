@@ -25,8 +25,8 @@ public abstract class Agent extends Utilisateur {
     }
 
     // Constructeur avec paramètres
-    public Agent(String email, String password, String nom, String prenom) {
-        super(email, password, nom, prenom);
+    public Agent(String nom, String prenom, String password, String email, String tel) {
+        super(nom, prenom, password, email, tel);
         this.vehicleList = new ArrayList<>();
         this.contracts = new ArrayList<>();
     }

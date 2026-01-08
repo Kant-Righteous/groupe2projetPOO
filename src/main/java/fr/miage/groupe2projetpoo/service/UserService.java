@@ -25,7 +25,7 @@ public class UserService {
     /**
      * Inscription d'un utilisateur
      */
-    public Utilisateur register(String email, String password, String nom, String prenom, Role role) {
+    public Utilisateur register(String nom, String prenom, String password, String email, String tel, Role role) {
         if (userRepository.existsByEmail(email)) {
             return null;
         }
@@ -33,13 +33,13 @@ public class UserService {
         Utilisateur user;
         switch (role) {
             case AGENT_PARTICULIER:
-                user = new AgentParticulier(email, password, nom, prenom);
+                user = new AgentParticulier(nom, prenom, password, email, tel);
                 break;
             case AGENT_PROFESSIONNEL:
-                user = new AgentProfessionnel(email, password, nom, prenom, null, null);
+                user = new AgentProfessionnel(nom, prenom, password, email, tel, null, null);
                 break;
             case LOUEUR:
-                user = new Loueur(email, password, nom, prenom, null, null);
+                user = new Loueur(nom, prenom, password, email, tel, null, null);
                 break;
             default:
                 return null;

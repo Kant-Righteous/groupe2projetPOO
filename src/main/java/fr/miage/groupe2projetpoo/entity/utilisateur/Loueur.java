@@ -28,16 +28,16 @@ public class Loueur extends Utilisateur {
     }
 
     // Constructeur avec paramètres de base
-    public Loueur(String email, String password, String nom, String prenom) {
-        super(email, password, nom, prenom);
+    public Loueur(String nom, String prenom, String password, String email, String tel) {
+        super(nom, prenom, password, email, tel);
         this.vehicles = new ArrayList<>();
         this.contracts = new ArrayList<>();
     }
 
     // Constructeur complet
-    public Loueur(String email, String password, String nom, String prenom,
+    public Loueur(String nom, String prenom, String password, String email, String tel,
             String iban, String nomSociete) {
-        super(email, password, nom, prenom);
+        super(nom, prenom, password, email, tel);
         this.iban = iban;
         this.nomSociete = nomSociete;
         this.vehicles = new ArrayList<>();

@@ -38,11 +38,13 @@ public class InMemoryUserRepository implements UserRepository {
 
         // === 2. Créer les Agents d'abord (car les véhicules ont besoin d'un
         // propriétaire) ===
-        AgentParticulier agentPart1 = new AgentParticulier("alice@test.com", "123456", "Martin", "Alice");
-        AgentParticulier agentPart2 = new AgentParticulier("bob@test.com", "123456", "Dupont", "Bob");
-        AgentProfessionnel agentPro1 = new AgentProfessionnel("enterprise1@test.com", "123456", "Durand", "Pierre",
+        AgentParticulier agentPart1 = new AgentParticulier("Martin", "Alice", "123456", "alice@test.com", "0612345678");
+        AgentParticulier agentPart2 = new AgentParticulier("Dupont", "Bob", "123456", "bob@test.com", "0698765432");
+        AgentProfessionnel agentPro1 = new AgentProfessionnel("Durand", "Pierre", "123456", "enterprise1@test.com",
+                "0611111111",
                 "Durand SA", "12345678901234");
-        AgentProfessionnel agentPro2 = new AgentProfessionnel("enterprise2@test.com", "123456", "Moreau", "Marie",
+        AgentProfessionnel agentPro2 = new AgentProfessionnel("Moreau", "Marie", "123456", "enterprise2@test.com",
+                "0622222222",
                 "Moreau SARL", "98765432109876");
 
         // === 3. Créer les listes de disponibilités ===
@@ -110,9 +112,11 @@ public class InMemoryUserRepository implements UserRepository {
         agentPro2.addVehicle(moto2);
 
         // === 6. Créer les Loueurs ===
-        Loueur loueur1 = new Loueur("loueur1@test.com", "123456", "Bernard", "Luc", "FR7630001007941234567890185",
+        Loueur loueur1 = new Loueur("Bernard", "Luc", "123456", "loueur1@test.com", "0633333333",
+                "FR7630001007941234567890185",
                 "Bernard Auto");
-        Loueur loueur2 = new Loueur("loueur2@test.com", "123456", "Petit", "Sophie", "FR7630004000031234567890143",
+        Loueur loueur2 = new Loueur("Petit", "Sophie", "123456", "loueur2@test.com", "0644444444",
+                "FR7630004000031234567890143",
                 "Sophie Location");
 
         // === 7. Créer les Contrats de location ===
