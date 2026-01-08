@@ -3,22 +3,24 @@ package fr.miage.groupe2projetpoo.entity.assurance;
 import fr.miage.groupe2projetpoo.entity.vehicule.Vehicle;
 import java.util.Objects;
 
+/**
+ * Représente une assurance proposée pour un véhicule lors d'une location.
+ * L'assurance par défaut est AZA, mais un agent professionnel peut proposer
+ * sa propre assurance via une option payante.
+ */
 public class Assurance {
 
     private int idA;
     private String nom;
-    private String option;
-    private float tarif;
+    private double tarifBase;
 
     public Assurance() {
     }
 
-    // Constructeur
-    public Assurance(int idA, String nom, String option, float tarif) {
+    public Assurance(int idA, String nom, double tarifBase) {
         this.idA = idA;
         this.nom = nom;
-        this.option = option;
-        this.tarif = tarif;
+        this.tarifBase = tarifBase;
     }
 
     // Getters et Setters
@@ -38,25 +40,38 @@ public class Assurance {
         this.nom = nom;
     }
 
-    public String getOption() {
-        return option;
+    public double getTarifBase() {
+        return tarifBase;
     }
 
-    public void setOption(String option) {
-        this.option = option;
+    public void setTarifBase(double tarifBase) {
+        this.tarifBase = tarifBase;
     }
 
-    public float getTarif() {
-        return tarif;
-    }
+    /**
+     * Calcule la prime d'assurance en fonction du véhicule.
+     * Les options payantes de la plateforme ne sont PAS prises en compte ici.
+     */
+    public double calculerPrime(Vehicle vehicule) {
+        double prime = tarifBase;
 
-    public void setTarif(float tarif) {
-        this.tarif = tarif;
-    }
+        if (vehicule != null) {
+            switch (vehicule.getType()) {
+                case SUV:
+                    prime += 20;
+                    break;
+                case UTILITAIRE:
+                    prime += 30;
+                    break;
+                case CITADINE:
+                    prime += 10;
+                    break;
+                default:
+                    break;
+            }
+        }
 
-    public int calculateurPrime(Vehicle vehicule, OptionPayante options) {
-        // TODO: A implémenter selon votre logique exacte
-        return 0;
+        return prime;
     }
 
     @Override
@@ -64,8 +79,7 @@ public class Assurance {
         return "Assurance{" +
                 "idA=" + idA +
                 ", nom='" + nom + '\'' +
-                ", option='" + option + '\'' +
-                ", tarif=" + tarif +
+                ", tarifBase=" + tarifBase +
                 '}';
     }
 
@@ -73,15 +87,16 @@ public class Assurance {
     public boolean equals(Object o) {
         if (this == o)
             return true;
-        if (o == null || getClass() != o.getClass())
+        if (!(o instanceof Assurance))
             return false;
         Assurance assurance = (Assurance) o;
-        return idA == assurance.idA && Float.compare(assurance.tarif, tarif) == 0 && Objects.equals(nom, assurance.nom)
-                && Objects.equals(option, assurance.option);
+        return idA == assurance.idA &&
+                Double.compare(assurance.tarifBase, tarifBase) == 0 &&
+                Objects.equals(nom, assurance.nom);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(idA, nom, option, tarif);
+        return Objects.hash(idA, nom, tarifBase);
     }
 }

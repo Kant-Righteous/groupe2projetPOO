@@ -1,15 +1,19 @@
 package fr.miage.groupe2projetpoo.entity.utilisateur;
 
-import fr.miage.groupe2projetpoo.entity.location.RentalContract;
-import fr.miage.groupe2projetpoo.entity.vehicule.Vehicle;
-
+import fr.miage.groupe2projetpoo.entity.notation.NoteAgent;
 import java.util.ArrayList;
 import java.util.List;
+
+import fr.miage.groupe2projetpoo.entity.location.RentalContract;
+import fr.miage.groupe2projetpoo.entity.vehicule.Vehicle;
 
 /**
  * Classe abstraite représentant un agent
  */
 public abstract class Agent extends Utilisateur {
+
+    private List<NoteAgent> notations = new ArrayList<>();
+
 
     // Liste des véhicules gérés par l'agent (relation un-à-plusieurs)
     private List<Vehicle> vehicleList;
@@ -75,5 +79,29 @@ public abstract class Agent extends Utilisateur {
         if (this.contracts != null) {
             this.contracts.remove(contract);
         }
+    }
+
+    public List<NoteAgent> getNotations() {
+        return notations;
+    }
+
+    public void setNotations(List<NoteAgent> notations) {
+        this.notations = notations;
+    }
+
+    // Méthodes pour les notations
+    public void ajouterNotation(NoteAgent notation) {
+        this.notations.add(notation);
+    }
+
+    public double calculerNoteMoyenne() {
+        if (notations.isEmpty()) {
+            return 0.0;
+        }
+        double somme = 0.0;
+        for (NoteAgent note : notations) {
+            somme += note.calculerNoteGlobale();
+        }
+        return somme / notations.size();
     }
 }

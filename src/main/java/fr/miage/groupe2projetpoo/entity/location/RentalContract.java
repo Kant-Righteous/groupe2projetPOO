@@ -1,31 +1,33 @@
 package fr.miage.groupe2projetpoo.entity.location;
+
 import fr.miage.groupe2projetpoo.entity.assurance.Assurance;
 import fr.miage.groupe2projetpoo.entity.utilisateur.Loueur;
 import fr.miage.groupe2projetpoo.entity.vehicule.Vehicle;
 
 import java.util.Date;
 
-public class RentalContract {private int idC;
-private Date dateCréationContrat ;
-private boolean statut ;
-private  String fichierPDF ;
-private boolean SignatureLoueur;
-private boolean SignatureAgent;
-private Date dateSignatureLoueur ;
-private Date dateSignatureAgent ;
-private Date dateDebut ;
-private Date dateFin ;
-private String lieuPrise ;
-private String lieuDepose ;
-private double prixTotal ;
-private double montantAgent ;
-private double montantPlatforme ;
-private double commissionPourcentage ;
-private double commissionFixeParJour ;
-private Vehicle Vehicule;
-private Loueur loueur;
-private Assurance assurance;
-//private listeOptions : List<OptionPayante>
+public class RentalContract {
+    private int idC;
+    private Date dateCréationContrat;
+    private boolean statut;
+    private String fichierPDF;
+    private boolean SignatureLoueur;
+    private boolean SignatureAgent;
+    private Date dateSignatureLoueur;
+    private Date dateSignatureAgent;
+    private Date dateDebut;
+    private Date dateFin;
+    private String lieuPrise;
+    private String lieuDepose;
+    private double prixTotal;
+    private double montantAgent;
+    private double montantPlatforme;
+    private double commissionPourcentage;
+    private double commissionFixeParJour;
+    private Vehicle Vehicule;
+    private Loueur loueur;
+    private Assurance assurance;
+    // private listeOptions : List<OptionPayante>
 
     public int getIdC() {
         return idC;
@@ -183,12 +185,13 @@ private Assurance assurance;
         return loueur;
     }
 
-
     public void setLoueur(Loueur loueur) {
         this.loueur = loueur;
     }
+
     // Constructeur
-    public RentalContract(Loueur loueur, Vehicle vehicule, Date dateDebut, Date dateFin, String lieuPrise, String lieuDepose, Assurance assurance) {
+    public RentalContract(Loueur loueur, Vehicle vehicule, Date dateDebut, Date dateFin, String lieuPrise,
+            String lieuDepose, Assurance assurance) {
         // 1. Affectation des données saisies par le loueur
         this.loueur = loueur;
         this.Vehicule = vehicule; // Attention à la majuscule 'V' dans votre attribut
@@ -196,7 +199,7 @@ private Assurance assurance;
         this.dateFin = dateFin;
         this.lieuPrise = lieuPrise;
         this.lieuDepose = lieuDepose;
-        this.assurance= assurance;
+        this.assurance = assurance;
 
         // 2. Initialisation automatique des champs système
         this.dateCréationContrat = new Date(); // Date d'aujourd'hui
@@ -241,21 +244,23 @@ private Assurance assurance;
     private void calculerPrix() {
         // 1. Calcul de la durée en jours
         long diffInMillies = Math.abs(this.dateFin.getTime() - this.dateDebut.getTime());
-        // On ajoute +1 car une location du lundi au lundi compte pour 1 jour complet (ou règle métier à définir)
+        // On ajoute +1 car une location du lundi au lundi compte pour 1 jour complet
+        // (ou règle métier à définir)
         // Ici on assume des jours pleins, convertis depuis millisecondes
         long diffInDays = (diffInMillies / (1000 * 60 * 60 * 24)) + 1;
 
-        // 2. Récupération des Tarifs (Vérifiez que ces méthodes existent dans vos autres classes !)
+        // 2. Récupération des Tarifs
         // IL MANQUE CECI DANS VOTRE CLASSE VEHICLE :
         double prixJournalierVehicule = this.Vehicule.getPrixVehiculeParJour();
 
         // IL MANQUE CECI DANS VOTRE CLASSE ASSURANCE (si applicable) :
-        // Le sujet dit que le prix dépend du véhicule, on imagine que l'objet assurance stocke le prix calculé
-        double prixAssurance = (this.assurance != null) ? this.assurance.getTarif() : 0.0;
+        // Le sujet dit que le prix dépend du véhicule, on imagine que l'objet assurance
+        // stocke le prix calculé
+        double prixAssurance = (this.assurance != null) ? this.assurance.calculerPrime(this.Vehicule) : 0.0;
 
         // 3. Définition des règles de la plateforme [cite: 281]
         this.commissionPourcentage = 0.10; // 10%
-        this.commissionFixeParJour = 2.0;  // 2€
+        this.commissionFixeParJour = 2.0; // 2€
 
         // 4. Calcul de la part Agent
         // Ex: 30€ * 5 jours = 150€
@@ -268,7 +273,8 @@ private Assurance assurance;
         this.montantPlatforme = partVariable + partFixe;
 
         // 6. Calcul du Total Final à payer par le loueur
-        // Total = Part Agent + Commission Plateforme + Assurance (+ Options si vous les activez)
+        // Total = Part Agent + Commission Plateforme + Assurance (+ Options si vous les
+        // activez)
         this.prixTotal = this.montantAgent + this.montantPlatforme + prixAssurance;
     }
 
@@ -278,7 +284,7 @@ private Assurance assurance;
      */
     public void signerLoueur() {
         // 1. Vérification de sécurité : on ne signe pas deux fois
-        if (this.SignatureLoueur==true) {
+        if (this.SignatureLoueur == true) {
             System.out.println("Erreur : Ce contrat a déjà été signé par le loueur le " + this.dateSignatureLoueur);
             return;
         }
@@ -286,11 +292,11 @@ private Assurance assurance;
         // 2. Application de la signature
         this.SignatureLoueur = true;
         this.dateSignatureLoueur = new Date(); // Enregistre la date et l'heure actuelle
-        this.SignatureAgent=true;//Pour l'instant pas d'option payante donc l'agent signe automatiquement .
+        this.SignatureAgent = true;// Pour l'instant pas d'option payante donc l'agent signe automatiquement .
         this.dateSignatureAgent = new Date();
         // 3. Mise à jour du statut global du contrat
         // Le statut devient TRUE (Validé) seulement si l'Agent a AUSSI signé.
-        if (this.SignatureAgent==true) {
+        if (this.SignatureAgent == true) {
             this.statut = true; // Le contrat est totalement validé
             System.out.println("Succès : Contrat signé par le Loueur. Le contrat est désormais VALIDÉ et ACTIF.");
         } else {
@@ -298,6 +304,7 @@ private Assurance assurance;
             System.out.println("Succès : Signature Loueur enregistrée. En attente de validation par l'Agent...");
         }
     }
+
     public String genererPdf() {
         // On simule la création d'un nom de fichier unique
         String nomFichier = "Contrat_Location_" + this.idC + ".pdf";

@@ -12,8 +12,8 @@ public class NoteAgent extends Notation {
         super();
     }
 
-    public NoteAgent(int id, double ponctualite, double communication) {
-        super(id);
+    public NoteAgent(int id, String authorEmail, String targetEmail, String commentaire, double ponctualite, double communication) {
+        super(id, authorEmail, targetEmail, commentaire);
         this.ponctualite = ponctualite;
         this.communication = communication;
     }
