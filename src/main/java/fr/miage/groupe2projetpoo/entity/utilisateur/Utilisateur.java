@@ -5,19 +5,21 @@ package fr.miage.groupe2projetpoo.entity.utilisateur;
  */
 public abstract class Utilisateur {
 
-    protected String email;
-    protected String password;
-    protected String nom;
-    protected String prenom;
+    private String nom;
+    private String prenom;
+    private String password;
+    private String email;
+    private String tel;
 
     public Utilisateur() {
     }
 
-    public Utilisateur(String email, String password, String nom, String prenom) {
-        this.email = email;
-        this.password = password;
+    public Utilisateur(String nom, String prenom, String password, String email, String tel) {
         this.nom = nom;
         this.prenom = prenom;
+        this.password = password;
+        this.email = email;
+        this.tel = tel;
     }
 
     /**
@@ -57,5 +59,13 @@ public abstract class Utilisateur {
 
     public void setPrenom(String prenom) {
         this.prenom = prenom;
+    }
+
+    public String getTel() {
+        return tel;
+    }
+
+    public void setTel(String tel) {
+        this.tel = tel;
     }
 }

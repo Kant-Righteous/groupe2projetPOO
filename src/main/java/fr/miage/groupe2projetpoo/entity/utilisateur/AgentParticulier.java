@@ -9,8 +9,8 @@ public class AgentParticulier extends Agent {
         super();
     }
 
-    public AgentParticulier(String email, String password, String nom, String prenom) {
-        super(email, password, nom, prenom);
+    public AgentParticulier(String nom, String prenom, String password, String email, String tel) {
+        super(nom, prenom, password, email, tel);
     }
 
     @Override
