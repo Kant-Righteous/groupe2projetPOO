@@ -6,6 +6,7 @@ import java.util.List;
 
 import fr.miage.groupe2projetpoo.entity.utilisateur.Agent;
 import java.time.LocalDate;
+import java.util.List;
 
 public abstract class Vehicle {
     // Propriétés
@@ -40,16 +41,6 @@ public abstract class Vehicle {
     // Getters
     public String getIdVehicule() {
         return idVehicule;
-    }
-
-    public TypeVehicule getType() {
-        // On suppose que le string typeVehicule correspond aux valeurs de l'Enum
-        // Sinon on pourrait utiliser TypeVehicule.fromString(typeVehicule)
-        try {
-            return TypeVehicule.valueOf(typeVehicule.toUpperCase());
-        } catch (IllegalArgumentException | NullPointerException e) {
-            return TypeVehicule.CITADINE; // Valeur par défaut
-        }
     }
 
     public String getTypeVehicule() {
