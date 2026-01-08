@@ -251,7 +251,7 @@ public class RentalContract {
 
         // 2. Récupération des Tarifs
         // IL MANQUE CECI DANS VOTRE CLASSE VEHICLE :
-        double prixJournalierVehicule = this.Vehicule.getPrixVehiculeJour();
+        double prixJournalierVehicule = this.Vehicule.getPrixVehiculeParJour();
 
         // IL MANQUE CECI DANS VOTRE CLASSE ASSURANCE (si applicable) :
         // Le sujet dit que le prix dépend du véhicule, on imagine que l'objet assurance

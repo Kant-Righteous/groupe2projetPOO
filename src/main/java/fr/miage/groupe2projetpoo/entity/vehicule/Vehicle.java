@@ -6,27 +6,27 @@ import java.util.List;
 
 import fr.miage.groupe2projetpoo.entity.utilisateur.Agent;
 import java.time.LocalDate;
+import java.util.List;
 
 public abstract class Vehicle {
-    //Propriétés
-    private int idVehicule;
+    // Propriétés
+    private String idVehicule;
     private String typeVehicule;
     private String marqueVehicule;
     private String couleurVehicule;
     private String modeleVehicule;
     private String villeVehicule;
     private List<NoteVehicule> notations = new ArrayList<>();
-    // Getters
 
     private boolean estDisponible;
-    private double prixVehiculeJour;
-    private Agent Proprietaire;
+    private double prixVehiculeParJour;
+    private String Proprietaire;
     private List<LocalDate> listeDisponibilites;
 
     // Constructeur
-    public Vehicle(int idVehicule, String typeVehicule, String marqueVehicule,
+    public Vehicle(String idVehicule, String typeVehicule, String marqueVehicule,
             String couleurVehicule, String modeleVehicule, String villeVehicule, boolean estDisponible,
-            double prixVehiculeJour, Agent proprietaire, List<LocalDate> listeDisponibilites) {
+            double prixVehiculeJour, String proprietaire) {
         this.idVehicule = idVehicule;
         this.typeVehicule = typeVehicule;
         this.marqueVehicule = marqueVehicule;
@@ -34,24 +34,15 @@ public abstract class Vehicle {
         this.modeleVehicule = modeleVehicule;
         this.villeVehicule = villeVehicule;
         this.estDisponible = estDisponible;
-        this.prixVehiculeJour = prixVehiculeJour;
+        this.prixVehiculeParJour = prixVehiculeJour;
         this.Proprietaire = proprietaire;
-        this.listeDisponibilites = listeDisponibilites;
     }
 
     // Getters
-    public int getIdVehicule() {
-        return idVehicule;
-    }
 
-    public TypeVehicule getType() {
-        // On suppose que le string typeVehicule correspond aux valeurs de l'Enum
-        // Sinon on pourrait utiliser TypeVehicule.fromString(typeVehicule)
-        try {
-            return TypeVehicule.valueOf(typeVehicule.toUpperCase());
-        } catch (IllegalArgumentException | NullPointerException e) {
-            return TypeVehicule.CITADINE; // Valeur par défaut
-        }
+    public abstract TypeVehicule getType();
+    public String getIdVehicule() {
+        return idVehicule;
     }
 
     public String getTypeVehicule() {
@@ -81,11 +72,11 @@ public abstract class Vehicle {
         return estDisponible;
     }
 
-    public double getPrixVehiculeJour() {
-        return prixVehiculeJour;
+    public double getPrixVehiculeParJour() {
+        return prixVehiculeParJour;
     }
 
-    public Agent getProprietaire() {
+    public String getProprietaire() {
         return Proprietaire;
     }
 
@@ -94,7 +85,7 @@ public abstract class Vehicle {
     }
 
     // Setters
-    public void setIdVehicule(int idV) {
+    public void setIdVehicule(String idV) {
         this.idVehicule = idV;
     }
 
@@ -122,16 +113,26 @@ public abstract class Vehicle {
         this.estDisponible = estDisponible;
     }
 
-    public void setPrixVehiculeJour(double prixVehiculeJour) {
-        this.prixVehiculeJour = prixVehiculeJour;
+    public void setPrixVehiculeParJour(double prixVehiculeJour) {
+        this.prixVehiculeParJour = prixVehiculeJour;
     }
 
-    public void setProprietaire(Agent proprietaire) {
+    public void setProprietaire(String proprietaire) {
         this.Proprietaire = proprietaire;
     }
 
-    public void setListeDisponibilites(List<LocalDate> listeDisponibilites) {
-        this.listeDisponibilites = listeDisponibilites;
+
+    public boolean estDisponible(LocalDate debut, LocalDate fin) {
+        LocalDate d = debut;
+        boolean test = true;
+        while (!d.isAfter(fin)) {
+            if (listeDisponibilites.contains(d)) {
+                d = d.plusDays(1);
+            } else {
+                test = false;
+            }
+        }
+        return test == true;
     }
     public void setNotations(List<NoteVehicule> notations) {
         this.notations = notations;
