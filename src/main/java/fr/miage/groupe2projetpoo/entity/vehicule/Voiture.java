@@ -1,6 +1,6 @@
 package fr.miage.groupe2projetpoo.entity.vehicule;
 
-import fr.miage.groupe2projetpoo.entity.utilisateur.Agent;
+
 import java.time.LocalDate;
 import java.util.List;
 
