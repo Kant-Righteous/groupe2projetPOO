@@ -9,6 +9,6 @@ public class Camion extends Vehicle {
             String modeleVehicule, String villeVehicule, boolean estDisponible, double prixVehiculeJour,
             String proprietaire, List<LocalDate> listeDisponibilites) {
         super(idVehicule, typeVehicule, marqueVehicule, couleurVehicule, modeleVehicule, villeVehicule, estDisponible,
-                prixVehiculeJour, proprietaire, listeDisponibilites);
+                prixVehiculeJour, proprietaire);
     }
 }

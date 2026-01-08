@@ -247,7 +247,7 @@ private Assurance assurance;
 
         // 2. Récupération des Tarifs (Vérifiez que ces méthodes existent dans vos autres classes !)
         // IL MANQUE CECI DANS VOTRE CLASSE VEHICLE :
-        double prixJournalierVehicule = this.Vehicule.getPrixVehiculeJour();
+        double prixJournalierVehicule = this.Vehicule.getPrixVehiculeParJour();
 
         // IL MANQUE CECI DANS VOTRE CLASSE ASSURANCE (si applicable) :
         // Le sujet dit que le prix dépend du véhicule, on imagine que l'objet assurance stocke le prix calculé
