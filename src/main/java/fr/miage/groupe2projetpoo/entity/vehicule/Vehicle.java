@@ -1,5 +1,9 @@
 package fr.miage.groupe2projetpoo.entity.vehicule;
 
+import fr.miage.groupe2projetpoo.entity.notation.NoteVehicule;
+import java.util.ArrayList;
+import java.util.List;
+
 import fr.miage.groupe2projetpoo.entity.utilisateur.Agent;
 import java.time.LocalDate;
 import java.util.List;
@@ -12,6 +16,9 @@ public abstract class Vehicle {
     private String couleurVehicule;
     private String modeleVehicule;
     private String villeVehicule;
+    private List<NoteVehicule> notations = new ArrayList<>();
+    // Getters
+
     private boolean estDisponible;
     private double prixVehiculeParJour;
     private String Proprietaire;
@@ -56,6 +63,9 @@ public abstract class Vehicle {
 
     public String getVilleVehicule() {
         return villeVehicule;
+    }
+    public List<NoteVehicule> getNotations() {
+        return notations;
     }
 
     public boolean getEstDisponible() {
@@ -124,5 +134,23 @@ public abstract class Vehicle {
         }
         return test == true;
     }
+    public void setNotations(List<NoteVehicule> notations) {
+        this.notations = notations;
+    }
 
+    // Méthodes pour les notations
+    public void ajouterNotation(NoteVehicule notation) {
+        this.notations.add(notation);
+    }
+
+    public double calculerNoteMoyenne() {
+        if (notations.isEmpty()) {
+            return 0.0;
+        }
+        double somme = 0.0;
+        for (NoteVehicule note : notations) {
+            somme += note.calculerNoteGlobale();
+        }
+        return somme / notations.size();
+    }
 }

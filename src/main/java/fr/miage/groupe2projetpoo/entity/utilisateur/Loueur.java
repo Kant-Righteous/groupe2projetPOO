@@ -1,10 +1,11 @@
 package fr.miage.groupe2projetpoo.entity.utilisateur;
 
-import fr.miage.groupe2projetpoo.entity.location.RentalContract;
-import fr.miage.groupe2projetpoo.entity.vehicule.Vehicle;
-
+import fr.miage.groupe2projetpoo.entity.notation.NoteLoueur;
 import java.util.ArrayList;
 import java.util.List;
+
+import fr.miage.groupe2projetpoo.entity.location.RentalContract;
+import fr.miage.groupe2projetpoo.entity.vehicule.Vehicle;
 
 /**
  * Loueur - propriétaire qui met en location ses véhicules
@@ -13,6 +14,7 @@ public class Loueur extends Utilisateur {
 
     private String iban;
     private String nomSociete;
+    private List<NoteLoueur> notations = new ArrayList<>();
 
     // Liste des véhicules possédés par le loueur (relation un-à-plusieurs)
     private List<Vehicle> vehicles;
@@ -40,16 +42,12 @@ public class Loueur extends Utilisateur {
         super(nom, prenom, password, email, tel);
         this.iban = iban;
         this.nomSociete = nomSociete;
-        this.vehicles = new ArrayList<>();
-        this.contracts = new ArrayList<>();
     }
 
     @Override
     public Role getRole() {
         return Role.LOUEUR;
     }
-
-    // === Getters et Setters pour iban et nomSociete ===
 
     public String getIban() {
         return iban;
@@ -65,6 +63,30 @@ public class Loueur extends Utilisateur {
 
     public void setNomSociete(String nomSociete) {
         this.nomSociete = nomSociete;
+    }
+
+    public List<NoteLoueur> getNotations() {
+        return notations;
+    }
+
+    public void setNotations(List<NoteLoueur> notations) {
+        this.notations = notations;
+    }
+
+    // Méthodes pour les notations
+    public void ajouterNotation(NoteLoueur notation) {
+        this.notations.add(notation);
+    }
+
+    public double calculerNoteMoyenne() {
+        if (notations.isEmpty()) {
+            return 0.0;
+        }
+        double somme = 0.0;
+        for (NoteLoueur note : notations) {
+            somme += note.calculerNoteGlobale();
+        }
+        return somme / notations.size();
     }
 
     // === Gestion des véhicules ===

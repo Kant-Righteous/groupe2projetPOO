@@ -138,7 +138,7 @@ public class UserController {
                 Map<String, Object> assuranceInfo = new HashMap<>();
                 assuranceInfo.put("id", c.getAssurance().getIdA());
                 assuranceInfo.put("nom", c.getAssurance().getNom());
-                assuranceInfo.put("tarif", c.getAssurance().getTarif());
+                assuranceInfo.put("tarif", c.getAssurance().getTarifBase());
                 map.put("assurance", assuranceInfo);
             }
 
