@@ -1,5 +1,7 @@
 package fr.miage.groupe2projetpoo.repository;
 
+import org.springframework.stereotype.Repository;
+
 import fr.miage.groupe2projetpoo.entity.utilisateur.Utilisateur;
 import fr.miage.groupe2projetpoo.entity.vehicule.Vehicle;
 
@@ -9,8 +11,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
+@Repository
 public class VehicleRepository {
-    //Map de vehicule
+    // Map de vehicule
     private final Map<String, Vehicle> vehicules = new ConcurrentHashMap<>();
 
     public Vehicle save(Vehicle v) {
