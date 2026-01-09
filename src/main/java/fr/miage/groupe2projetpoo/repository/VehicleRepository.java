@@ -16,26 +16,28 @@ public class VehicleRepository {
     // Map de vehicule
     private final Map<String, Vehicle> vehicules = new ConcurrentHashMap<>();
 
+    public Map<String, Vehicle> getVehicules() {
+        return vehicules;
+    }
     public Vehicle save(Vehicle v) {
         vehicules.put(v.getIdVehicule(), v);
         return v;
     }
-
+    // Chercher par ID
     public Optional<Vehicle> findById(String id) {
         return Optional.ofNullable(vehicules.get(id));
     }
-
+    // Verifier l'existance de l'ID
     public boolean existsById(String id) {
         return vehicules.containsKey(id);
     }
 
+    // Chercher par disponibilité
     public Optional<Vehicle> findByDisponibility(LocalDate debut, LocalDate fin) {
         return vehicules.values().stream()
                 .filter(v -> v.estDisponible(debut, fin))
                 .findFirst();
     }
 
-    public Map<String, Vehicle> getVehicules() {
-        return vehicules;
-    }
+
 }

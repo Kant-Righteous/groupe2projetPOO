@@ -1,6 +1,5 @@
 package fr.miage.groupe2projetpoo.controller;
 
-import fr.miage.groupe2projetpoo.entity.utilisateur.Agent;
 import fr.miage.groupe2projetpoo.entity.vehicule.Vehicle;
 import fr.miage.groupe2projetpoo.service.VehicleService;
 import org.springframework.http.ResponseEntity;
@@ -16,11 +15,11 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/vehicules")
 public class VehicleController {
-    //Propriétés
+    // Propriétés
     private final VehicleService vehicleService;
 
-    //constructeur
-    public VehicleController(VehicleService vehicleService){
+    // constructeur
+    public VehicleController(VehicleService vehicleService) {
         this.vehicleService = vehicleService;
     }
 
@@ -36,10 +35,11 @@ public class VehicleController {
         String modele = request.get("modeleVehicule");
         String ville = request.get("villeVehicule");
         boolean estDisponible = Boolean.parseBoolean(request.get("estDisponible"));
-        double prixVehiculeParJour =Double.parseDouble(request.get("prixVehiculeParJour"));
+        double prixVehiculeParJour = Double.parseDouble(request.get("prixVehiculeParJour"));
         String proprietaire = request.get("proprietaire");
 
-        Vehicle vehicule = vehicleService.addVehicule(id, type, marque, couleur, modele, ville, estDisponible, prixVehiculeParJour, proprietaire);
+        Vehicle vehicule = vehicleService.addVehicule(id, type, marque, couleur, modele, ville, estDisponible,
+                prixVehiculeParJour, proprietaire);
         if (vehicule != null) {
             return ResponseEntity.ok(Map.of(
                     "success", true,
@@ -48,13 +48,14 @@ public class VehicleController {
         } else {
             return ResponseEntity.badRequest().body(Map.of(
                     "success", false,
-                    "message", "Échec de l'inscription, email déjà existant"));
+                    "message", "Échec de l'ajout , email non existant ou vehicule deja ajouté"));
         }
     }
 
     @PostMapping("/disponibilites")
     public ResponseEntity<?> setListeDisponibilites(@RequestBody VehicleService serv) {
         List<LocalDate> dates = serv.getListeDisponibilites();
-        return ResponseEntity.ok(dates); }
+        return ResponseEntity.ok(dates);
+    }
 
 }

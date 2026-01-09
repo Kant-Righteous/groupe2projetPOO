@@ -9,22 +9,20 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class VehicleService {
-    /*calculer le prix total d’une location
-
-    vérifier la disponibilité
-
-    appliquer des promotions ou commissions*/
 
     // Propriétés
     private final VehicleRepository vehiculeRepository;
+    private final UserRepository userRepository;
     private List<LocalDate> listeDisponibilites;
 
     //Constructeur
-    public VehicleService(VehicleRepository vehiculeRepository) {
+    public VehicleService(VehicleRepository vehiculeRepository, UserRepository userRepository) {
         this.vehiculeRepository = vehiculeRepository;
+        this.userRepository = userRepository;
     }
 
     //Methodes
@@ -33,9 +31,17 @@ public class VehicleService {
      */
     public Vehicle addVehicule(String idVehicule, String typeVehicule, String marqueVehicule,
                             String couleurVehicule, String modeleVehicule, String villeVehicules, boolean estDisponible, double prixVehiculeParJour, String proprietaire) {
+
+        // Existance de vehicule
         if (vehiculeRepository.existsById(idVehicule)) {
             return null;
         }
+        Optional<Utilisateur> userOpt = userRepository.findByEmail(proprietaire);
+
+        if (userOpt.isEmpty()) {
+            return null;
+        }
+        // Creation d'une instance de vehicule
         Vehicle vehicule;
         vehicule = new Voiture(idVehicule, typeVehicule, marqueVehicule, couleurVehicule,modeleVehicule,villeVehicules, estDisponible,prixVehiculeParJour,proprietaire,null);
         return vehiculeRepository.save(vehicule);
