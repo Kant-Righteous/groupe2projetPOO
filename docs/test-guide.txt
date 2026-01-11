@@ -1,0 +1,24 @@
+Connexion
+
+URL: http://localhost:8080/api/users/login
+
+Body:
+{"email": "alice@test.com", "password": "123456"}
+
+
+Inscription
+
+URL: http://localhost:8080/api/users/register
+
+Body:
+{"email": "nouveau@test.com", "password": "123456", "nom": "Dupont", "prenom": "Jean", "role": "AGENT_PARTICULIER"}
+
+
+Comptes pré-enregistrés (mot de passe: 123456)
+
+- alice@test.com (AgentParticulier)
+- bob@test.com (AgentParticulier)
+- enterprise1@test.com (AgentProfessionnel)
+- enterprise2@test.com (AgentProfessionnel)
+- loueur1@test.com (Loueur)
+- loueur2@test.com (Loueur)
