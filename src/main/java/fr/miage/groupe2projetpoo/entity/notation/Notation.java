@@ -12,6 +12,8 @@ public abstract class Notation {
     private String targetEmail;
     private LocalDateTime date;
     private String commentaire;
+    private String reponse;
+    private LocalDateTime dateReponse;
 
     public Notation() {
         this.date = LocalDateTime.now();
@@ -70,5 +72,21 @@ public abstract class Notation {
 
     public void setCommentaire(String commentaire) {
         this.commentaire = commentaire;
+    }
+
+    public String getReponse() {
+        return reponse;
+    }
+
+    public void setReponse(String reponse) {
+        this.reponse = reponse;
+    }
+
+    public LocalDateTime getDateReponse() {
+        return dateReponse;
+    }
+
+    public void setDateReponse(LocalDateTime dateReponse) {
+        this.dateReponse = dateReponse;
     }
 }
