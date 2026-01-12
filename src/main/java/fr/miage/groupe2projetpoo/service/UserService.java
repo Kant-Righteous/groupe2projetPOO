@@ -115,4 +115,11 @@ public class UserService {
 
         return new ArrayList<>();
     }
+
+    /**
+     * Récupérer tous les agents (pour les visiteurs)
+     */
+    public List<Agent> getAllAgents() {
+        return userRepository.getAllAgents();
+    }
 }
