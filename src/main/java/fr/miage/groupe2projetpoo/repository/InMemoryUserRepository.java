@@ -22,6 +22,8 @@ public class InMemoryUserRepository implements UserRepository {
     private final List<Vehicle> allVehicles = new ArrayList<>();
     private final List<RentalContract> allContracts = new ArrayList<>();
     private final List<Assurance> allAssurances = new ArrayList<>();
+    // Ajout de la liste des options
+    private final List<fr.miage.groupe2projetpoo.entity.assurance.OptionPayante> allOptions = new ArrayList<>();
 
     /**
      * Initialisation des données de test
@@ -35,6 +37,13 @@ public class InMemoryUserRepository implements UserRepository {
         allAssurances.add(assuranceBasic);
         allAssurances.add(assuranceComplete);
         allAssurances.add(assurancePremium);
+
+        // === 1bis. Créer les Options ===
+        fr.miage.groupe2projetpoo.entity.assurance.OptionParking optionParking = new fr.miage.groupe2projetpoo.entity.assurance.OptionParking(
+                "Abonnement Parking VIP", 15.0, true, 24, 30, 8.0,
+                new fr.miage.groupe2projetpoo.entity.infrastructure.Parking(1, "Gare de Lyon", "18 Rue de Lyon",
+                        "Paris", 500, 10.0));
+        allOptions.add(optionParking);
 
         // === 2. Créer les Agents d'abord (car les véhicules ont besoin d'un
         // propriétaire) ===
