@@ -19,5 +19,5 @@ public interface UserRepository {
 
     public abstract java.util.Optional<fr.miage.groupe2projetpoo.entity.assurance.Assurance> findAssuranceById(int id);
 
-    public abstract java.util.Optional<fr.miage.groupe2projetpoo.entity.vehicule.Vehicle> findVehicleById(int id);
+    public abstract java.util.Optional<fr.miage.groupe2projetpoo.entity.vehicule.Vehicle> findVehicleById(String id);
 }

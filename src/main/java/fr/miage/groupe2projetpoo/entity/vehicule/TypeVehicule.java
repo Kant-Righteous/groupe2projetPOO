@@ -11,13 +11,5 @@ public enum TypeVehicule {
     MONOSPACE,
     MOTO,
     CAMION,
-    VOITURE;
 
-    public static TypeVehicule fromString(String type) {
-        try {
-            return TypeVehicule.valueOf(type.toUpperCase());
-        } catch (Exception e) {
-            return VOITURE; // Valeur par défaut
-        }
-    }
 }

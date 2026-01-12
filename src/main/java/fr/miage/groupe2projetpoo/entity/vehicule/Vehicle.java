@@ -1,5 +1,6 @@
 package fr.miage.groupe2projetpoo.entity.vehicule;
 
+import fr.miage.groupe2projetpoo.entity.location.RentalContract;
 import fr.miage.groupe2projetpoo.entity.notation.NoteVehicule;
 
 import java.util.*;
@@ -23,6 +24,7 @@ public abstract class Vehicle {
     private double prixVehiculeParJour;
     private String Proprietaire;
     private Map<LocalDate,Boolean> disponibilites = new HashMap<>();
+    private List<RentalContract> historiqueContrats = new ArrayList<>();
 
     // Constructeur
     public Vehicle(String idVehicule, String typeVehicule, String marqueVehicule,
