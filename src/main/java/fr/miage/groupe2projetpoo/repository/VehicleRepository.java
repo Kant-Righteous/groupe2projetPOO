@@ -1,41 +1,17 @@
 package fr.miage.groupe2projetpoo.repository;
 
-import org.springframework.stereotype.Repository;
-
-import fr.miage.groupe2projetpoo.entity.utilisateur.Utilisateur;
 import fr.miage.groupe2projetpoo.entity.vehicule.Vehicle;
-
-import java.time.LocalDate;
-import java.util.Collection;
-import java.util.Map;
+import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
 
-@Repository
-public class VehicleRepository {
-    // Map de vehicule
-    private final Map<String, Vehicle> vehicules = new ConcurrentHashMap<>();
+public interface VehicleRepository {
+    Optional<Vehicle> findById(String id);
 
-    public Vehicle save(Vehicle v) {
-        vehicules.put(v.getIdVehicule(), v);
-        return v;
-    }
+    List<Vehicle> findAll();
 
-    public Optional<Vehicle> findById(String id) {
-        return Optional.ofNullable(vehicules.get(id));
-    }
+    boolean existsById(String id);
 
-    public boolean existsById(String id) {
-        return vehicules.containsKey(id);
-    }
+    Vehicle save(Vehicle vehicle);
 
-    public Optional<Vehicle> findByDisponibility(LocalDate debut, LocalDate fin) {
-        return vehicules.values().stream()
-                .filter(v -> v.estDisponible(debut, fin))
-                .findFirst();
-    }
-
-    public Map<String, Vehicle> getVehicules() {
-        return vehicules;
-    }
+    java.util.Map<String, Vehicle> getVehicules();
 }
