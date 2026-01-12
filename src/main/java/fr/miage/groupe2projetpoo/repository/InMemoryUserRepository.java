@@ -218,9 +218,9 @@ public class InMemoryUserRepository implements UserRepository {
     }
 
     @Override
-    public Optional<Vehicle> findVehicleById(int id) {
+    public Optional<Vehicle> findVehicleById(String id) {
         return allVehicles.stream()
-                .filter(v -> v.getIdVehicule() == id)
+                .filter(v -> v.getIdVehicule().equals(id))
                 .findFirst();
     }
 
