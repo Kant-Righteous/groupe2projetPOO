@@ -86,7 +86,7 @@ public class UserController {
         List<Map<String, Object>> vehicleList = vehicles.stream().map(v -> {
             Map<String, Object> map = new HashMap<>();
             map.put("id", v.getIdVehicule());
-            map.put("type", v.getTypeVehicule());
+            map.put("type", v.getType());
             map.put("marque", v.getMarqueVehicule());
             map.put("modele", v.getModeleVehicule());
             map.put("couleur", v.getCouleurVehicule());

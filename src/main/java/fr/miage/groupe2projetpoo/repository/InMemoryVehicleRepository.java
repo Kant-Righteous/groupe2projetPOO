@@ -1,5 +1,6 @@
 package fr.miage.groupe2projetpoo.repository;
 
+import fr.miage.groupe2projetpoo.entity.vehicule.TypeVehicule;
 import org.springframework.stereotype.Repository;
 
 import fr.miage.groupe2projetpoo.entity.utilisateur.Utilisateur;
@@ -13,12 +14,11 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 @Repository
 public class InMemoryVehicleRepository implements VehicleRepository {
+
     // Map de vehicule
     private final Map<String, Vehicle> vehicules = new ConcurrentHashMap<>();
 
-    public Map<String, Vehicle> getVehicules() {
-        return vehicules;
-    }
+
     public Vehicle save(Vehicle v) {
         vehicules.put(v.getIdVehicule(), v);
         return v;
@@ -28,11 +28,24 @@ public class InMemoryVehicleRepository implements VehicleRepository {
         return Optional.ofNullable(vehicules.get(id));
     }
 
+    /***************************** Filtre ************************************/
     // Chercher par ville
     public List<Vehicle> findByVille(String ville) {
         return vehicules.values().stream()
                 .filter(v -> v.getVilleVehicule().equalsIgnoreCase(ville))
                 .toList();
+    }
+    // Chercher par type
+    public List<Vehicle> findByType(String type) {
+        TypeVehicule typeEnum;
+        try {
+            typeEnum = TypeVehicule.valueOf(type.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return List.of();
+        }
+        return vehicules.values().stream()
+                .filter(v -> v.getType() == typeEnum) .toList();
+
     }
 
     // Verifier l'existance de l'ID
@@ -62,4 +75,6 @@ public class InMemoryVehicleRepository implements VehicleRepository {
         }
         vehicules.put(id, modif);
     }
+
+
 }

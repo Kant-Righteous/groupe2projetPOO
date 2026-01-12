@@ -4,11 +4,11 @@ import java.time.LocalDate;
 import java.util.List;
 
 public class Moto extends Vehicle {
-    public Moto(String idVehicule, String typeVehicule, String marqueVehicule, String couleurVehicule,
+    public Moto(String idVehicule, String marqueVehicule, String couleurVehicule,
             String modeleVehicule, String villeVehicule, double prixVehiculeParJour,
-            String proprietaire) {
-        super(idVehicule, typeVehicule, marqueVehicule, couleurVehicule, modeleVehicule, villeVehicule,
-                prixVehiculeParJour, proprietaire);
+            String proprietaire, Boolean estEnpause) {
+        super(idVehicule, marqueVehicule, couleurVehicule, modeleVehicule, villeVehicule,
+                prixVehiculeParJour, proprietaire, estEnpause);
     }
 
     @Override
