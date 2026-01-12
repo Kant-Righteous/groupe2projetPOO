@@ -1,62 +1,65 @@
 package fr.miage.groupe2projetpoo.repository;
 
-import fr.miage.groupe2projetpoo.entity.vehicule.Vehicle;
 import org.springframework.stereotype.Repository;
 
-import java.util.HashMap;
+import fr.miage.groupe2projetpoo.entity.utilisateur.Utilisateur;
+import fr.miage.groupe2projetpoo.entity.vehicule.Vehicle;
+
+import java.time.LocalDate;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.ArrayList;
-
-/**
- * Implémentation en mémoire du repository de véhicule.
- * Note: Dans ce projet, le InMemoryUserRepository gère également la liste des
- * véhicules
- * pour faciliter l'initialisation des données de test.
- * Cette classe délègue au UserRepository pour la cohérence des données.
- */
+import java.util.concurrent.ConcurrentHashMap;
 @Repository
 public class InMemoryVehicleRepository implements VehicleRepository {
+    // Map de vehicule
+    private final Map<String, Vehicle> vehicules = new ConcurrentHashMap<>();
 
-    private final InMemoryUserRepository userRepository;
-    private final Map<String, Vehicle> vehicules = new HashMap<>();
-
-    public InMemoryVehicleRepository(InMemoryUserRepository userRepository) {
-        this.userRepository = userRepository;
+    public Map<String, Vehicle> getVehicules() {
+        return vehicules;
+    }
+    public Vehicle save(Vehicle v) {
+        vehicules.put(v.getIdVehicule(), v);
+        return v;
+    }
+    // Chercher par ID
+    public Optional<Vehicle> findById(String id) {
+        return Optional.ofNullable(vehicules.get(id));
     }
 
-    @Override
-    public Optional<Vehicle> findById(String id) {
-        Vehicle vehicle = vehicules.get(id);
-        if (vehicle != null) {
-            return Optional.of(vehicle);
-        }
-        return userRepository.getAllVehicles().stream()
-                .filter(v -> v.getIdVehicule().equals(id))
+    // Chercher par ville
+    public List<Vehicle> findByVille(String ville) {
+        return vehicules.values().stream()
+                .filter(v -> v.getVilleVehicule().equalsIgnoreCase(ville))
+                .toList();
+    }
+
+    // Verifier l'existance de l'ID
+    public boolean existsById(String id) {
+        return vehicules.containsKey(id);
+    }
+
+    // Chercher par disponibilité
+    public Optional<Vehicle> findByDisponibility(LocalDate debut, LocalDate fin) {
+        return vehicules.values().stream()
+                .filter(v -> v.estDisponible(debut, fin))
                 .findFirst();
     }
 
-    @Override
-    public List<Vehicle> findAll() {
-        List<Vehicle> allVehicles = new ArrayList<>(userRepository.getAllVehicles());
-        allVehicles.addAll(vehicules.values());
-        return allVehicles;
+    // Suppression by Id
+    public void deleteById(String id){
+        if(!vehicules.containsKey(id)){
+            throw new IllegalArgumentException("Véhicule introuvable");
+        }
+        vehicules.remove(id);
     }
 
-    @Override
-    public boolean existsById(String id) {
-        return vehicules.containsKey(id) || findById(id).isPresent();
-    }
-
-    @Override
-    public Vehicle save(Vehicle vehicle) {
-        vehicules.put(vehicle.getIdVehicule(), vehicle);
-        return vehicle;
-    }
-
-    @Override
-    public Map<String, Vehicle> getVehicules() {
-        return vehicules;
+    // Modifier un vehicule
+    public void modifVehicule(String id, Vehicle modif) {
+        if (!vehicules.containsKey(id)) {
+            throw new IllegalArgumentException("Véhicule introuvable");
+        }
+        vehicules.put(id, modif);
     }
 }

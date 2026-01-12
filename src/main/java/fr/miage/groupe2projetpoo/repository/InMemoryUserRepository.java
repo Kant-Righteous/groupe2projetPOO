@@ -73,28 +73,28 @@ public class InMemoryUserRepository implements UserRepository {
 
         // === 4. Créer les véhicules avec propriétaire et disponibilités ===
         // Véhicules d'Alice (AgentParticulier)
-        Voiture voiture1 = new Voiture("1", "Voiture", "Renault", "Bleu", "Clio", "Paris", true, 45.0,
-                "alice@test.com", new ArrayList<>(disponibilites30Jours));
-        Voiture voiture2 = new Voiture("2", "Voiture", "Peugeot", "Noir", "308", "Lyon", true, 55.0,
-                "alice@test.com", new ArrayList<>(disponibilites14Jours));
+        Voiture voiture1 = new Voiture("1", "Voiture", "Renault", "Bleu", "Clio", "Paris", 45.0,
+                "alice@test.com");
+        Voiture voiture2 = new Voiture("2", "Voiture", "Peugeot", "Noir", "308", "Lyon", 55.0,
+                "alice@test.com");
 
         // Véhicules de Bob (AgentParticulier)
-        Voiture voiture3 = new Voiture("3", "Voiture", "BMW", "Blanc", "Serie 3", "Marseille", true, 85.0,
-                "bob@test.com", new ArrayList<>(disponibilites30Jours));
-        Moto moto1 = new Moto("4", "Moto", "Yamaha", "Rouge", "MT-07", "Nice", true, 60.0,
-                "bob@test.com", new ArrayList<>(disponibilitesWeekend));
+        Voiture voiture3 = new Voiture("3", "Voiture", "BMW", "Blanc", "Serie 3", "Marseille", 85.0,
+                "bob@test.com");
+        Moto moto1 = new Moto("4", "Moto", "Yamaha", "Rouge", "MT-07", "Nice", 60.0,
+                "bob@test.com");
 
         // Véhicules de Durand SA (AgentProfessionnel)
-        Voiture voiture4 = new Voiture("5", "Voiture", "Mercedes", "Gris", "Classe A", "Paris", true, 90.0,
-                "enterprise1@test.com", new ArrayList<>(disponibilites30Jours));
-        Camion camion1 = new Camion("6", "Camion", "Renault", "Blanc", "Master", "Paris", true, 120.0,
-                "enterprise1@test.com", new ArrayList<>(disponibilites14Jours));
-        Camion camion2 = new Camion("7", "Camion", "Mercedes", "Jaune", "Sprinter", "Lyon", true, 135.0,
-                "enterprise1@test.com", new ArrayList<>(disponibilites30Jours));
+        Voiture voiture4 = new Voiture("5", "Voiture", "Mercedes", "Gris", "Classe A", "Paris", 90.0,
+                "enterprise1@test.com");
+        Camion camion1 = new Camion("6", "Camion", "Renault", "Blanc", "Master", "Paris", 120.0,
+                "enterprise1@test.com");
+        Camion camion2 = new Camion("7", "Camion", "Mercedes", "Jaune", "Sprinter", "Lyon", 135.0,
+                "enterprise1@test.com");
 
         // Véhicules de Moreau SARL (AgentProfessionnel)
-        Moto moto2 = new Moto("8", "Moto", "Honda", "Noir", "CB650R", "Bordeaux", true, 65.0,
-                "bob@test.com", new ArrayList<>(disponibilites30Jours));
+        Moto moto2 = new Moto("8", "Moto", "Honda", "Noir", "CB650R", "Bordeaux", 65.0,
+                "bob@test.com");
 
         allVehicles.addAll(Arrays.asList(voiture1, voiture2, voiture3, voiture4, moto1, moto2, camion1, camion2));
 
@@ -205,8 +205,23 @@ public class InMemoryUserRepository implements UserRepository {
         return new ArrayList<>(allContracts);
     }
 
+    @Override
     public List<Assurance> getAllAssurances() {
         return new ArrayList<>(allAssurances);
+    }
+
+    @Override
+    public Optional<Assurance> findAssuranceById(int id) {
+        return allAssurances.stream()
+                .filter(a -> a.getIdA() == id)
+                .findFirst();
+    }
+
+    @Override
+    public Optional<Vehicle> findVehicleById(String id) {
+        return allVehicles.stream()
+                .filter(v -> v.getIdVehicule().equals(id))
+                .findFirst();
     }
 
     public List<Utilisateur> getAllUsers() {

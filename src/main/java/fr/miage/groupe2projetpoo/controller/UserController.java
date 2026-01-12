@@ -1,6 +1,8 @@
 package fr.miage.groupe2projetpoo.controller;
 
 import fr.miage.groupe2projetpoo.entity.location.RentalContract;
+import fr.miage.groupe2projetpoo.entity.utilisateur.Agent;
+import fr.miage.groupe2projetpoo.entity.utilisateur.AgentProfessionnel;
 import fr.miage.groupe2projetpoo.entity.utilisateur.Role;
 import fr.miage.groupe2projetpoo.entity.utilisateur.Utilisateur;
 import fr.miage.groupe2projetpoo.entity.vehicule.Vehicle;
@@ -91,7 +93,7 @@ public class UserController {
             map.put("modele", v.getModeleVehicule());
             map.put("couleur", v.getCouleurVehicule());
             map.put("ville", v.getVilleVehicule());
-            map.put("disponible", v.getEstDisponible());
+            // map.put("disponible", v.getEstDisponible());
             map.put("prixJour", v.getPrixVehiculeParJour());
             return map;
         }).toList();
@@ -150,5 +152,39 @@ public class UserController {
                 "email", email,
                 "count", contractList.size(),
                 "contracts", contractList));
+    }
+
+    /**
+     * Récupérer la liste des agents (public pour les visiteurs) - GET
+     * /api/users/agents
+     */
+    @GetMapping("/agents")
+    public ResponseEntity<Map<String, Object>> getAllAgents() {
+        List<Agent> agents = userService.getAllAgents();
+
+        // Transformer les agents en Map avec les informations publiques seulement
+        List<Map<String, Object>> agentList = agents.stream().map(agent -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("nom", agent.getNom());
+            map.put("prenom", agent.getPrenom());
+            map.put("email", agent.getEmail());
+            map.put("tel", agent.getTel());
+            map.put("role", agent.getRole().toString());
+            map.put("noteMoyenne", agent.calculerNoteMoyenne());
+            map.put("nombreVehicules", agent.getVehicleList() != null ? agent.getVehicleList().size() : 0);
+
+            // Ajouter les informations spécifiques pour AgentProfessionnel
+            if (agent instanceof AgentProfessionnel) {
+                AgentProfessionnel agentPro = (AgentProfessionnel) agent;
+                map.put("nomEntreprise", agentPro.getNomEntreprise());
+            }
+
+            return map;
+        }).toList();
+
+        return ResponseEntity.ok(Map.of(
+                "success", true,
+                "count", agentList.size(),
+                "agents", agentList));
     }
 }
