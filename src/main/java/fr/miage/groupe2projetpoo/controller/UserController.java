@@ -3,6 +3,7 @@ package fr.miage.groupe2projetpoo.controller;
 import fr.miage.groupe2projetpoo.entity.location.RentalContract;
 import fr.miage.groupe2projetpoo.entity.utilisateur.Agent;
 import fr.miage.groupe2projetpoo.entity.utilisateur.AgentProfessionnel;
+import fr.miage.groupe2projetpoo.entity.utilisateur.Loueur;
 import fr.miage.groupe2projetpoo.entity.utilisateur.Role;
 import fr.miage.groupe2projetpoo.entity.utilisateur.Utilisateur;
 import fr.miage.groupe2projetpoo.entity.vehicule.Vehicle;
@@ -186,5 +187,54 @@ public class UserController {
                 "success", true,
                 "count", agentList.size(),
                 "agents", agentList));
+    }
+
+    /**
+     * Mettre à jour les informations d'un utilisateur (Loueur ou Agent) - PUT
+     * /api/users/{email}/update
+     * 
+     * Champs modifiables:
+     * - Communs: nom, prenom, tel, password
+     * - Loueur: iban, nomSociete
+     * - AgentProfessionnel: nomEntreprise, siret
+     */
+    @PutMapping("/{email}/update")
+    public ResponseEntity<Map<String, Object>> updateUserInfo(
+            @PathVariable String email,
+            @RequestBody Map<String, String> updates) {
+
+        Utilisateur updatedUser = userService.updateUserInfo(email, updates);
+
+        if (updatedUser != null) {
+            Map<String, Object> userInfo = new HashMap<>();
+            userInfo.put("email", updatedUser.getEmail());
+            userInfo.put("nom", updatedUser.getNom());
+            userInfo.put("prenom", updatedUser.getPrenom());
+            userInfo.put("tel", updatedUser.getTel());
+            userInfo.put("role", updatedUser.getRole().toString());
+
+            // Ajouter les informations spécifiques au Loueur
+            if (updatedUser instanceof Loueur) {
+                Loueur loueur = (Loueur) updatedUser;
+                userInfo.put("iban", loueur.getIban());
+                userInfo.put("nomSociete", loueur.getNomSociete());
+            }
+
+            // Ajouter les informations spécifiques à l'AgentProfessionnel
+            if (updatedUser instanceof AgentProfessionnel) {
+                AgentProfessionnel agentPro = (AgentProfessionnel) updatedUser;
+                userInfo.put("nomEntreprise", agentPro.getNomEntreprise());
+                userInfo.put("siret", agentPro.getSiret());
+            }
+
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "Informations mises à jour avec succès",
+                    "user", userInfo));
+        } else {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", "Échec de la mise à jour. Utilisateur non trouvé ou non autorisé."));
+        }
     }
 }
