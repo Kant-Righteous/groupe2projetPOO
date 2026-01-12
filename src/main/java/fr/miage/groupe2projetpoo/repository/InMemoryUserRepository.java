@@ -205,8 +205,23 @@ public class InMemoryUserRepository implements UserRepository {
         return new ArrayList<>(allContracts);
     }
 
+    @Override
     public List<Assurance> getAllAssurances() {
         return new ArrayList<>(allAssurances);
+    }
+
+    @Override
+    public Optional<Assurance> findAssuranceById(int id) {
+        return allAssurances.stream()
+                .filter(a -> a.getIdA() == id)
+                .findFirst();
+    }
+
+    @Override
+    public Optional<Vehicle> findVehicleById(int id) {
+        return allVehicles.stream()
+                .filter(v -> v.getIdVehicule() == id)
+                .findFirst();
     }
 
     public List<Utilisateur> getAllUsers() {

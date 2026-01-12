@@ -13,4 +13,11 @@ public interface UserRepository {
     public abstract Optional<Utilisateur> findByEmail(String email);
 
     public abstract boolean existsByEmail(String email);
+
+    // Méthodes pour les assurances
+    public abstract java.util.List<fr.miage.groupe2projetpoo.entity.assurance.Assurance> getAllAssurances();
+
+    public abstract java.util.Optional<fr.miage.groupe2projetpoo.entity.assurance.Assurance> findAssuranceById(int id);
+
+    public abstract java.util.Optional<fr.miage.groupe2projetpoo.entity.vehicule.Vehicle> findVehicleById(int id);
 }
