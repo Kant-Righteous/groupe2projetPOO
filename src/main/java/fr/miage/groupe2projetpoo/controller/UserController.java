@@ -91,7 +91,7 @@ public class UserController {
             map.put("modele", v.getModeleVehicule());
             map.put("couleur", v.getCouleurVehicule());
             map.put("ville", v.getVilleVehicule());
-            map.put("disponible", v.getEstDisponible());
+            // map.put("disponible", v.getEstDisponible());
             map.put("prixJour", v.getPrixVehiculeParJour());
             return map;
         }).toList();
