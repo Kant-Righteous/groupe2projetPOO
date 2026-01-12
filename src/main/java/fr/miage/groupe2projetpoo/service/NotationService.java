@@ -13,6 +13,7 @@ import fr.miage.groupe2projetpoo.repository.UserRepository;
 import fr.miage.groupe2projetpoo.repository.VehicleRepository;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -196,5 +197,23 @@ public class NotationService {
             }
         }
         return 0.0;
+    }
+
+    /**
+     * Répondre à une notation (Droit de réponse)
+     */
+    public boolean respondToNotation(int notationId, String responderEmail, String reponse) {
+        Optional<Notation> noteOpt = notationRepository.findById(notationId);
+        if (noteOpt.isPresent()) {
+            Notation note = noteOpt.get();
+            // Vérifier que c'est bien la cible de la note qui répond
+            if (note.getTargetEmail().equals(responderEmail)) {
+                note.setReponse(reponse);
+                note.setDateReponse(LocalDateTime.now());
+                notationRepository.save(note);
+                return true;
+            }
+        }
+        return false;
     }
 }

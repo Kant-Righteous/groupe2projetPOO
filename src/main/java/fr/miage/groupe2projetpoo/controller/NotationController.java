@@ -220,4 +220,20 @@ public class NotationController {
             return ResponseEntity.notFound().build();
         }
     }
+
+    /**
+     * Répondre à une notation - PUT /api/notations/{id}/reponse
+     */
+    @PutMapping("/{id}/reponse")
+    public ResponseEntity<Map<String, Object>> respondToNotation(@PathVariable int id, @RequestBody Map<String, String> request) {
+        String responderEmail = request.get("responderEmail");
+        String reponse = request.get("reponse");
+
+        boolean success = notationService.respondToNotation(id, responderEmail, reponse);
+        if (success) {
+            return ResponseEntity.ok(Map.of("success", true, "message", "Réponse enregistrée"));
+        } else {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Erreur : email incorrect ou ID introuvable"));
+        }
+    }
 }
