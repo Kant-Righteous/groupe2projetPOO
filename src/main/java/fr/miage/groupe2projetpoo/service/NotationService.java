@@ -3,11 +3,14 @@ package fr.miage.groupe2projetpoo.service;
 import fr.miage.groupe2projetpoo.entity.notation.Notation;
 import fr.miage.groupe2projetpoo.entity.notation.NoteAgent;
 import fr.miage.groupe2projetpoo.entity.notation.NoteLoueur;
+import fr.miage.groupe2projetpoo.entity.notation.NoteVehicule;
 import fr.miage.groupe2projetpoo.entity.utilisateur.Agent;
 import fr.miage.groupe2projetpoo.entity.utilisateur.Loueur;
 import fr.miage.groupe2projetpoo.entity.utilisateur.Utilisateur;
+import fr.miage.groupe2projetpoo.entity.vehicule.Vehicle;
 import fr.miage.groupe2projetpoo.repository.NotationRepository;
 import fr.miage.groupe2projetpoo.repository.UserRepository;
+import fr.miage.groupe2projetpoo.repository.VehicleRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -21,10 +24,12 @@ public class NotationService {
 
     private final NotationRepository notationRepository;
     private final UserRepository userRepository;
+    private final VehicleRepository vehicleRepository;
 
-    public NotationService(NotationRepository notationRepository, UserRepository userRepository) {
+    public NotationService(NotationRepository notationRepository, UserRepository userRepository, VehicleRepository vehicleRepository) {
         this.notationRepository = notationRepository;
         this.userRepository = userRepository;
+        this.vehicleRepository = vehicleRepository;
     }
 
     /**
@@ -38,6 +43,21 @@ public class NotationService {
             note = (NoteAgent) notationRepository.save(note);
             agent.ajouterNotation(note);
             return note;
+        }
+        return null;
+    }
+
+    /**
+     * Modifier une note d'un agent
+     */
+    public NoteAgent updateNoteAgent(int id, String commentaire, double ponctualite, double communication) {
+        Optional<Notation> noteOpt = notationRepository.findById(id);
+        if (noteOpt.isPresent() && noteOpt.get() instanceof NoteAgent) {
+            NoteAgent note = (NoteAgent) noteOpt.get();
+            note.setCommentaire(commentaire);
+            note.setPonctualite(ponctualite);
+            note.setCommunication(communication);
+            return (NoteAgent) notationRepository.save(note);
         }
         return null;
     }
@@ -58,6 +78,51 @@ public class NotationService {
     }
 
     /**
+     * Modifier une note d'un loueur
+     */
+    public NoteLoueur updateNoteLoueur(int id, String commentaire, double respect) {
+        Optional<Notation> noteOpt = notationRepository.findById(id);
+        if (noteOpt.isPresent() && noteOpt.get() instanceof NoteLoueur) {
+            NoteLoueur note = (NoteLoueur) noteOpt.get();
+            note.setCommentaire(commentaire);
+            note.setRespect(respect);
+            return (NoteLoueur) notationRepository.save(note);
+        }
+        return null;
+    }
+
+    /**
+     * Ajouter une note à un véhicule
+     */
+    public NoteVehicule addNoteVehicule(String authorEmail, int vehicleId, String commentaire, double confort, double proprete) {
+        Optional<Vehicle> vehicleOpt = vehicleRepository.findById(vehicleId);
+        if (vehicleOpt.isPresent()) {
+            Vehicle vehicle = vehicleOpt.get();
+            // On utilise l'ID du véhicule comme targetEmail pour la cohérence de la structure Notation
+            NoteVehicule note = new NoteVehicule(0, authorEmail, String.valueOf(vehicleId), commentaire, confort, proprete);
+            note = (NoteVehicule) notationRepository.save(note);
+            vehicle.ajouterNotation(note);
+            return note;
+        }
+        return null;
+    }
+
+    /**
+     * Modifier une note d'un véhicule
+     */
+    public NoteVehicule updateNoteVehicule(int id, String commentaire, double confort, double proprete) {
+        Optional<Notation> noteOpt = notationRepository.findById(id);
+        if (noteOpt.isPresent() && noteOpt.get() instanceof NoteVehicule) {
+            NoteVehicule note = (NoteVehicule) noteOpt.get();
+            note.setCommentaire(commentaire);
+            note.setConfort(confort);
+            note.setProprete(proprete);
+            return (NoteVehicule) notationRepository.save(note);
+        }
+        return null;
+    }
+
+    /**
      * Consulter les notes d'un utilisateur
      */
     public List<Notation> getNotationsForUser(String email) {
@@ -73,7 +138,7 @@ public class NotationService {
             Notation note = noteOpt.get();
             String targetEmail = note.getTargetEmail();
             
-            // Retirer la note de la liste de l'utilisateur
+            // Retirer la note de la liste de l'utilisateur ou du véhicule
             Optional<Utilisateur> userOpt = userRepository.findByEmail(targetEmail);
             if (userOpt.isPresent()) {
                 Utilisateur user = userOpt.get();
@@ -82,12 +147,34 @@ public class NotationService {
                 } else if (user instanceof Loueur && note instanceof NoteLoueur) {
                     ((Loueur) user).getNotations().remove((NoteLoueur) note);
                 }
+            } else {
+                // Si ce n'est pas un utilisateur, c'est peut-être un véhicule
+                try {
+                    int vehicleId = Integer.parseInt(targetEmail);
+                    Optional<Vehicle> vehicleOpt = vehicleRepository.findById(vehicleId);
+                    if (vehicleOpt.isPresent() && note instanceof NoteVehicule) {
+                        vehicleOpt.get().getNotations().remove((NoteVehicule) note);
+                    }
+                } catch (NumberFormatException e) {
+                    // Pas un ID de véhicule valide
+                }
             }
             
             notationRepository.deleteById(id);
             return true;
         }
         return false;
+    }
+
+    /**
+     * Calculer la note globale d'un véhicule
+     */
+    public double getAverageRatingForVehicle(int vehicleId) {
+        Optional<Vehicle> vehicleOpt = vehicleRepository.findById(vehicleId);
+        if (vehicleOpt.isPresent()) {
+            return vehicleOpt.get().calculerNoteMoyenne();
+        }
+        return 0.0;
     }
 
     /**
