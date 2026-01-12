@@ -26,7 +26,8 @@ public class NotationService {
     private final UserRepository userRepository;
     private final VehicleRepository vehicleRepository;
 
-    public NotationService(NotationRepository notationRepository, UserRepository userRepository, VehicleRepository vehicleRepository) {
+    public NotationService(NotationRepository notationRepository, UserRepository userRepository,
+            VehicleRepository vehicleRepository) {
         this.notationRepository = notationRepository;
         this.userRepository = userRepository;
         this.vehicleRepository = vehicleRepository;
@@ -35,7 +36,8 @@ public class NotationService {
     /**
      * Ajouter une note à un agent
      */
-    public NoteAgent addNoteAgent(String authorEmail, String targetEmail, String commentaire, double ponctualite, double communication) {
+    public NoteAgent addNoteAgent(String authorEmail, String targetEmail, String commentaire, double ponctualite,
+            double communication) {
         Optional<Utilisateur> userOpt = userRepository.findByEmail(targetEmail);
         if (userOpt.isPresent() && userOpt.get() instanceof Agent) {
             Agent agent = (Agent) userOpt.get();
@@ -94,12 +96,14 @@ public class NotationService {
     /**
      * Ajouter une note à un véhicule
      */
-    public NoteVehicule addNoteVehicule(String authorEmail, int vehicleId, String commentaire, double confort, double proprete) {
+    public NoteVehicule addNoteVehicule(String authorEmail, String vehicleId, String commentaire, double confort,
+            double proprete) {
         Optional<Vehicle> vehicleOpt = vehicleRepository.findById(vehicleId);
         if (vehicleOpt.isPresent()) {
             Vehicle vehicle = vehicleOpt.get();
-            // On utilise l'ID du véhicule comme targetEmail pour la cohérence de la structure Notation
-            NoteVehicule note = new NoteVehicule(0, authorEmail, String.valueOf(vehicleId), commentaire, confort, proprete);
+            // On utilise l'ID du véhicule comme targetEmail pour la cohérence de la
+            // structure Notation
+            NoteVehicule note = new NoteVehicule(0, authorEmail, vehicleId, commentaire, confort, proprete);
             note = (NoteVehicule) notationRepository.save(note);
             vehicle.ajouterNotation(note);
             return note;
@@ -137,7 +141,7 @@ public class NotationService {
         if (noteOpt.isPresent()) {
             Notation note = noteOpt.get();
             String targetEmail = note.getTargetEmail();
-            
+
             // Retirer la note de la liste de l'utilisateur ou du véhicule
             Optional<Utilisateur> userOpt = userRepository.findByEmail(targetEmail);
             if (userOpt.isPresent()) {
@@ -150,7 +154,7 @@ public class NotationService {
             } else {
                 // Si ce n'est pas un utilisateur, c'est peut-être un véhicule
                 try {
-                    int vehicleId = Integer.parseInt(targetEmail);
+                    String vehicleId = targetEmail;
                     Optional<Vehicle> vehicleOpt = vehicleRepository.findById(vehicleId);
                     if (vehicleOpt.isPresent() && note instanceof NoteVehicule) {
                         vehicleOpt.get().getNotations().remove((NoteVehicule) note);
@@ -159,7 +163,7 @@ public class NotationService {
                     // Pas un ID de véhicule valide
                 }
             }
-            
+
             notationRepository.deleteById(id);
             return true;
         }
@@ -169,7 +173,7 @@ public class NotationService {
     /**
      * Calculer la note globale d'un véhicule
      */
-    public double getAverageRatingForVehicle(int vehicleId) {
+    public double getAverageRatingForVehicle(String vehicleId) {
         Optional<Vehicle> vehicleOpt = vehicleRepository.findById(vehicleId);
         if (vehicleOpt.isPresent()) {
             return vehicleOpt.get().calculerNoteMoyenne();

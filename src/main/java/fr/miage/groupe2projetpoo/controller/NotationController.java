@@ -36,12 +36,15 @@ public class NotationController {
             double ponctualite = Double.parseDouble(request.get("ponctualite").toString());
             double communication = Double.parseDouble(request.get("communication").toString());
 
-            NoteAgent note = notationService.addNoteAgent(authorEmail, targetEmail, commentaire, ponctualite, communication);
+            NoteAgent note = notationService.addNoteAgent(authorEmail, targetEmail, commentaire, ponctualite,
+                    communication);
 
             if (note != null) {
-                return ResponseEntity.ok(Map.of("success", true, "message", "Note ajoutée à l'agent", "id", note.getId()));
+                return ResponseEntity
+                        .ok(Map.of("success", true, "message", "Note ajoutée à l'agent", "id", note.getId()));
             } else {
-                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Erreur : agent introuvable"));
+                return ResponseEntity.badRequest()
+                        .body(Map.of("success", false, "message", "Erreur : agent introuvable"));
             }
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Erreur format de données"));
@@ -52,7 +55,8 @@ public class NotationController {
      * Modifier une note d'un agent - PUT /api/notations/agent/{id}
      */
     @PutMapping("/agent/{id}")
-    public ResponseEntity<Map<String, Object>> updateNoteAgent(@PathVariable int id, @RequestBody Map<String, Object> request) {
+    public ResponseEntity<Map<String, Object>> updateNoteAgent(@PathVariable int id,
+            @RequestBody Map<String, Object> request) {
         try {
             String commentaire = (String) request.get("commentaire");
             double ponctualite = Double.parseDouble(request.get("ponctualite").toString());
@@ -61,7 +65,8 @@ public class NotationController {
             NoteAgent note = notationService.updateNoteAgent(id, commentaire, ponctualite, communication);
 
             if (note != null) {
-                return ResponseEntity.ok(Map.of("success", true, "message", "Note d'agent modifiée", "id", note.getId()));
+                return ResponseEntity
+                        .ok(Map.of("success", true, "message", "Note d'agent modifiée", "id", note.getId()));
             } else {
                 return ResponseEntity.notFound().build();
             }
@@ -84,9 +89,11 @@ public class NotationController {
             NoteLoueur note = notationService.addNoteLoueur(authorEmail, targetEmail, commentaire, respect);
 
             if (note != null) {
-                return ResponseEntity.ok(Map.of("success", true, "message", "Note ajoutée au loueur", "id", note.getId()));
+                return ResponseEntity
+                        .ok(Map.of("success", true, "message", "Note ajoutée au loueur", "id", note.getId()));
             } else {
-                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Erreur : loueur introuvable"));
+                return ResponseEntity.badRequest()
+                        .body(Map.of("success", false, "message", "Erreur : loueur introuvable"));
             }
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Erreur format de données"));
@@ -97,7 +104,8 @@ public class NotationController {
      * Modifier une note d'un loueur - PUT /api/notations/loueur/{id}
      */
     @PutMapping("/loueur/{id}")
-    public ResponseEntity<Map<String, Object>> updateNoteLoueur(@PathVariable int id, @RequestBody Map<String, Object> request) {
+    public ResponseEntity<Map<String, Object>> updateNoteLoueur(@PathVariable int id,
+            @RequestBody Map<String, Object> request) {
         try {
             String commentaire = (String) request.get("commentaire");
             double respect = Double.parseDouble(request.get("respect").toString());
@@ -105,7 +113,8 @@ public class NotationController {
             NoteLoueur note = notationService.updateNoteLoueur(id, commentaire, respect);
 
             if (note != null) {
-                return ResponseEntity.ok(Map.of("success", true, "message", "Note de loueur modifiée", "id", note.getId()));
+                return ResponseEntity
+                        .ok(Map.of("success", true, "message", "Note de loueur modifiée", "id", note.getId()));
             } else {
                 return ResponseEntity.notFound().build();
             }
@@ -121,7 +130,7 @@ public class NotationController {
     public ResponseEntity<Map<String, Object>> addNoteVehicule(@RequestBody Map<String, Object> request) {
         try {
             String authorEmail = (String) request.get("authorEmail");
-            int vehicleId = Integer.parseInt(request.get("vehicleId").toString());
+            String vehicleId = request.get("vehicleId").toString();
             String commentaire = (String) request.get("commentaire");
             double confort = Double.parseDouble(request.get("confort").toString());
             double proprete = Double.parseDouble(request.get("proprete").toString());
@@ -129,9 +138,11 @@ public class NotationController {
             NoteVehicule note = notationService.addNoteVehicule(authorEmail, vehicleId, commentaire, confort, proprete);
 
             if (note != null) {
-                return ResponseEntity.ok(Map.of("success", true, "message", "Note ajoutée au véhicule", "id", note.getId()));
+                return ResponseEntity
+                        .ok(Map.of("success", true, "message", "Note ajoutée au véhicule", "id", note.getId()));
             } else {
-                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Erreur : véhicule introuvable"));
+                return ResponseEntity.badRequest()
+                        .body(Map.of("success", false, "message", "Erreur : véhicule introuvable"));
             }
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Erreur format de données"));
@@ -142,7 +153,8 @@ public class NotationController {
      * Modifier une note d'un véhicule - PUT /api/notations/vehicle/{id}
      */
     @PutMapping("/vehicle/{id}")
-    public ResponseEntity<Map<String, Object>> updateNoteVehicule(@PathVariable int id, @RequestBody Map<String, Object> request) {
+    public ResponseEntity<Map<String, Object>> updateNoteVehicule(@PathVariable int id,
+            @RequestBody Map<String, Object> request) {
         try {
             String commentaire = (String) request.get("commentaire");
             double confort = Double.parseDouble(request.get("confort").toString());
@@ -151,7 +163,8 @@ public class NotationController {
             NoteVehicule note = notationService.updateNoteVehicule(id, commentaire, confort, proprete);
 
             if (note != null) {
-                return ResponseEntity.ok(Map.of("success", true, "message", "Note de véhicule modifiée", "id", note.getId()));
+                return ResponseEntity
+                        .ok(Map.of("success", true, "message", "Note de véhicule modifiée", "id", note.getId()));
             } else {
                 return ResponseEntity.notFound().build();
             }
@@ -186,10 +199,11 @@ public class NotationController {
     }
 
     /**
-     * Consulter la note moyenne d'un véhicule - GET /api/notations/vehicle/{id}/average
+     * Consulter la note moyenne d'un véhicule - GET
+     * /api/notations/vehicle/{id}/average
      */
     @GetMapping("/vehicle/{id}/average")
-    public ResponseEntity<Map<String, Object>> getAverageRatingForVehicle(@PathVariable int id) {
+    public ResponseEntity<Map<String, Object>> getAverageRatingForVehicle(@PathVariable String id) {
         double average = notationService.getAverageRatingForVehicle(id);
         return ResponseEntity.ok(Map.of("vehicleId", id, "average", average));
     }
