@@ -7,6 +7,7 @@ import fr.miage.groupe2projetpoo.entity.vehicule.Vehicle;
 
 import java.time.LocalDate;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -27,6 +28,14 @@ public class VehicleRepository {
     public Optional<Vehicle> findById(String id) {
         return Optional.ofNullable(vehicules.get(id));
     }
+
+    // Chercher par ville
+    public List<Vehicle> findByVille(String ville) {
+        return vehicules.values().stream()
+                .filter(v -> v.getVilleVehicule().equalsIgnoreCase(ville))
+                .toList();
+    }
+
     // Verifier l'existance de l'ID
     public boolean existsById(String id) {
         return vehicules.containsKey(id);
@@ -39,5 +48,19 @@ public class VehicleRepository {
                 .findFirst();
     }
 
+    // Suppression by Id
+    public void deleteById(String id){
+        if(!vehicules.containsKey(id)){
+            throw new IllegalArgumentException("Véhicule introuvable");
+        }
+        vehicules.remove(id);
+    }
 
+    // Modifier un vehicule
+    public void modifVehicule(String id, Vehicle modif) {
+        if (!vehicules.containsKey(id)) {
+            throw new IllegalArgumentException("Véhicule introuvable");
+        }
+        vehicules.put(id, modif);
+    }
 }

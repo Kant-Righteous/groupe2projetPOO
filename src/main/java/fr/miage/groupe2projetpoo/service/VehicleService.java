@@ -7,8 +7,10 @@ import fr.miage.groupe2projetpoo.repository.UserRepository;
 import fr.miage.groupe2projetpoo.repository.VehicleRepository;
 import org.springframework.stereotype.Service;
 
+import java.security.Key;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -19,49 +21,103 @@ public class VehicleService {
     private final UserRepository userRepository;
     private List<LocalDate> listeDisponibilites;
 
-    //Constructeur
+    // Constructeur
     public VehicleService(VehicleRepository vehiculeRepository, UserRepository userRepository) {
         this.vehiculeRepository = vehiculeRepository;
         this.userRepository = userRepository;
     }
 
-    //Methodes
+    // Methodes
     /**
      * ajout d'un vehicule
      */
     public Vehicle addVehicule(String idVehicule, String typeVehicule, String marqueVehicule,
-                            String couleurVehicule, String modeleVehicule, String villeVehicules, boolean estDisponible, double prixVehiculeParJour, String proprietaire) {
+            String couleurVehicule, String modeleVehicule, String villeVehicules, double prixVehiculeParJour,
+            String proprietaire) {
 
         // Existance de vehicule
         if (vehiculeRepository.existsById(idVehicule)) {
-            return null;
+            throw new IllegalArgumentException("Ce véhicule existe déjà");
         }
         Optional<Utilisateur> userOpt = userRepository.findByEmail(proprietaire);
-
         if (userOpt.isEmpty()) {
-            return null;
+            throw new IllegalArgumentException("Ce propriétaire n'existe pas");
         }
         // Creation d'une instance de vehicule
         Vehicle vehicule;
-        vehicule = new Voiture(idVehicule, typeVehicule, marqueVehicule, couleurVehicule,modeleVehicule,villeVehicules, estDisponible,prixVehiculeParJour,proprietaire,null);
+        vehicule = new Voiture(idVehicule, typeVehicule, marqueVehicule, couleurVehicule, modeleVehicule,
+                villeVehicules, prixVehiculeParJour, proprietaire);
         return vehiculeRepository.save(vehicule);
     }
 
     /**
-     * ajout de la liste des disponibilités
+     * Mise ajour de la liste des disponibilités
      */
-    public List<LocalDate> getListeDisponibilites() {
-        return listeDisponibilites;
-    }
-    public void setListeDisponibilites(List<LocalDate> listeDisponibilites) {
-        this.listeDisponibilites = listeDisponibilites;
+    public void upDateDisponibilites(String id, Map<String, Boolean> dispoRquest) {
+        Vehicle v = vehiculeRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Véhicule introuvable"));
+        // Entry permet de recupere key + value
+        for (Map.Entry<String, Boolean> keyVal : dispoRquest.entrySet()) {
+            LocalDate date = LocalDate.parse(keyVal.getKey());
+            Boolean dispo = keyVal.getValue();
+            v.getDisponibilites().put(date, dispo);
+        }
     }
 
     /**
      * suppression d'un vehicule
      */
-    public boolean suppVehicule(String id) {
-        vehiculeRepository.getVehicules().remove(id);
-        return true;
+    public void deleteVehicule(String id) {
+        if (vehiculeRepository.findById(id).isEmpty()) {
+            throw new IllegalArgumentException("Véhicule introuvable!");
+        }
+        ;
+        vehiculeRepository.deleteById(id);
+    }
+
+    /**
+     * get vehicle infos
+     */
+    public Vehicle getVehiculeByID(String id) {
+        Vehicle v = vehiculeRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Véhicule introuvable"));
+        return v;
+    }
+
+    // recuperer les vehicules par ville
+    public List<Vehicle> getVehiculeByVille(String ville) {
+        List<Vehicle> listV = vehiculeRepository.findByVille(ville);
+        if (listV.isEmpty()) {
+            throw new IllegalArgumentException("Pas de véhicules dans cette ville");
+        }
+        return listV;
+    }
+
+    /**
+     * @param id
+     * @param deb
+     * @param fin
+     * @return true si le vehicule est disponible entre date debut et date fin,
+     *         false sinon
+     */
+    public boolean verifierDisponibilite(String id, LocalDate deb, LocalDate fin) {
+        Vehicle v = getVehiculeByID(id);
+        return v.estDisponible(deb, fin);
+    }
+
+    public Vehicle updateVehicule(String id, Vehicle newData) {
+        Vehicle vehicule = vehiculeRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Véhicule introuvable!"));
+        // Mise à jour des champs
+        //vehicule.setIdVehicule(newData.getIdVehicule());
+        vehicule.setTypeVehicule(newData.getTypeVehicule());
+        vehicule.setMarqueVehicule(newData.getMarqueVehicule());
+        vehicule.setModeleVehicule(newData.getModeleVehicule());
+        vehicule.setCouleurVehicule(newData.getCouleurVehicule());
+        vehicule.setVilleVehicule(newData.getVilleVehicule());
+        vehicule.setPrixVehiculeParJour(newData.getPrixVehiculeParJour());
+        vehicule.setProprietaire(newData.getProprietaire());
+        vehiculeRepository.modifVehicule(id, vehicule);
+        return vehicule;
     }
 }
