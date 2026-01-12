@@ -1,12 +1,12 @@
 package fr.miage.groupe2projetpoo.entity.vehicule;
 
+import fr.miage.groupe2projetpoo.entity.location.RentalContract;
 import fr.miage.groupe2projetpoo.entity.notation.NoteVehicule;
 import java.util.ArrayList;
 import java.util.List;
 
 import fr.miage.groupe2projetpoo.entity.utilisateur.Agent;
 import java.time.LocalDate;
-import java.util.List;
 
 public abstract class Vehicle {
     // Propriétés
@@ -22,6 +22,7 @@ public abstract class Vehicle {
     private double prixVehiculeParJour;
     private String Proprietaire;
     private List<LocalDate> listeDisponibilites;
+    private List<RentalContract> historiqueContrats = new ArrayList<>();
 
     // Constructeur
     public Vehicle(String idVehicule, String typeVehicule, String marqueVehicule,
@@ -82,6 +83,10 @@ public abstract class Vehicle {
 
     public List<LocalDate> getListeDisponibilites() {
         return listeDisponibilites;
+    }
+
+    public void setListeDisponibilites(List<LocalDate> listeDisponibilites) {
+        this.listeDisponibilites = listeDisponibilites;
     }
 
     // Setters
@@ -152,5 +157,14 @@ public abstract class Vehicle {
             somme += note.calculerNoteGlobale();
         }
         return somme / notations.size();
+    }
+
+    // === Gestion de l'historique des contrats ===
+    public List<RentalContract> getHistoriqueContrats() {
+        return historiqueContrats;
+    }
+
+    public void ajouterContrat(RentalContract contrat) {
+        this.historiqueContrats.add(contrat);
     }
 }
