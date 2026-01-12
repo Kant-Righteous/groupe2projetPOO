@@ -1,8 +1,11 @@
 package fr.miage.groupe2projetpoo.service;
 
 import fr.miage.groupe2projetpoo.entity.utilisateur.*;
+import fr.miage.groupe2projetpoo.entity.vehicule.TypeVehicule;
 import fr.miage.groupe2projetpoo.entity.vehicule.Vehicle;
 import fr.miage.groupe2projetpoo.entity.vehicule.Voiture;
+import fr.miage.groupe2projetpoo.entity.vehicule.Moto;
+import fr.miage.groupe2projetpoo.entity.vehicule.Camion;
 import fr.miage.groupe2projetpoo.repository.UserRepository;
 import fr.miage.groupe2projetpoo.repository.VehicleRepository;
 import org.springframework.stereotype.Service;
@@ -31,9 +34,9 @@ public class VehicleService {
     /**
      * ajout d'un vehicule
      */
-    public Vehicle addVehicule(String idVehicule, String typeVehicule, String marqueVehicule,
-            String couleurVehicule, String modeleVehicule, String villeVehicules, double prixVehiculeParJour,
-            String proprietaire) {
+    public Vehicle addVehicule(String idVehicule, TypeVehicule typeVehicule, String marqueVehicule,
+                               String couleurVehicule, String modeleVehicule, String villeVehicules, double prixVehiculeParJour,
+                               String proprietaire, boolean estEnPause) {
 
         // Existance de vehicule
         if (vehiculeRepository.existsById(idVehicule)) {
@@ -43,10 +46,18 @@ public class VehicleService {
         if (userOpt.isEmpty()) {
             throw new IllegalArgumentException("Ce propriétaire n'existe pas");
         }
+
         // Creation d'une instance de vehicule
         Vehicle vehicule;
-        vehicule = new Voiture(idVehicule, typeVehicule, marqueVehicule, couleurVehicule, modeleVehicule,
-                villeVehicules, prixVehiculeParJour, proprietaire);
+        switch (typeVehicule) {
+            case VOITURE -> vehicule = new Voiture(idVehicule, marqueVehicule, couleurVehicule, modeleVehicule,
+                        villeVehicules, prixVehiculeParJour, proprietaire, estEnPause);
+            case MOTO -> vehicule = new Moto(idVehicule, marqueVehicule, couleurVehicule, modeleVehicule,
+                    villeVehicules, prixVehiculeParJour, proprietaire, estEnPause);
+            case CAMION -> vehicule = new Camion(idVehicule, marqueVehicule, couleurVehicule, modeleVehicule,
+                    villeVehicules, prixVehiculeParJour, proprietaire, estEnPause);
+            default -> throw new IllegalArgumentException("Type de véhicule non supporté");
+        }
         return vehiculeRepository.save(vehicule);
     }
 
@@ -110,7 +121,7 @@ public class VehicleService {
                 .orElseThrow(() -> new IllegalArgumentException("Véhicule introuvable!"));
         // Mise à jour des champs
         //vehicule.setIdVehicule(newData.getIdVehicule());
-        vehicule.setTypeVehicule(newData.getTypeVehicule());
+        //vehicule.setTypeVehicule(newData.getTypeVehicule());
         vehicule.setMarqueVehicule(newData.getMarqueVehicule());
         vehicule.setModeleVehicule(newData.getModeleVehicule());
         vehicule.setCouleurVehicule(newData.getCouleurVehicule());

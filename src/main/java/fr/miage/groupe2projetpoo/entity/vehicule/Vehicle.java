@@ -14,29 +14,28 @@ import java.util.List;
 public abstract class Vehicle {
     // Propriétés
     private String idVehicule;
-    private String typeVehicule;
+    //private String typeVehicule;
     private String marqueVehicule;
     private String couleurVehicule;
     private String modeleVehicule;
     private String villeVehicule;
     private List<NoteVehicule> notations = new ArrayList<>();
-    //private boolean estDisponible;
+    private boolean estEnpause;
     private double prixVehiculeParJour;
     private String Proprietaire;
     private Map<LocalDate,Boolean> disponibilites = new HashMap<>();
     private List<RentalContract> historiqueContrats = new ArrayList<>();
 
     // Constructeur
-    public Vehicle(String idVehicule, String typeVehicule, String marqueVehicule,
+    public Vehicle(String idVehicule, String marqueVehicule,
             String couleurVehicule, String modeleVehicule, String villeVehicule,
-            double prixVehiculeJour, String proprietaire) {
+            double prixVehiculeJour, String proprietaire,Boolean estEnpause) {
         this.idVehicule = idVehicule;
-        this.typeVehicule = typeVehicule;
         this.marqueVehicule = marqueVehicule;
         this.couleurVehicule = couleurVehicule;
         this.modeleVehicule = modeleVehicule;
         this.villeVehicule = villeVehicule;
-        //this.estDisponible = estDisponible;
+        this.estEnpause = estEnpause;
         this.prixVehiculeParJour = prixVehiculeJour;
         this.Proprietaire = proprietaire;
         initiliserDisponibilites();
@@ -59,9 +58,9 @@ public abstract class Vehicle {
         return idVehicule;
     }
 
-    public String getTypeVehicule() {
+    /*public String getTypeVehicule() {
         return typeVehicule;
-    }
+    }*/
 
     public String getMarqueVehicule() {
         return marqueVehicule;
@@ -99,15 +98,18 @@ public abstract class Vehicle {
         return disponibilites;
     }
 
-    // Setters
+    public boolean getEstEnpause() {
+        return estEnpause;
+    }
+
+    /********************** SETTER **********************/
     public void setIdVehicule(String idV) {
         this.idVehicule = idV;
     }
 
-    public void setTypeVehicule(String type) {
+    /*public void setTypeVehicule(String type) {
         this.typeVehicule = type;
-    }
-
+    }*/
     public void setMarqueVehicule(String marque) {
         this.marqueVehicule = marque;
     }
@@ -152,6 +154,11 @@ public abstract class Vehicle {
         this.notations = notations;
     }
 
+    public void setEstEnpause(boolean estEnpause) {
+        this.estEnpause = estEnpause;
+    }
+
+    /************************** Methodes ******************************/
     // Méthodes pour les notations
     public void ajouterNotation(NoteVehicule notation) {
         this.notations.add(notation);

@@ -20,6 +20,7 @@ public interface VehicleRepository {
     public Optional<Vehicle> findById(String id);
     // Chercher par ville
     public List<Vehicle> findByVille(String ville);
+    public List<Vehicle> findByType(String type);
     // Verifier l'existance de l'ID
     public boolean existsById(String id);
 

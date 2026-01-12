@@ -13,9 +13,9 @@ import java.util.Map;
 import java.util.List;
 import java.util.Optional;
 
-    @RestController
-    @RequestMapping("/api/vehicules")
-    public class VehicleController {
+@RestController
+@RequestMapping("/api/vehicules")
+public class VehicleController {
     // Propriétés
     private final VehicleService vehicleService;
 
@@ -27,21 +27,23 @@ import java.util.Optional;
     /**
      * Ajouter un vehicule - POST /api/vehicules/add
      */
-    @PostMapping("/add")
-    public ResponseEntity<Map<String, Object>> addVehicule(@RequestBody Map<String, String> request) {
+    @PostMapping("/add/{type}")
+    public ResponseEntity<Map<String, Object>> addVehicule(@PathVariable String type, @RequestBody Map<String, String> request) {
+        try {
+        TypeVehicule typeEnum = TypeVehicule.valueOf(type.toUpperCase());
         String id = request.get("idVehicule");
-        String type = request.get("typeVehicule");
         String marque = request.get("marqueVehicule");
         String couleur = request.get("couleurVehicule");
         String modele = request.get("modeleVehicule");
         String ville = request.get("villeVehicule");
         double prixVehiculeParJour = Double.parseDouble(request.get("prixVehiculeParJour"));
         String proprietaire = request.get("proprietaire");
+        boolean estEnPause = Boolean.parseBoolean(request.get("estEnpause"));
         // boolean estDisponible = Boolean.parseBoolean(request.get("estDisponible"));
 
-        try {
-            Vehicle vehicule = vehicleService.addVehicule(id, type, marque, couleur, modele, ville,
-                    prixVehiculeParJour, proprietaire);
+
+            Vehicle vehicule = vehicleService.addVehicule(id,typeEnum, marque, couleur, modele, ville,
+                    prixVehiculeParJour, proprietaire, estEnPause);
             // if (vehicule != null) {
             return ResponseEntity.ok(Map.of(
                     "success", true,
@@ -85,12 +87,12 @@ import java.util.Optional;
             // Transformer les infos du véhicules en Map pour la réponse JSON
             Map<String, Object> map = new HashMap<>();
             map.put("id", v.getIdVehicule());
-            map.put("type", v.getTypeVehicule());
+            map.put("type", v.getType());
             map.put("marque", v.getMarqueVehicule());
             map.put("modele", v.getModeleVehicule());
             map.put("couleur", v.getCouleurVehicule());
             map.put("ville", v.getVilleVehicule());
-            // map.put("disponible", v.getEstDisponible());
+            map.put("EstEnpause", v.getEstEnpause());
             map.put("prixParJour", v.getPrixVehiculeParJour());
 
             return ResponseEntity.ok(Map.of(
@@ -146,12 +148,12 @@ import java.util.Optional;
             List<Map<String, Object>> result = listV.stream().map(v -> {
                 Map<String, Object> map = new HashMap<>();
                 map.put("id", v.getIdVehicule());
-                map.put("type", v.getTypeVehicule());
+                map.put("type", v.getType());
                 map.put("marque", v.getMarqueVehicule());
                 map.put("modele", v.getModeleVehicule());
                 map.put("couleur", v.getCouleurVehicule());
                 map.put("ville", v.getVilleVehicule());
-                // map.put("disponible", v.getEstDisponible());
+                map.put("EstEnpause", v.getEstEnpause());
                 map.put("prixJour", v.getPrixVehiculeParJour());
                 return map;
             }).toList();
@@ -187,14 +189,15 @@ import java.util.Optional;
     public ResponseEntity<?> updateVehicule(@PathVariable String idV, @RequestBody Map<String, String> request) {
         try {
             //String id = request.get("idVehicule");
-            String type = request.get("typeVehicule");
+            //TypeVehicule type = vehicleService.getVehiculeByID(idV).getType();
             String marque = request.get("marqueVehicule");
             String couleur = request.get("couleurVehicule");
             String modele = request.get("modeleVehicule");
             String ville = request.get("villeVehicule");
             double prixVehiculeParJour = Double.parseDouble(request.get("prixVehiculeParJour"));
             String proprietaire = request.get("proprietaire");
-            Vehicle newData = new Vehicle(idV, type, marque, couleur, modele, ville, prixVehiculeParJour,proprietaire ) {
+            boolean estEnPause = Boolean.parseBoolean(request.get("estEnPause"));
+            Vehicle newData = new Vehicle(idV, marque, couleur, modele, ville, prixVehiculeParJour,proprietaire, estEnPause) {
                 @Override
                 public TypeVehicule getType() {
                     return null;

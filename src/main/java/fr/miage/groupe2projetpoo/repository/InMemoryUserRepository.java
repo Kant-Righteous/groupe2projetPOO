@@ -82,28 +82,28 @@ public class InMemoryUserRepository implements UserRepository {
 
         // === 4. Créer les véhicules avec propriétaire et disponibilités ===
         // Véhicules d'Alice (AgentParticulier)
-        Voiture voiture1 = new Voiture("1", "Voiture", "Renault", "Bleu", "Clio", "Paris", 45.0,
-                "alice@test.com");
-        Voiture voiture2 = new Voiture("2", "Voiture", "Peugeot", "Noir", "308", "Lyon", 55.0,
-                "alice@test.com");
+        Voiture voiture1 = new Voiture("1", "Renault", "Bleu", "Clio", "Paris", 45.0,
+                "alice@test.com", false);
+        Voiture voiture2 = new Voiture("2", "Peugeot", "Noir", "308", "Lyon", 55.0,
+                "alice@test.com", false);
 
         // Véhicules de Bob (AgentParticulier)
-        Voiture voiture3 = new Voiture("3", "Voiture", "BMW", "Blanc", "Serie 3", "Marseille", 85.0,
-                "bob@test.com");
-        Moto moto1 = new Moto("4", "Moto", "Yamaha", "Rouge", "MT-07", "Nice", 60.0,
-                "bob@test.com");
+        Voiture voiture3 = new Voiture("3", "BMW", "Blanc", "Serie 3", "Marseille", 85.0,
+                "bob@test.com", false);
+        Moto moto1 = new Moto("4", "Yamaha", "Rouge", "MT-07", "Nice", 60.0,
+                "bob@test.com", false);
 
         // Véhicules de Durand SA (AgentProfessionnel)
-        Voiture voiture4 = new Voiture("5", "Voiture", "Mercedes", "Gris", "Classe A", "Paris", 90.0,
-                "enterprise1@test.com");
-        Camion camion1 = new Camion("6", "Camion", "Renault", "Blanc", "Master", "Paris", 120.0,
-                "enterprise1@test.com");
-        Camion camion2 = new Camion("7", "Camion", "Mercedes", "Jaune", "Sprinter", "Lyon", 135.0,
-                "enterprise1@test.com");
+        Voiture voiture4 = new Voiture("5", "Mercedes", "Gris", "Classe A", "Paris", 90.0,
+                "enterprise1@test.com",false);
+        Camion camion1 = new Camion("6", "Renault", "Blanc", "Master", "Paris", 120.0,
+                "enterprise1@test.com", false);
+        Camion camion2 = new Camion("7", "Mercedes", "Jaune", "Sprinter", "Lyon", 135.0,
+                "enterprise1@test.com",false);
 
         // Véhicules de Moreau SARL (AgentProfessionnel)
-        Moto moto2 = new Moto("8", "Moto", "Honda", "Noir", "CB650R", "Bordeaux", 65.0,
-                "bob@test.com");
+        Moto moto2 = new Moto("8", "Honda", "Noir", "CB650R", "Bordeaux", 65.0,
+                "bob@test.com",false);
 
         allVehicles.addAll(Arrays.asList(voiture1, voiture2, voiture3, voiture4, moto1, moto2, camion1, camion2));
 
