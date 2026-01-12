@@ -12,55 +12,23 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
-@Repository
-public class VehicleRepository {
+
+public interface VehicleRepository {
     // Map de vehicule
-    private final Map<String, Vehicle> vehicules = new ConcurrentHashMap<>();
-
-    public Map<String, Vehicle> getVehicules() {
-        return vehicules;
-    }
-    public Vehicle save(Vehicle v) {
-        vehicules.put(v.getIdVehicule(), v);
-        return v;
-    }
+    public Vehicle save(Vehicle v);
     // Chercher par ID
-    public Optional<Vehicle> findById(String id) {
-        return Optional.ofNullable(vehicules.get(id));
-    }
-
+    public Optional<Vehicle> findById(String id);
     // Chercher par ville
-    public List<Vehicle> findByVille(String ville) {
-        return vehicules.values().stream()
-                .filter(v -> v.getVilleVehicule().equalsIgnoreCase(ville))
-                .toList();
-    }
-
+    public List<Vehicle> findByVille(String ville);
     // Verifier l'existance de l'ID
-    public boolean existsById(String id) {
-        return vehicules.containsKey(id);
-    }
+    public boolean existsById(String id);
 
     // Chercher par disponibilité
-    public Optional<Vehicle> findByDisponibility(LocalDate debut, LocalDate fin) {
-        return vehicules.values().stream()
-                .filter(v -> v.estDisponible(debut, fin))
-                .findFirst();
-    }
+    public Optional<Vehicle> findByDisponibility(LocalDate debut, LocalDate fin);
 
     // Suppression by Id
-    public void deleteById(String id){
-        if(!vehicules.containsKey(id)){
-            throw new IllegalArgumentException("Véhicule introuvable");
-        }
-        vehicules.remove(id);
-    }
+    public void deleteById(String id);
 
     // Modifier un vehicule
-    public void modifVehicule(String id, Vehicle modif) {
-        if (!vehicules.containsKey(id)) {
-            throw new IllegalArgumentException("Véhicule introuvable");
-        }
-        vehicules.put(id, modif);
-    }
+    public void modifVehicule(String id, Vehicle modif);
 }
