@@ -9,7 +9,8 @@ public enum TypeVehicule {
     BREAK,
     MONOSPACE,
     MOTO,
-    CAMION;
+    CAMION,
+    VOITURE;
 
     // Methode utilitaire pour convertir une string de manière safe si besoin
     public static TypeVehicule fromString(String type) {
