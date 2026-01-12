@@ -165,4 +165,13 @@ public abstract class Vehicle {
         }
         return somme / notations.size();
     }
+
+    // === Gestion de l'historique des contrats ===
+    public List<RentalContract> getHistoriqueContrats() {
+        return historiqueContrats;
+    }
+
+    public void ajouterContrat(RentalContract contrat) {
+        this.historiqueContrats.add(contrat);
+    }
 }

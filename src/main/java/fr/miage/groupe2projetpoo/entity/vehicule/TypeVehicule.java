@@ -1,6 +1,7 @@
 package fr.miage.groupe2projetpoo.entity.vehicule;
 
 public enum TypeVehicule {
+    VOITURE,
     SUV,
     UTILITAIRE,
     CITADINE,
@@ -12,12 +13,11 @@ public enum TypeVehicule {
     CAMION,
     VOITURE;
 
-    // Methode utilitaire pour convertir une string de manière safe si besoin
     public static TypeVehicule fromString(String type) {
         try {
             return TypeVehicule.valueOf(type.toUpperCase());
         } catch (Exception e) {
-            return CITADINE; // Valeur par défaut
+            return VOITURE; // Valeur par défaut
         }
     }
 }
