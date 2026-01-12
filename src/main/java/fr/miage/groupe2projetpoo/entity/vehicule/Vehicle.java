@@ -39,12 +39,10 @@ public abstract class Vehicle {
     }
 
     public TypeVehicule getType() {
-        // On suppose que le string typeVehicule correspond aux valeurs de l'Enum
-        // Sinon on pourrait utiliser TypeVehicule.fromString(typeVehicule)
         try {
             return TypeVehicule.valueOf(typeVehicule.toUpperCase());
         } catch (IllegalArgumentException | NullPointerException e) {
-            return TypeVehicule.CITADINE; // Valeur par défaut
+            return TypeVehicule.VOITURE; // Valeur par défaut
         }
     }
 

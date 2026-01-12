@@ -58,15 +58,23 @@ public class Assurance {
         if (vehicule != null) {
             switch (vehicule.getType()) {
                 case SUV:
-                    prime += 20;
-                    break;
-                case UTILITAIRE:
-                    prime += 30;
-                    break;
+                case VOITURE:
                 case CITADINE:
+                case BERLINE:
+                case CABRIOLET:
+                case BREAK:
+                case MONOSPACE:
                     prime += 10;
                     break;
+                case CAMION:
+                case UTILITAIRE:
+                    prime += 20;
+                    break;
+                case MOTO:
+                    prime += 5;
+                    break;
                 default:
+                    prime += 10;
                     break;
             }
         }

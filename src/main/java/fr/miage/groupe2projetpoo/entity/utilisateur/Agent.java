@@ -1,5 +1,6 @@
 package fr.miage.groupe2projetpoo.entity.utilisateur;
 
+import fr.miage.groupe2projetpoo.entity.assurance.OptionPayante;
 import fr.miage.groupe2projetpoo.entity.location.RentalContract;
 import fr.miage.groupe2projetpoo.entity.vehicule.Vehicle;
 
@@ -17,11 +18,15 @@ public abstract class Agent extends Utilisateur {
     // Liste des contrats de location gérés par l'agent (relation un-à-plusieurs)
     private List<RentalContract> contracts;
 
+    // Liste des options payantes souscrites par l'agent
+    private List<OptionPayante> options;
+
     // Constructeur par défaut
     public Agent() {
         super();
         this.vehicleList = new ArrayList<>();
         this.contracts = new ArrayList<>();
+        this.options = new ArrayList<>();
     }
 
     // Constructeur avec paramètres
@@ -29,6 +34,7 @@ public abstract class Agent extends Utilisateur {
         super(nom, prenom, password, email, tel);
         this.vehicleList = new ArrayList<>();
         this.contracts = new ArrayList<>();
+        this.options = new ArrayList<>();
     }
 
     // === Gestion des véhicules ===
@@ -74,6 +80,29 @@ public abstract class Agent extends Utilisateur {
     public void removeContract(RentalContract contract) {
         if (this.contracts != null) {
             this.contracts.remove(contract);
+        }
+    }
+
+    // === Gestion des options ===
+
+    public List<OptionPayante> getOptions() {
+        return options;
+    }
+
+    public void setOptions(List<OptionPayante> options) {
+        this.options = options;
+    }
+
+    public void addOption(OptionPayante option) {
+        if (this.options == null) {
+            this.options = new ArrayList<>();
+        }
+        this.options.add(option);
+    }
+
+    public void removeOption(OptionPayante option) {
+        if (this.options != null) {
+            this.options.remove(option);
         }
     }
 }
