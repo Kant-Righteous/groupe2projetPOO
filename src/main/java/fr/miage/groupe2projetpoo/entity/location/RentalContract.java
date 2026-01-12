@@ -4,6 +4,8 @@ import fr.miage.groupe2projetpoo.entity.assurance.Assurance;
 import fr.miage.groupe2projetpoo.entity.utilisateur.Loueur;
 import fr.miage.groupe2projetpoo.entity.vehicule.Vehicle;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Date;
 
 public class RentalContract {
@@ -251,7 +253,7 @@ public class RentalContract {
 
         // 2. Récupération des Tarifs
         // IL MANQUE CECI DANS VOTRE CLASSE VEHICLE :
-        double prixJournalierVehicule = this.Vehicule.getPrixVehiculeJour();
+        double prixJournalierVehicule = this.Vehicule.getPrixVehiculeParJour();
 
         // IL MANQUE CECI DANS VOTRE CLASSE ASSURANCE (si applicable) :
         // Le sujet dit que le prix dépend du véhicule, on imagine que l'objet assurance
@@ -289,15 +291,26 @@ public class RentalContract {
             return;
         }
 
-        // 2. Application de la signature
+        // 2. Vérification que les dates appartiennent aux disponibilités du véhicule
+        LocalDate debutLocal = this.dateDebut.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        LocalDate finLocal = this.dateFin.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        
+        if (!this.Vehicule.estDisponible(debutLocal, finLocal)) {
+            System.out.println("Erreur : Le véhicule n'est pas disponible pour la période du " + debutLocal + " au " + finLocal);
+            return;
+        }
+
+        // 3. Application de la signature
         this.SignatureLoueur = true;
         this.dateSignatureLoueur = new Date(); // Enregistre la date et l'heure actuelle
         this.SignatureAgent = true;// Pour l'instant pas d'option payante donc l'agent signe automatiquement .
         this.dateSignatureAgent = new Date();
-        // 3. Mise à jour du statut global du contrat
+        // 4. Mise à jour du statut global du contrat
         // Le statut devient TRUE (Validé) seulement si l'Agent a AUSSI signé.
         if (this.SignatureAgent == true) {
             this.statut = true; // Le contrat est totalement validé
+            this.loueur.addContract(this); // Ajouter le contrat à l'historique du loueur
+            this.Vehicule.ajouterContrat(this); // Ajouter le contrat à l'historique du véhicule
             System.out.println("Succès : Contrat signé par le Loueur. Le contrat est désormais VALIDÉ et ACTIF.");
         } else {
             this.statut = false; // Toujours en attente de l'agent

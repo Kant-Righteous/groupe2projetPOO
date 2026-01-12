@@ -3,6 +3,8 @@ package fr.miage.groupe2projetpoo.entity.assurance;
 import fr.miage.groupe2projetpoo.entity.vehicule.Vehicle;
 import java.util.Objects;
 
+import static fr.miage.groupe2projetpoo.entity.vehicule.TypeVehicule.*;
+
 /**
  * Représente une assurance proposée pour un véhicule lors d'une location.
  * L'assurance par défaut est AZA, mais un agent professionnel peut proposer

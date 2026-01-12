@@ -10,7 +10,8 @@ public enum TypeVehicule {
     BREAK,
     MONOSPACE,
     MOTO,
-    CAMION;
+    CAMION,
+    VOITURE;
 
     public static TypeVehicule fromString(String type) {
         try {
