@@ -4,6 +4,7 @@ import fr.miage.groupe2projetpoo.entity.utilisateur.Utilisateur;
 import fr.miage.groupe2projetpoo.entity.assurance.Assurance;
 import fr.miage.groupe2projetpoo.entity.vehicule.Vehicle;
 import fr.miage.groupe2projetpoo.entity.utilisateur.Agent;
+import fr.miage.groupe2projetpoo.entity.utilisateur.Loueur;
 import java.util.List;
 import java.util.Optional;
 
@@ -27,4 +28,7 @@ public interface UserRepository {
 
     // Méthode pour récupérer tous les agents
     public abstract List<Agent> getAllAgents();
+
+    // Méthode pour récupérer tous les loueurs
+    public List<Loueur> getAllLoueurs();
 }
