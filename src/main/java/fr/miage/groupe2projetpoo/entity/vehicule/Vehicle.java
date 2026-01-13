@@ -3,6 +3,8 @@ package fr.miage.groupe2projetpoo.entity.vehicule;
 import fr.miage.groupe2projetpoo.entity.location.RentalContract;
 import fr.miage.groupe2projetpoo.entity.notation.NoteVehicule;
 
+import fr.miage.groupe2projetpoo.entity.maintenance.ControleTechnique;
+import fr.miage.groupe2projetpoo.entity.maintenance.Entretien;
 import java.util.*;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -25,6 +27,10 @@ public abstract class Vehicle {
     private boolean estEnpause;
     private double prixVehiculeParJour;
     private String Proprietaire;
+    private int kilometrageActuel; // US.A.11 et US.L.10
+    // Maintenance (US.A.8, US.A.10)
+    private ControleTechnique controleTechnique;
+    private List<Entretien> historiqueEntretiens = new ArrayList<>();
     @JsonIgnore
     private Map<LocalDate, Boolean> disponibilites = new HashMap<>();
     @JsonIgnore
@@ -44,6 +50,7 @@ public abstract class Vehicle {
         this.estEnpause = estEnpause;
         this.prixVehiculeParJour = prixVehiculeJour;
         this.Proprietaire = proprietaire;
+        this.kilometrageActuel = 0; // Défaut
         initiliserDisponibilites();
     }
 
@@ -117,6 +124,10 @@ public abstract class Vehicle {
         return planningDisponible;
     }
 
+    public int getKilometrageActuel() {
+        return kilometrageActuel;
+    }
+
     /********************** SETTER **********************/
     public void setIdVehicule(String idV) {
         this.idVehicule = idV;
@@ -177,6 +188,9 @@ public abstract class Vehicle {
         this.estEnpause = estEnpause;
     }
 
+    public void setKilometrageActuel(int kilometrageActuel) {
+        this.kilometrageActuel = kilometrageActuel;
+    }
 
     /************************** Methodes ******************************/
     // Méthodes pour les notations
@@ -193,6 +207,28 @@ public abstract class Vehicle {
             somme += note.calculerNoteGlobale();
         }
         return somme / notations.size();
+    }
+
+    // === Gestion Maintenance ===
+    public ControleTechnique getControleTechnique() {
+        return controleTechnique;
+    }
+
+    public void setControleTechnique(ControleTechnique controleTechnique) {
+        this.controleTechnique = controleTechnique;
+    }
+
+    public List<Entretien> getHistoriqueEntretiens() {
+        return historiqueEntretiens;
+    }
+
+    public void setHistoriqueEntretiens(
+            List<Entretien> historiqueEntretiens) {
+        this.historiqueEntretiens = historiqueEntretiens;
+    }
+
+    public void ajouterEntretien(Entretien entretien) {
+        this.historiqueEntretiens.add(entretien);
     }
 
     // === Gestion de l'historique des contrats ===

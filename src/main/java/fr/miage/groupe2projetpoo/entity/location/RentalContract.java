@@ -36,11 +36,13 @@ public class RentalContract {
     // clean
     @JsonIgnoreProperties({ "vehicles", "contracts", "password", "notations", "iban", "nomSociete" })
     private Loueur loueur;
+
+    @JsonIgnoreProperties({ "contracts", "vehicleList", "optionsPayantes", "notations", "password" })
     private Agent agent;
     private Assurance assurance;
 
     // Attribut pour l'acceptation manuelle (option payante)
-    private Date dateExpiration;  // Date limite pour que l'agent accepte (6h après signature loueur)
+    private Date dateExpiration; // Date limite pour que l'agent accepte (6h après signature loueur)
 
     // Constructeur par défaut (nécessaire pour Jackson JSON)
     public RentalContract() {
