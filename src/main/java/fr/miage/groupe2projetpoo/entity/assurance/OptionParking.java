@@ -14,9 +14,9 @@ public class OptionParking extends OptionPayante {
         super();
     }
 
-    public OptionParking(String nom, double tarifMensuel, boolean estActive,
+    public OptionParking(String nom, double tarifMensuel,
             int dureeMaxStationnement, int nbJoursInclus, double tarifPreference, Parking parkingPartenaire) {
-        super(nom, tarifMensuel, estActive);
+        super(nom, tarifMensuel);
         this.dureeMaxStationnement = dureeMaxStationnement;
         this.nbJoursInclus = nbJoursInclus;
         this.tarifPreference = tarifPreference;

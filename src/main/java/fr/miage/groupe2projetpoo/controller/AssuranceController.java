@@ -26,7 +26,7 @@ public class AssuranceController {
 
         // 2. Je crée mes Options (juste pour l'affichage API)
         Parking parking = new Parking(1, "Parking API Test", "Rue du Web", "Internet", 100, 5.0);
-        OptionParking option = new OptionParking("Option Parking VIP", 20.0, true, 24, 10, 5.0, parking);
+        OptionParking option = new OptionParking("Option Parking VIP", 20.0, 24, 10, 5.0, parking);
         resultat.add(option);
 
         return resultat;

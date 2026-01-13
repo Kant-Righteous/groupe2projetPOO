@@ -134,4 +134,27 @@ public class RentalService {
                 .findFirst()
                 .orElse(null);
     }
+
+    // ===== MÉTHODES POUR L'ACCEPTATION MANUELLE =====
+
+    /**
+     * L'agent accepte manuellement un contrat
+     */
+    public RentalContract accepterContratParAgent(int contratId) {
+        RentalContract contrat = rentalRepository.findById(contratId)
+                .orElseThrow(() -> new RuntimeException("Contrat non trouvé avec l'ID: " + contratId));
+
+        contrat.signerAgent();
+        return rentalRepository.save(contrat);
+    }
+
+    /**
+     * Récupérer les contrats en attente d'acceptation par l'agent
+     */
+    public List<RentalContract> getContratsEnAttente() {
+        return rentalRepository.findAll().stream()
+                .filter(c -> c.estEnAttenteAgent())
+                .toList();
+    }
 }
+
