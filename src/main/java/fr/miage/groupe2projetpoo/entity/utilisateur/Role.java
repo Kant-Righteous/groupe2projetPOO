@@ -7,5 +7,6 @@ public enum Role {
     VISITEUR,
     AGENT_PARTICULIER,
     AGENT_PROFESSIONNEL,
-    LOUEUR
+    LOUEUR,
+    SERVICE_ENTRETIEN
 }
