@@ -237,4 +237,43 @@ public class UserController {
                     "message", "Échec de la mise à jour. Utilisateur non trouvé ou non autorisé."));
         }
     }
+
+    /**
+     * Récupérer le profil d'un utilisateur par email - GET /api/users/{email}
+     */
+    @GetMapping("/{email}")
+    public ResponseEntity<Map<String, Object>> getUserProfile(@PathVariable String email) {
+        // Since we are in an "internal" context, we can reuse findByEmail or just
+        // assume the user exists
+        // But UserService's findByEmail returns Optional<Utilisateur>
+        java.util.Optional<Utilisateur> userOpt = userService.findByEmail(email);
+
+        if (userOpt.isPresent()) {
+            Utilisateur user = userOpt.get();
+            Map<String, Object> userInfo = new HashMap<>();
+            userInfo.put("email", user.getEmail());
+            userInfo.put("nom", user.getNom());
+            userInfo.put("prenom", user.getPrenom());
+            userInfo.put("tel", user.getTel());
+            userInfo.put("role", user.getRole().toString());
+
+            if (user instanceof Loueur) {
+                Loueur loueur = (Loueur) user;
+                userInfo.put("iban", loueur.getIban());
+                userInfo.put("nomSociete", loueur.getNomSociete());
+            }
+
+            if (user instanceof AgentProfessionnel) {
+                AgentProfessionnel agentPro = (AgentProfessionnel) user;
+                userInfo.put("nomEntreprise", agentPro.getNomEntreprise());
+                userInfo.put("siret", agentPro.getSiret());
+            }
+
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "user", userInfo));
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
 }
