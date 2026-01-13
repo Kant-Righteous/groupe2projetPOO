@@ -3,7 +3,7 @@ package fr.miage.groupe2projetpoo.entity.assurance;
 import fr.miage.groupe2projetpoo.entity.infrastructure.Parking;
 import fr.miage.groupe2projetpoo.entity.utilisateur.Agent;
 
-public class OptionParking extends OptionPayante {
+public class NHOptionParking extends OptionPayante {
 
     private int dureeMaxStationnement;
     private int nbJoursInclus;
