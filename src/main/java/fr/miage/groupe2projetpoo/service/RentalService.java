@@ -2,6 +2,7 @@ package fr.miage.groupe2projetpoo.service;
 
 import fr.miage.groupe2projetpoo.entity.assurance.Assurance;
 import fr.miage.groupe2projetpoo.entity.location.RentalContract;
+import fr.miage.groupe2projetpoo.entity.utilisateur.Agent;
 import fr.miage.groupe2projetpoo.entity.utilisateur.Loueur;
 import fr.miage.groupe2projetpoo.entity.utilisateur.Utilisateur;
 import fr.miage.groupe2projetpoo.entity.vehicule.Vehicle;
@@ -64,6 +65,17 @@ public class RentalService {
 
         RentalContract contrat = new RentalContract(
                 loueur, vehicule, dateDebut, dateFin, lieuPrise, lieuDepose, assurance);
+
+        // Find the owner (Agent) of the vehicle
+        String proprietaireEmail = vehicule.getProprietaire();
+        Utilisateur proprietaire = userRepository.findByEmail(proprietaireEmail)
+                .orElse(null);
+
+        if (proprietaire instanceof Agent) {
+            contrat.setAgent((Agent) proprietaire);
+            // Also link the contract to the agent
+            ((Agent) proprietaire).addContract(contrat);
+        }
 
         return rentalRepository.save(contrat);
     }
@@ -157,4 +169,3 @@ public class RentalService {
                 .toList();
     }
 }
-
