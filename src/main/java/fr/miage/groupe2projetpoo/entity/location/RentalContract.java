@@ -3,6 +3,7 @@ package fr.miage.groupe2projetpoo.entity.location;
 import fr.miage.groupe2projetpoo.entity.assurance.Assurance;
 import fr.miage.groupe2projetpoo.entity.utilisateur.Loueur;
 import fr.miage.groupe2projetpoo.entity.vehicule.Vehicle;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -26,10 +27,14 @@ public class RentalContract {
     private double montantPlatforme;
     private double commissionPourcentage;
     private double commissionFixeParJour;
+    @JsonIgnoreProperties({ "historiqueContrats", "disponibilites", "notations", "proprietaire" })
     private Vehicle Vehicule;
+
+    // Use JsonIgnoreProperties to avoid infinite recursion AND to keep the output
+    // clean
+    @JsonIgnoreProperties({ "vehicles", "contracts", "password", "notations", "iban", "nomSociete" })
     private Loueur loueur;
     private Assurance assurance;
-    // private listeOptions : List<OptionPayante>
 
     public int getIdC() {
         return idC;
@@ -294,9 +299,10 @@ public class RentalContract {
         // 2. Vérification que les dates appartiennent aux disponibilités du véhicule
         LocalDate debutLocal = this.dateDebut.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
         LocalDate finLocal = this.dateFin.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-        
+
         if (!this.Vehicule.estDisponible(debutLocal, finLocal)) {
-            System.out.println("Erreur : Le véhicule n'est pas disponible pour la période du " + debutLocal + " au " + finLocal);
+            System.out.println(
+                    "Erreur : Le véhicule n'est pas disponible pour la période du " + debutLocal + " au " + finLocal);
             return;
         }
 
