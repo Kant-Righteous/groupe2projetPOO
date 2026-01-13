@@ -14,4 +14,12 @@ public class Disponibilite {
     public boolean chevauchement(LocalDate d, LocalDate f){
         return !(f.isBefore(debut) || d.isAfter(fin) );
     }
+
+    public LocalDate getDebut() {
+        return debut;
+    }
+
+    public LocalDate getFin() {
+        return fin;
+    }
 }

@@ -113,6 +113,10 @@ public abstract class Vehicle {
         return estEnpause;
     }
 
+    public List<Disponibilite> getPlanningDisponible() {
+        return planningDisponible;
+    }
+
     /********************** SETTER **********************/
     public void setIdVehicule(String idV) {
         this.idVehicule = idV;
@@ -153,7 +157,7 @@ public abstract class Vehicle {
         this.Proprietaire = proprietaire;
     }
 
-    public boolean estDisponible(LocalDate debut, LocalDate fin) {
+    public boolean estDisponibleMap(LocalDate debut, LocalDate fin) {
         LocalDate d = debut;
         while (!d.isAfter(fin)) {
             Boolean dispo = disponibilites.get(d);
@@ -172,6 +176,7 @@ public abstract class Vehicle {
     public void setEstEnpause(boolean estEnpause) {
         this.estEnpause = estEnpause;
     }
+
 
     /************************** Methodes ******************************/
     // Méthodes pour les notations
@@ -200,7 +205,7 @@ public abstract class Vehicle {
     }
 
     // === Ajouter planning de disponibilité
-    public void AddPlanningDispo(LocalDate debut, LocalDate fin){
+    public void addPlanningDispo(LocalDate debut, LocalDate fin){
         for(Disponibilite d : planningDisponible){
             if(d.chevauchement(debut, fin)){
                 throw new IllegalArgumentException("Créneau déjà occupé");
@@ -210,12 +215,17 @@ public abstract class Vehicle {
     }
 
     // verifier la disponibilité dans planning
-    public boolean estDiponible(LocalDate debut, LocalDate fin) {
+    public boolean estDisponible(LocalDate debut, LocalDate fin) {
         for(Disponibilite d: planningDisponible){
             if(d.chevauchement(debut, fin)){
                 return false;
             }
         }
         return true;
+    }
+
+    // Suuprimer Planning
+    public void removeCreneauPlanning(int index){
+        planningDisponible.remove(index);
     }
 }
