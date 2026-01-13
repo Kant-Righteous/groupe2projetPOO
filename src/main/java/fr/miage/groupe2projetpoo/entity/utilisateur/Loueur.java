@@ -6,6 +6,7 @@ import java.util.List;
 
 import fr.miage.groupe2projetpoo.entity.location.RentalContract;
 import fr.miage.groupe2projetpoo.entity.vehicule.Vehicle;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 /**
  * Loueur - propriétaire qui met en location ses véhicules
@@ -20,6 +21,7 @@ public class Loueur extends Utilisateur {
     private List<Vehicle> vehicles;
 
     // Liste des contrats de location du loueur (relation un-à-plusieurs)
+    @JsonIgnore
     private List<RentalContract> contracts;
 
     // Constructeur par défaut

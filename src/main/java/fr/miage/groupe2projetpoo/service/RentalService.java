@@ -3,8 +3,11 @@ package fr.miage.groupe2projetpoo.service;
 import fr.miage.groupe2projetpoo.entity.assurance.Assurance;
 import fr.miage.groupe2projetpoo.entity.location.RentalContract;
 import fr.miage.groupe2projetpoo.entity.utilisateur.Loueur;
+import fr.miage.groupe2projetpoo.entity.utilisateur.Utilisateur;
 import fr.miage.groupe2projetpoo.entity.vehicule.Vehicle;
-import fr.miage.groupe2projetpoo.repository.InMemoryRentalRepository;
+import fr.miage.groupe2projetpoo.repository.RentalRepository;
+import fr.miage.groupe2projetpoo.repository.UserRepository;
+import fr.miage.groupe2projetpoo.repository.VehicleRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -13,11 +16,16 @@ import java.util.*;
 @Service
 public class RentalService {
 
-    private final InMemoryRentalRepository rentalRepository;
+    private final RentalRepository rentalRepository;
+    private final UserRepository userRepository;
+    private final VehicleRepository vehicleRepository;
 
     @Autowired
-    public RentalService(InMemoryRentalRepository rentalRepository) {
+    public RentalService(RentalRepository rentalRepository, UserRepository userRepository,
+            VehicleRepository vehicleRepository) {
         this.rentalRepository = rentalRepository;
+        this.userRepository = userRepository;
+        this.vehicleRepository = vehicleRepository;
     }
 
     // ===== MÉTHODES CRUD =====
@@ -38,17 +46,18 @@ public class RentalService {
             String lieuPrise, String lieuDepose,
             String assuranceNom) {
 
-        Loueur loueur = rentalRepository.getLoueurByEmail(loueurEmail);
-        if (loueur == null) {
-            throw new RuntimeException("Loueur non trouvé avec l'email: " + loueurEmail);
-        }
+        Utilisateur user = userRepository.findByEmail(loueurEmail)
+                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé avec l'email: " + loueurEmail));
 
-        Vehicle vehicule = rentalRepository.getVehiculeById(vehiculeId);
-        if (vehicule == null) {
-            throw new RuntimeException("Véhicule non trouvé avec l'ID: " + vehiculeId);
+        if (!(user instanceof Loueur)) {
+            throw new RuntimeException("L'utilisateur n'est pas un loueur: " + loueurEmail);
         }
+        Loueur loueur = (Loueur) user;
 
-        Assurance assurance = rentalRepository.getAssuranceByNom(assuranceNom);
+        Vehicle vehicule = vehicleRepository.findById(vehiculeId)
+                .orElseThrow(() -> new RuntimeException("Véhicule non trouvé avec l'ID: " + vehiculeId));
+
+        Assurance assurance = getAssuranceByNom(assuranceNom);
         if (assurance == null) {
             throw new RuntimeException("Assurance non trouvée avec le nom: " + assuranceNom);
         }
@@ -108,14 +117,44 @@ public class RentalService {
     // ===== MÉTHODES UTILITAIRES =====
 
     public List<Loueur> getTousLesLoueurs() {
-        return rentalRepository.getAllLoueurs();
+        return userRepository.getAllLoueurs();
     }
 
     public List<Vehicle> getTousLesVehicules() {
-        return rentalRepository.getAllVehicules();
+        return (List<Vehicle>) vehicleRepository.findAll();
     }
 
     public List<Assurance> getToutesLesAssurances() {
-        return rentalRepository.getAllAssurances();
+        return userRepository.getAllAssurances();
+    }
+
+    private Assurance getAssuranceByNom(String nom) {
+        return userRepository.getAllAssurances().stream()
+                .filter(a -> a.getNom().equals(nom))
+                .findFirst()
+                .orElse(null);
+    }
+
+    // ===== MÉTHODES POUR L'ACCEPTATION MANUELLE =====
+
+    /**
+     * L'agent accepte manuellement un contrat
+     */
+    public RentalContract accepterContratParAgent(int contratId) {
+        RentalContract contrat = rentalRepository.findById(contratId)
+                .orElseThrow(() -> new RuntimeException("Contrat non trouvé avec l'ID: " + contratId));
+
+        contrat.signerAgent();
+        return rentalRepository.save(contrat);
+    }
+
+    /**
+     * Récupérer les contrats en attente d'acceptation par l'agent
+     */
+    public List<RentalContract> getContratsEnAttente() {
+        return rentalRepository.findAll().stream()
+                .filter(c -> c.estEnAttenteAgent())
+                .toList();
     }
 }
+

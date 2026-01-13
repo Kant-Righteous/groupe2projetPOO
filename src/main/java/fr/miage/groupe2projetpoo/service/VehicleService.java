@@ -8,10 +8,13 @@ import fr.miage.groupe2projetpoo.entity.vehicule.Moto;
 import fr.miage.groupe2projetpoo.entity.vehicule.Camion;
 import fr.miage.groupe2projetpoo.repository.UserRepository;
 import fr.miage.groupe2projetpoo.repository.VehicleRepository;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.servlet.i18n.CookieLocaleResolver;
 
 import java.security.Key;
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -104,6 +107,21 @@ public class VehicleService {
         return listV;
     }
 
+    // recuperer les vehicule dispo sur le marché
+    public List<Vehicle> getVehiculeByEnPause(){
+        List<Vehicle> disponibles = vehiculeRepository.findByEnPause();
+        if(disponibles.isEmpty()){
+            throw new IllegalArgumentException("Aucun véhicule disponible pour le moment");
+        }
+        return disponibles;
+    }
+
+    // recuperer tous les vehicules
+    public Collection<Vehicle> getAllVehicules(){
+        return vehiculeRepository.findAll();
+    }
+
+
     /**
      * @param id
      * @param deb
@@ -128,6 +146,7 @@ public class VehicleService {
         vehicule.setVilleVehicule(newData.getVilleVehicule());
         vehicule.setPrixVehiculeParJour(newData.getPrixVehiculeParJour());
         vehicule.setProprietaire(newData.getProprietaire());
+        vehicule.setEstEnpause(newData.getEstEnpause());
         vehiculeRepository.modifVehicule(id, vehicule);
         return vehicule;
     }

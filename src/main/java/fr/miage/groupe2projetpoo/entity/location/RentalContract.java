@@ -1,8 +1,11 @@
 package fr.miage.groupe2projetpoo.entity.location;
 
 import fr.miage.groupe2projetpoo.entity.assurance.Assurance;
+import fr.miage.groupe2projetpoo.entity.assurance.OptionAcceptationManuelle;
+import fr.miage.groupe2projetpoo.entity.utilisateur.Agent;
 import fr.miage.groupe2projetpoo.entity.utilisateur.Loueur;
 import fr.miage.groupe2projetpoo.entity.vehicule.Vehicle;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -26,10 +29,22 @@ public class RentalContract {
     private double montantPlatforme;
     private double commissionPourcentage;
     private double commissionFixeParJour;
+    @JsonIgnoreProperties({ "historiqueContrats", "disponibilites", "notations", "proprietaire" })
     private Vehicle Vehicule;
+
+    // Use JsonIgnoreProperties to avoid infinite recursion AND to keep the output
+    // clean
+    @JsonIgnoreProperties({ "vehicles", "contracts", "password", "notations", "iban", "nomSociete" })
     private Loueur loueur;
+    private Agent agent;
     private Assurance assurance;
-    // private listeOptions : List<OptionPayante>
+
+    // Attribut pour l'acceptation manuelle (option payante)
+    private Date dateExpiration;  // Date limite pour que l'agent accepte (6h après signature loueur)
+
+    // Constructeur par défaut (nécessaire pour Jackson JSON)
+    public RentalContract() {
+    }
 
     public int getIdC() {
         return idC;
@@ -191,6 +206,14 @@ public class RentalContract {
         this.loueur = loueur;
     }
 
+    public Agent getAgent() {
+        return agent;
+    }
+
+    public void setAgent(Agent agent) {
+        this.agent = agent;
+    }
+
     // Constructeur
     public RentalContract(Loueur loueur, Vehicle vehicule, Date dateDebut, Date dateFin, String lieuPrise,
             String lieuDepose, Assurance assurance) {
@@ -282,11 +305,12 @@ public class RentalContract {
 
     /**
      * Enregistre la signature du loueur sur le contrat.
-     * Met à jour la date de signature et vérifie si le contrat est complet.
+     * Si l'agent a l'option "acceptation manuelle", le contrat reste en attente.
+     * Sinon, l'agent signe automatiquement.
      */
     public void signerLoueur() {
         // 1. Vérification de sécurité : on ne signe pas deux fois
-        if (this.SignatureLoueur == true) {
+        if (this.SignatureLoueur) {
             System.out.println("Erreur : Ce contrat a déjà été signé par le loueur le " + this.dateSignatureLoueur);
             return;
         }
@@ -300,22 +324,88 @@ public class RentalContract {
             return;
         }
 
-        // 3. Application de la signature
+        // 3. Application de la signature du loueur
         this.SignatureLoueur = true;
-        this.dateSignatureLoueur = new Date(); // Enregistre la date et l'heure actuelle
-        this.SignatureAgent = true;// Pour l'instant pas d'option payante donc l'agent signe automatiquement .
-        this.dateSignatureAgent = new Date();
-        // 4. Mise à jour du statut global du contrat
-        // Le statut devient TRUE (Validé) seulement si l'Agent a AUSSI signé.
-        if (this.SignatureAgent == true) {
-            this.statut = true; // Le contrat est totalement validé
-            this.loueur.addContract(this); // Ajouter le contrat à l'historique du loueur
-            this.Vehicule.ajouterContrat(this); // Ajouter le contrat à l'historique du véhicule
-            System.out.println("Succès : Contrat signé par le Loueur. Le contrat est désormais VALIDÉ et ACTIF.");
+        this.dateSignatureLoueur = new Date();
+
+        // 4. Vérifier si l'agent a l'option "acceptation manuelle"
+        if (this.agent != null && this.agent.aAcceptationManuelle()) {
+            // L'agent doit accepter manuellement dans les 6 heures
+            OptionAcceptationManuelle option = this.agent.getOption(OptionAcceptationManuelle.class);
+            this.dateExpiration = option.calculerDateExpiration(this.dateSignatureLoueur);
+            this.statut = false;
+            System.out.println("Signature Loueur enregistrée. En attente de validation par l'Agent...");
+            System.out.println("L'agent a jusqu'au " + this.dateExpiration + " pour accepter le contrat.");
         } else {
-            this.statut = false; // Toujours en attente de l'agent
-            System.out.println("Succès : Signature Loueur enregistrée. En attente de validation par l'Agent...");
+            // Signature automatique de l'agent
+            this.SignatureAgent = true;
+            this.dateSignatureAgent = new Date();
+            validerContrat();
         }
+    }
+
+    /**
+     * L'agent accepte manuellement le contrat (si option payante activée).
+     * Doit être appelée avant l'expiration du délai de 6h.
+     */
+    public void signerAgent() {
+        // 1. Vérifier que le loueur a signé
+        if (!this.SignatureLoueur) {
+            System.out.println("Erreur : Le loueur n'a pas encore signé ce contrat.");
+            return;
+        }
+
+        // 2. Vérifier que l'agent n'a pas déjà signé
+        if (this.SignatureAgent) {
+            System.out.println("Erreur : L'agent a déjà signé ce contrat.");
+            return;
+        }
+
+        // 3. Vérifier que le délai de 6h n'est pas dépassé
+        if (estExpire()) {
+            System.out.println("Erreur : Le délai de 6h est dépassé. Le contrat est expiré.");
+            return;
+        }
+
+        // 4. Signature de l'agent
+        this.SignatureAgent = true;
+        this.dateSignatureAgent = new Date();
+        validerContrat();
+        System.out.println("Succès : Contrat accepté par l'agent.");
+    }
+
+    /**
+     * Valide le contrat : ajoute aux historiques du loueur et du véhicule.
+     */
+    private void validerContrat() {
+        this.statut = true;
+        this.loueur.addContract(this);
+        this.Vehicule.ajouterContrat(this);
+        System.out.println("Contrat VALIDÉ et ACTIF.");
+    }
+
+    /**
+     * Vérifie si le délai d'acceptation de 6h est dépassé.
+     */
+    public boolean estExpire() {
+        if (this.dateExpiration == null) {
+            return false;
+        }
+        return new Date().after(this.dateExpiration);
+    }
+
+    /**
+     * Retourne la date d'expiration pour l'acceptation manuelle.
+     */
+    public Date getDateExpiration() {
+        return dateExpiration;
+    }
+
+    /**
+     * Vérifie si le contrat est en attente d'acceptation de l'agent.
+     */
+    public boolean estEnAttenteAgent() {
+        return this.SignatureLoueur && !this.SignatureAgent && !estExpire();
     }
 
     public String genererPdf() {

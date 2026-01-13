@@ -3,23 +3,28 @@ package fr.miage.groupe2projetpoo.entity.assurance;
 import java.util.Objects;
 
 /**
- * Représente une option payante de la plateforme.
+ * Classe abstraite représentant une option payante de la plateforme.
  * Ces options sont souscrites par les agents et facturées mensuellement,
  * indépendamment de leur utilisation.
+ * 
+ * Options disponibles :
+ * - Acceptation manuelle des contrats
+ * - Assurance personnalisée (agents pro)
+ * - Service d'entretien
  */
-public class OptionPayante {
+public abstract class OptionPayante {
 
-    private String nom;
-    private double tarifMensuel;
-    private boolean estActive;
+    protected String nom;
+    protected double tarifMensuel;
+    protected boolean estActive;
 
     public OptionPayante() {
     }
 
-    public OptionPayante(String nom, double tarifMensuel, boolean estActive) {
+    protected OptionPayante(String nom, double tarifMensuel) {
         this.nom = nom;
         this.tarifMensuel = tarifMensuel;
-        this.estActive = estActive;
+        this.estActive = true; // Active par défaut à la création
     }
 
     // Getters et Setters
@@ -27,16 +32,8 @@ public class OptionPayante {
         return nom;
     }
 
-    public void setNom(String nom) {
-        this.nom = nom;
-    }
-
     public double getTarifMensuel() {
         return tarifMensuel;
-    }
-
-    public void setTarifMensuel(double tarifMensuel) {
-        this.tarifMensuel = tarifMensuel;
     }
 
     public boolean isEstActive() {
@@ -45,6 +42,20 @@ public class OptionPayante {
 
     public void setEstActive(boolean estActive) {
         this.estActive = estActive;
+    }
+
+    /**
+     * Active l'option
+     */
+    public void activer() {
+        this.estActive = true;
+    }
+
+    /**
+     * Désactive l'option
+     */
+    public void desactiver() {
+        this.estActive = false;
     }
 
     /**
@@ -57,9 +68,9 @@ public class OptionPayante {
 
     @Override
     public String toString() {
-        return "OptionPayante{" +
+        return getClass().getSimpleName() + "{" +
                 "nom='" + nom + '\'' +
-                ", tarifMensuel=" + tarifMensuel +
+                ", tarifMensuel=" + tarifMensuel + "€" +
                 ", estActive=" + estActive +
                 '}';
     }
