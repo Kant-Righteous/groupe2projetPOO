@@ -193,6 +193,22 @@ public class DataInitializer {
                 rentalRepository.save(contract3);
                 rentalRepository.save(contract4);
 
+                // Contrat Historique: Loueur1 a loué voiture1 (Alice) il y a 2 mois
+                Calendar calHist = Calendar.getInstance();
+                calHist.add(Calendar.MONTH, -2);
+                Date historyStart = calHist.getTime();
+                calHist.add(Calendar.DAY_OF_MONTH, 5);
+                Date historyEnd = calHist.getTime();
+
+                RentalContract contractHistorique = new RentalContract(loueur1, voiture1, historyStart, historyEnd,
+                                "Paris - Centre", "Paris - Gare", assuranceBasic);
+                contractHistorique.setIdC(100);
+                contractHistorique.setStatut(true);
+                contractHistorique.setSignatureLoueur(true);
+                contractHistorique.setSignatureAgent(true);
+
+                rentalRepository.save(contractHistorique);
+
                 // Liaison Loueur/Agent -> Contrat
                 loueur1.addContract(contract1);
                 loueur1.addVehicle(voiture1);
@@ -205,6 +221,13 @@ public class DataInitializer {
                 agentPro1.addContract(contract3);
                 loueur2.addContract(contract4);
                 loueur2.addVehicle(moto2);
+                loueur2.addContract(contract4);
+                loueur2.addVehicle(moto2);
                 agentPro2.addContract(contract4);
+
+                // Liaison Pour Historique
+                loueur1.addContract(contractHistorique);
+                agentPart1.addContract(contractHistorique);
+                voiture1.ajouterContrat(contractHistorique);
         }
 }

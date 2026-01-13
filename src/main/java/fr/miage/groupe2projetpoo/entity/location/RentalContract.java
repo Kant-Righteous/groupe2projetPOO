@@ -36,11 +36,13 @@ public class RentalContract {
     // clean
     @JsonIgnoreProperties({ "vehicles", "contracts", "password", "notations", "iban", "nomSociete" })
     private Loueur loueur;
+
+    @JsonIgnoreProperties({ "contracts", "vehicleList", "optionsPayantes", "notations", "password" })
     private Agent agent;
     private Assurance assurance;
 
     // Attribut pour l'acceptation manuelle (option payante)
-    private Date dateExpiration;  // Date limite pour que l'agent accepte (6h après signature loueur)
+    private Date dateExpiration; // Date limite pour que l'agent accepte (6h après signature loueur)
 
     // Constructeur par défaut (nécessaire pour Jackson JSON)
     public RentalContract() {
@@ -318,9 +320,10 @@ public class RentalContract {
         // 2. Vérification que les dates appartiennent aux disponibilités du véhicule
         LocalDate debutLocal = this.dateDebut.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
         LocalDate finLocal = this.dateFin.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-        
+
         if (!this.Vehicule.estDisponible(debutLocal, finLocal)) {
-            System.out.println("Erreur : Le véhicule n'est pas disponible pour la période du " + debutLocal + " au " + finLocal);
+            System.out.println(
+                    "Erreur : Le véhicule n'est pas disponible pour la période du " + debutLocal + " au " + finLocal);
             return;
         }
 
