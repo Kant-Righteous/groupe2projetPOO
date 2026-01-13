@@ -19,10 +19,10 @@ public class TestFinalAssurance {
                 Assurance assuranceBase = new Assurance(1, "Assurance Basic", 50.0);
 
                 // Création de véhicules
-                Voiture voiture = new Voiture("1", "Voiture", "Renault", "Rouge", "Clio", "Paris", true, 30.0, "Jean",
-                                new ArrayList<>());
-                Camion camion = new Camion("2", "Camion", "Volvo", "Blanc", "FH16", "Lyon", true, 100.0, "Marie",
-                                new ArrayList<>());
+                Voiture voiture = new Voiture("1", "Renault", "Rouge", "Clio", "Paris", 30.0, "Jean",
+                               false);
+                Camion camion = new Camion("2", "Volvo", "Blanc", "FH16", "Lyon", 100.0, "Marie",
+                                false);
 
                 double primeVoiture = assuranceBase.calculerPrime(voiture);
                 // Tarif Base 50 + Supplement Voiture 10 = 60
