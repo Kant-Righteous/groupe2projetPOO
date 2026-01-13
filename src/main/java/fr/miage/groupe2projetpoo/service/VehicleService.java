@@ -38,8 +38,8 @@ public class VehicleService {
      * ajout d'un vehicule
      */
     public Vehicle addVehicule(String idVehicule, TypeVehicule typeVehicule, String marqueVehicule,
-                               String couleurVehicule, String modeleVehicule, String villeVehicules, double prixVehiculeParJour,
-                               String proprietaire, boolean estEnPause) {
+            String couleurVehicule, String modeleVehicule, String villeVehicules, double prixVehiculeParJour,
+            String proprietaire, boolean estEnPause) {
 
         // Existance de vehicule
         if (vehiculeRepository.existsById(idVehicule)) {
@@ -54,7 +54,7 @@ public class VehicleService {
         Vehicle vehicule;
         switch (typeVehicule) {
             case VOITURE -> vehicule = new Voiture(idVehicule, marqueVehicule, couleurVehicule, modeleVehicule,
-                        villeVehicules, prixVehiculeParJour, proprietaire, estEnPause);
+                    villeVehicules, prixVehiculeParJour, proprietaire, estEnPause);
             case MOTO -> vehicule = new Moto(idVehicule, marqueVehicule, couleurVehicule, modeleVehicule,
                     villeVehicules, prixVehiculeParJour, proprietaire, estEnPause);
             case CAMION -> vehicule = new Camion(idVehicule, marqueVehicule, couleurVehicule, modeleVehicule,
@@ -108,19 +108,26 @@ public class VehicleService {
     }
 
     // recuperer les vehicule dispo sur le marché
-    public List<Vehicle> getVehiculeByEnPause(){
+    public List<Vehicle> getVehiculeByEnPause() {
         List<Vehicle> disponibles = vehiculeRepository.findByEnPause();
-        if(disponibles.isEmpty()){
+        if (disponibles.isEmpty()) {
             throw new IllegalArgumentException("Aucun véhicule disponible pour le moment");
         }
         return disponibles;
     }
 
     // recuperer tous les vehicules
-    public Collection<Vehicle> getAllVehicules(){
+    public Collection<Vehicle> getAllVehicules() {
         return vehiculeRepository.findAll();
     }
 
+    public List<Vehicle> getVehiculesByType(String type) {
+        List<Vehicle> vehicules = vehiculeRepository.findByType(type);
+        if (vehicules.isEmpty()) {
+            throw new IllegalArgumentException("Aucun véhicule trouvé pour le type : " + type);
+        }
+        return vehicules;
+    }
 
     /**
      * @param id
@@ -138,8 +145,8 @@ public class VehicleService {
         Vehicle vehicule = vehiculeRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Véhicule introuvable!"));
         // Mise à jour des champs
-        //vehicule.setIdVehicule(newData.getIdVehicule());
-        //vehicule.setTypeVehicule(newData.getTypeVehicule());
+        // vehicule.setIdVehicule(newData.getIdVehicule());
+        // vehicule.setTypeVehicule(newData.getTypeVehicule());
         vehicule.setMarqueVehicule(newData.getMarqueVehicule());
         vehicule.setModeleVehicule(newData.getModeleVehicule());
         vehicule.setCouleurVehicule(newData.getCouleurVehicule());

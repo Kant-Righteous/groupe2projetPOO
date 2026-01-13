@@ -2,6 +2,8 @@ package fr.miage.groupe2projetpoo.controller;
 
 import fr.miage.groupe2projetpoo.entity.vehicule.TypeVehicule;
 import fr.miage.groupe2projetpoo.entity.vehicule.Vehicle;
+import fr.miage.groupe2projetpoo.entity.location.RentalContract;
+import fr.miage.groupe2projetpoo.entity.notation.NoteVehicule;
 import fr.miage.groupe2projetpoo.service.VehicleService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -28,7 +30,8 @@ public class VehicleController {
      * Ajouter un vehicule - POST /api/vehicules/add
      */
     @PostMapping("/add/{type}")
-    public ResponseEntity<Map<String, Object>> addVehicule(@PathVariable String type, @RequestBody Map<String, String> request) {
+    public ResponseEntity<Map<String, Object>> addVehicule(@PathVariable String type,
+            @RequestBody Map<String, String> request) {
         try {
             TypeVehicule typeEnum = TypeVehicule.valueOf(type.toUpperCase());
             String id = request.get("idVehicule");
@@ -40,7 +43,7 @@ public class VehicleController {
             String proprietaire = request.get("proprietaire");
             boolean estEnPause = Boolean.parseBoolean(request.get("estEnPause"));
 
-            Vehicle vehicule = vehicleService.addVehicule(id,typeEnum, marque, couleur, modele, ville,
+            Vehicle vehicule = vehicleService.addVehicule(id, typeEnum, marque, couleur, modele, ville,
                     prixVehiculeParJour, proprietaire, estEnPause);
             // if (vehicule != null) {
             return ResponseEntity.ok(Map.of(
@@ -72,7 +75,6 @@ public class VehicleController {
     }
 
     // Afficher les infos d'un vehicule enregistré
-
     /**
      * Récupérer les information d'un véhicules par id - GET
      * /api/vehicules/{id}/info
@@ -81,21 +83,9 @@ public class VehicleController {
     public ResponseEntity<Map<String, Object>> GetVehiculesByID(@PathVariable String id) {
         try {
             Vehicle v = vehicleService.getVehiculeByID(id);
-
-            // Transformer les infos du véhicules en Map pour la réponse JSON
-            Map<String, Object> map = new HashMap<>();
-            map.put("id", v.getIdVehicule());
-            map.put("type", v.getType());
-            map.put("marque", v.getMarqueVehicule());
-            map.put("modele", v.getModeleVehicule());
-            map.put("couleur", v.getCouleurVehicule());
-            map.put("ville", v.getVilleVehicule());
-            map.put("estEnPause", v.getEstEnpause());
-            map.put("prixParJour", v.getPrixVehiculeParJour());
-
             return ResponseEntity.ok(Map.of(
                     "success", true,
-                    "vehicule", map));
+                    "vehicule", mapVehicleToMap(v)));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(404).body(Map.of(
                     "success", false,
@@ -141,9 +131,8 @@ public class VehicleController {
     @GetMapping("/all")
     public ResponseEntity<?> getAllVehicules() {
         return ResponseEntity.ok(Map.of(
-            "success", true,
-                "vehicules", vehicleService.getAllVehicules()
-        ));
+                "success", true,
+                "vehicules", vehicleService.getAllVehicules()));
     }
 
     // chercher par ville
@@ -153,16 +142,7 @@ public class VehicleController {
         try {
             List<Vehicle> listV = vehicleService.getVehiculeByVille(ville);
             List<Map<String, Object>> result = listV.stream().map(v -> {
-                Map<String, Object> map = new HashMap<>();
-                map.put("id", v.getIdVehicule());
-                map.put("type", v.getType());
-                map.put("marque", v.getMarqueVehicule());
-                map.put("modele", v.getModeleVehicule());
-                map.put("couleur", v.getCouleurVehicule());
-                map.put("ville", v.getVilleVehicule());
-                map.put("EstEnpause", v.getEstEnpause());
-                map.put("prixJour", v.getPrixVehiculeParJour());
-                return map;
+                return mapVehicleInfo(v);
             }).toList();
             return ResponseEntity.ok(Map.of(
                     "success", true,
@@ -175,23 +155,40 @@ public class VehicleController {
         }
     }
 
+    // chercher par type
+    // http://localhost:8080/api/vehicules/type/{type}
+    @GetMapping("/type/{type}")
+    public ResponseEntity<?> getVehiculesByType(@PathVariable String type) {
+        try {
+            List<Vehicle> listV = vehicleService.getVehiculesByType(type);
+            List<Map<String, Object>> result = listV.stream().map(v -> {
+                return mapVehicleInfo(v);
+            }).toList();
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "type", type,
+                    "vehicules", result));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(404).body(Map.of(
+                    "success", false,
+                    "message", e.getMessage()));
+        }
+    }
+
     // chercher les vehicules qui ne sont pas en pause sur le marché: disponible
     @GetMapping("/disponibles")
     public ResponseEntity<?> getTousVehiculesDisponibles() {
 
-       try {
-           return ResponseEntity.ok(Map.of(
-                   "success", true,
-                   "vehicules", vehicleService.getVehiculeByEnPause()
-           ));
-       }catch (IllegalArgumentException e){
-           return ResponseEntity.status(404).body(Map.of(
-                   "success", false,
-                   "message", e.getMessage()
-           ));
-       }
+        try {
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "vehicules", vehicleService.getVehiculeByEnPause()));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(404).body(Map.of(
+                    "success", false,
+                    "message", e.getMessage()));
+        }
     }
-
 
     // Suppression d'un vehicule
     @DeleteMapping("/{id}")
@@ -213,8 +210,8 @@ public class VehicleController {
     @PutMapping("/{idV}")
     public ResponseEntity<?> updateVehicule(@PathVariable String idV, @RequestBody Map<String, String> request) {
         try {
-            //String id = request.get("idVehicule");
-            //TypeVehicule type = vehicleService.getVehiculeByID(idV).getType();
+            // String id = request.get("idVehicule");
+            // TypeVehicule type = vehicleService.getVehiculeByID(idV).getType();
             String marque = request.get("marqueVehicule");
             String couleur = request.get("couleurVehicule");
             String modele = request.get("modeleVehicule");
@@ -222,7 +219,8 @@ public class VehicleController {
             double prixVehiculeParJour = Double.parseDouble(request.get("prixVehiculeParJour"));
             String proprietaire = request.get("proprietaire");
             boolean estEnPause = Boolean.parseBoolean(request.get("estEnPause"));
-            Vehicle newData = new Vehicle(idV, marque, couleur, modele, ville, prixVehiculeParJour,proprietaire, estEnPause) {
+            Vehicle newData = new Vehicle(idV, marque, couleur, modele, ville, prixVehiculeParJour, proprietaire,
+                    estEnPause) {
                 @Override
                 public TypeVehicule getType() {
                     return null;
@@ -240,5 +238,60 @@ public class VehicleController {
                     "message", e.getMessage()));
         }
 
+    }
+
+    private Map<String, Object> mapVehicleToMap(Vehicle v) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("id", v.getIdVehicule());
+        map.put("type", v.getType());
+        map.put("marque", v.getMarqueVehicule());
+        map.put("modele", v.getModeleVehicule());
+        map.put("couleur", v.getCouleurVehicule());
+        map.put("ville", v.getVilleVehicule());
+        map.put("estEnPause", v.getEstEnpause());
+        map.put("prixParJour", v.getPrixVehiculeParJour());
+
+        // Ajout des notations
+        List<Map<String, Object>> notationsList = v.getNotations().stream().map(n -> {
+            Map<String, Object> noteMap = new HashMap<>();
+            noteMap.put("id", n.getId());
+            noteMap.put("auteur", n.getAuthorEmail());
+            noteMap.put("commentaire", n.getCommentaire());
+            noteMap.put("noteGlobale", n.calculerNoteGlobale());
+            noteMap.put("date", n.getDate());
+            noteMap.put("confort", n.getConfort());
+            noteMap.put("proprete", n.getProprete());
+            return noteMap;
+        }).toList();
+        map.put("notations", notationsList);
+
+        // Ajout de l'historique des contrats
+        List<Map<String, Object>> contratsList = v.getHistoriqueContrats().stream().map(c -> {
+            Map<String, Object> contratMap = new HashMap<>();
+            contratMap.put("id", c.getIdC());
+            contratMap.put("dateDebut", c.getDateDebut());
+            contratMap.put("dateFin", c.getDateFin());
+            contratMap.put("statut", c.isStatut());
+            contratMap.put("prixTotal", c.getPrixTotal());
+            if (c.getLoueur() != null) {
+                contratMap.put("loueur", c.getLoueur().getEmail());
+            }
+            return contratMap;
+        }).toList();
+        map.put("historiqueContrats", contratsList);
+
+        return map;
+    }
+    private Map<String, Object> mapVehicleInfo(Vehicle v) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("id", v.getIdVehicule());
+        map.put("type", v.getType());
+        map.put("marque", v.getMarqueVehicule());
+        map.put("modele", v.getModeleVehicule());
+        map.put("couleur", v.getCouleurVehicule());
+        map.put("ville", v.getVilleVehicule());
+        map.put("estEnPause", v.getEstEnpause());
+        map.put("prixParJour", v.getPrixVehiculeParJour());
+        return map;
     }
 }

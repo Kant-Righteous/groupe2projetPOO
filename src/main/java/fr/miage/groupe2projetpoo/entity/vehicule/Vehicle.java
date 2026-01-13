@@ -19,12 +19,12 @@ public abstract class Vehicle {
     private String couleurVehicule;
     private String modeleVehicule;
     private String villeVehicule;
-    private List<NoteVehicule> notations = new ArrayList<>();
     private boolean estEnpause;
     private double prixVehiculeParJour;
     private String Proprietaire;
     private Map<LocalDate,Boolean> disponibilites = new HashMap<>();
     private List<RentalContract> historiqueContrats = new ArrayList<>();
+    private List<NoteVehicule> notations = new ArrayList<>();
 
     // Constructeur
     public Vehicle(String idVehicule, String marqueVehicule,
