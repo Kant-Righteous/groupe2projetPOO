@@ -21,6 +21,8 @@ public interface VehicleRepository {
     // Chercher par ville
     public List<Vehicle> findByVille(String ville);
     public List<Vehicle> findByType(String type);
+    public List<Vehicle> findByEnPause();
+    public Collection<Vehicle> findAll();
     // Verifier l'existance de l'ID
     public boolean existsById(String id);
 

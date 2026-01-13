@@ -1,5 +1,7 @@
 package fr.miage.groupe2projetpoo.entity.utilisateur;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 /**
  * Classe abstraite représentant un utilisateur
  */
@@ -7,6 +9,7 @@ public abstract class Utilisateur {
 
     private String nom;
     private String prenom;
+    @JsonIgnore
     private String password;
     private String email;
     private String tel;

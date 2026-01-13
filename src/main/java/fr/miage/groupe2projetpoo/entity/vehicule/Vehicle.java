@@ -4,6 +4,7 @@ import fr.miage.groupe2projetpoo.entity.location.RentalContract;
 import fr.miage.groupe2projetpoo.entity.notation.NoteVehicule;
 
 import java.util.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import fr.miage.groupe2projetpoo.entity.utilisateur.Agent;
 import org.springframework.cglib.core.Local;
@@ -14,7 +15,7 @@ import java.util.List;
 public abstract class Vehicle {
     // Propriétés
     private String idVehicule;
-    //private String typeVehicule;
+    // private String typeVehicule;
     private String marqueVehicule;
     private String couleurVehicule;
     private String modeleVehicule;
@@ -23,13 +24,16 @@ public abstract class Vehicle {
     private boolean estEnpause;
     private double prixVehiculeParJour;
     private String Proprietaire;
-    private Map<LocalDate,Boolean> disponibilites = new HashMap<>();
+    @JsonIgnore
+    private Map<LocalDate, Boolean> disponibilites = new HashMap<>();
+
+    @JsonIgnore
     private List<RentalContract> historiqueContrats = new ArrayList<>();
 
     // Constructeur
     public Vehicle(String idVehicule, String marqueVehicule,
             String couleurVehicule, String modeleVehicule, String villeVehicule,
-            double prixVehiculeJour, String proprietaire,Boolean estEnpause) {
+            double prixVehiculeJour, String proprietaire, Boolean estEnpause) {
         this.idVehicule = idVehicule;
         this.marqueVehicule = marqueVehicule;
         this.couleurVehicule = couleurVehicule;
@@ -41,12 +45,12 @@ public abstract class Vehicle {
         initiliserDisponibilites();
     }
 
-    private void initiliserDisponibilites(){
+    private void initiliserDisponibilites() {
         LocalDate dateDeb = LocalDate.now().withDayOfYear(1);
         LocalDate dateFin = dateDeb.plusYears(1);
 
-        while(!dateDeb.isAfter(dateFin)){
-            disponibilites.put(dateDeb,true);
+        while (!dateDeb.isAfter(dateFin)) {
+            disponibilites.put(dateDeb, true);
             dateDeb = dateDeb.plusDays(1);
         }
     }
@@ -54,13 +58,16 @@ public abstract class Vehicle {
     // Getters
 
     public abstract TypeVehicule getType();
+
     public String getIdVehicule() {
         return idVehicule;
     }
 
-    /*public String getTypeVehicule() {
-        return typeVehicule;
-    }*/
+    /*
+     * public String getTypeVehicule() {
+     * return typeVehicule;
+     * }
+     */
 
     public String getMarqueVehicule() {
         return marqueVehicule;
@@ -82,9 +89,11 @@ public abstract class Vehicle {
         return notations;
     }
 
-    /*public boolean getEstDisponible() {
-        return estDisponible;
-    }*/
+    /*
+     * public boolean getEstDisponible() {
+     * return estDisponible;
+     * }
+     */
 
     public double getPrixVehiculeParJour() {
         return prixVehiculeParJour;
@@ -107,9 +116,11 @@ public abstract class Vehicle {
         this.idVehicule = idV;
     }
 
-    /*public void setTypeVehicule(String type) {
-        this.typeVehicule = type;
-    }*/
+    /*
+     * public void setTypeVehicule(String type) {
+     * this.typeVehicule = type;
+     * }
+     */
     public void setMarqueVehicule(String marque) {
         this.marqueVehicule = marque;
     }
@@ -126,9 +137,11 @@ public abstract class Vehicle {
         this.villeVehicule = ville;
     }
 
-   /* public void setEstDisponible(boolean estDisponible) {
-        this.estDisponible = estDisponible;
-    }*/
+    /*
+     * public void setEstDisponible(boolean estDisponible) {
+     * this.estDisponible = estDisponible;
+     * }
+     */
 
     public void setPrixVehiculeParJour(double prixVehiculeJour) {
         this.prixVehiculeParJour = prixVehiculeJour;
@@ -137,7 +150,6 @@ public abstract class Vehicle {
     public void setProprietaire(String proprietaire) {
         this.Proprietaire = proprietaire;
     }
-
 
     public boolean estDisponible(LocalDate debut, LocalDate fin) {
         LocalDate d = debut;
@@ -150,6 +162,7 @@ public abstract class Vehicle {
         }
         return true;
     }
+
     public void setNotations(List<NoteVehicule> notations) {
         this.notations = notations;
     }

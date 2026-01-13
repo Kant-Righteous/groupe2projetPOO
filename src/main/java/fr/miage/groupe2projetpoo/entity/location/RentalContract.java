@@ -5,6 +5,7 @@ import fr.miage.groupe2projetpoo.entity.assurance.OptionAcceptationManuelle;
 import fr.miage.groupe2projetpoo.entity.utilisateur.Agent;
 import fr.miage.groupe2projetpoo.entity.utilisateur.Loueur;
 import fr.miage.groupe2projetpoo.entity.vehicule.Vehicle;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -28,11 +29,16 @@ public class RentalContract {
     private double montantPlatforme;
     private double commissionPourcentage;
     private double commissionFixeParJour;
+    @JsonIgnoreProperties({ "historiqueContrats", "disponibilites", "notations", "proprietaire" })
     private Vehicle Vehicule;
+
+    // Use JsonIgnoreProperties to avoid infinite recursion AND to keep the output
+    // clean
+    @JsonIgnoreProperties({ "vehicles", "contracts", "password", "notations", "iban", "nomSociete" })
     private Loueur loueur;
     private Agent agent;
     private Assurance assurance;
-    
+
     // Attribut pour l'acceptation manuelle (option payante)
     private Date dateExpiration;  // Date limite pour que l'agent accepte (6h après signature loueur)
 
@@ -415,5 +421,5 @@ public class RentalContract {
 
         return nomFichier;
     }
-}
 
+}

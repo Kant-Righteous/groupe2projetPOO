@@ -30,17 +30,15 @@ public class VehicleController {
     @PostMapping("/add/{type}")
     public ResponseEntity<Map<String, Object>> addVehicule(@PathVariable String type, @RequestBody Map<String, String> request) {
         try {
-        TypeVehicule typeEnum = TypeVehicule.valueOf(type.toUpperCase());
-        String id = request.get("idVehicule");
-        String marque = request.get("marqueVehicule");
-        String couleur = request.get("couleurVehicule");
-        String modele = request.get("modeleVehicule");
-        String ville = request.get("villeVehicule");
-        double prixVehiculeParJour = Double.parseDouble(request.get("prixVehiculeParJour"));
-        String proprietaire = request.get("proprietaire");
-        boolean estEnPause = Boolean.parseBoolean(request.get("estEnpause"));
-        // boolean estDisponible = Boolean.parseBoolean(request.get("estDisponible"));
-
+            TypeVehicule typeEnum = TypeVehicule.valueOf(type.toUpperCase());
+            String id = request.get("idVehicule");
+            String marque = request.get("marqueVehicule");
+            String couleur = request.get("couleurVehicule");
+            String modele = request.get("modeleVehicule");
+            String ville = request.get("villeVehicule");
+            double prixVehiculeParJour = Double.parseDouble(request.get("prixVehiculeParJour"));
+            String proprietaire = request.get("proprietaire");
+            boolean estEnPause = Boolean.parseBoolean(request.get("estEnPause"));
 
             Vehicle vehicule = vehicleService.addVehicule(id,typeEnum, marque, couleur, modele, ville,
                     prixVehiculeParJour, proprietaire, estEnPause);
@@ -92,7 +90,7 @@ public class VehicleController {
             map.put("modele", v.getModeleVehicule());
             map.put("couleur", v.getCouleurVehicule());
             map.put("ville", v.getVilleVehicule());
-            map.put("EstEnpause", v.getEstEnpause());
+            map.put("estEnPause", v.getEstEnpause());
             map.put("prixParJour", v.getPrixVehiculeParJour());
 
             return ResponseEntity.ok(Map.of(
@@ -124,7 +122,7 @@ public class VehicleController {
         }
     }
 
-    // voir les disponibilites d'un vehicule
+    // verifier les disponibilites d'un vehicule
     @GetMapping("/{id}/disponible")
     public ResponseEntity<?> estDisponible(@PathVariable String id, @RequestParam String debut,
             @RequestParam String fin) {
@@ -137,6 +135,15 @@ public class VehicleController {
                 "disponible", dispo,
                 "debut", d,
                 "fin", f));
+    }
+
+    // voir tout les vehicules
+    @GetMapping("/all")
+    public ResponseEntity<?> getAllVehicules() {
+        return ResponseEntity.ok(Map.of(
+            "success", true,
+                "vehicules", vehicleService.getAllVehicules()
+        ));
     }
 
     // chercher par ville
@@ -167,6 +174,24 @@ public class VehicleController {
                     "message", e.getMessage()));
         }
     }
+
+    // chercher les vehicules qui ne sont pas en pause sur le marché: disponible
+    @GetMapping("/disponibles")
+    public ResponseEntity<?> getTousVehiculesDisponibles() {
+
+       try {
+           return ResponseEntity.ok(Map.of(
+                   "success", true,
+                   "vehicules", vehicleService.getVehiculeByEnPause()
+           ));
+       }catch (IllegalArgumentException e){
+           return ResponseEntity.status(404).body(Map.of(
+                   "success", false,
+                   "message", e.getMessage()
+           ));
+       }
+    }
+
 
     // Suppression d'un vehicule
     @DeleteMapping("/{id}")
