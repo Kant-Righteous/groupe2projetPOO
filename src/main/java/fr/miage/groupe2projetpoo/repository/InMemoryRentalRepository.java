@@ -39,14 +39,12 @@ public class InMemoryRentalRepository implements RentalRepository {
         loueurs.put("marie@email.com", loueur2);
 
         // Créer des véhicules de test (clé = idVehicule)
-        // Paramètres: idVehicule, marqueVehicule, couleurVehicule, modeleVehicule,
-        // villeVehicule, prixVehiculeParJour, proprietaire, estEnpause
-        Voiture voiture1 = new Voiture("V001", "Renault", "Bleu", "Clio",
-                "Paris", 30.0, "Agent001", false);
+        Voiture voiture1 = new Voiture("V001", "Bleu", "Renault", "Clio",
+                "Paris", 30.0, "Agent001",false);
         vehicules.put("V001", voiture1);
 
         Voiture voiture2 = new Voiture("V002", "Peugeot", "Noir", "3008",
-                "Lyon", 50.0, "Agent002", false);
+                "Lyon", 50.0, "Agent002",false);
         vehicules.put("V002", voiture2);
 
         // Créer des assurances de test (clé = nom)
