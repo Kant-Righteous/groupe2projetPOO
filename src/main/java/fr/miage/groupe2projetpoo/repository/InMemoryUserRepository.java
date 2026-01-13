@@ -44,7 +44,7 @@ public class InMemoryUserRepository implements UserRepository {
 
         // === 1bis. Créer les Options ===
         fr.miage.groupe2projetpoo.entity.assurance.OptionParking optionParking = new fr.miage.groupe2projetpoo.entity.assurance.OptionParking(
-                "Abonnement Parking VIP", 15.0, true, 24, 30, 8.0,
+                "Abonnement Parking VIP", 15.0, 24, 30, 8.0,
                 new fr.miage.groupe2projetpoo.entity.infrastructure.Parking(1, "Gare de Lyon", "18 Rue de Lyon",
                         "Paris", 500, 10.0));
         allOptions.add(optionParking);
