@@ -112,6 +112,38 @@ public class VehicleController {
         }
     }
 
+    // afficher l'historique des contrats d'un vehicule
+    @GetMapping("/historiqueContrat/{id}")
+    public ResponseEntity<Map<String, Object>> GetContractListVehicules(@PathVariable String id) {
+        try {
+            Vehicle v = vehicleService.getVehiculeByID(id);
+
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "historique des contract", v.getHistoriqueContrats()));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(404).body(Map.of(
+                    "success", false,
+                    "message", e.getMessage()));
+        }
+    }
+
+    // afficher la liste des Notations d'un vehicule
+    @GetMapping("/notations/{id}")
+    public ResponseEntity<Map<String, Object>> GetNotationsListVehicules(@PathVariable String id) {
+        try {
+            Vehicle v = vehicleService.getVehiculeByID(id);
+
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "Notations", v.getNotations()));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(404).body(Map.of(
+                    "success", false,
+                    "message", e.getMessage()));
+        }
+    }
+
     // verifier les disponibilites d'un vehicule
     @GetMapping("/{id}/disponible")
     public ResponseEntity<?> estDisponible(@PathVariable String id, @RequestParam String debut,
