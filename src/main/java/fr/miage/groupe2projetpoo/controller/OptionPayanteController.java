@@ -1,10 +1,9 @@
 package fr.miage.groupe2projetpoo.controller;
 
 import fr.miage.groupe2projetpoo.entity.assurance.*;
-import fr.miage.groupe2projetpoo.entity.infrastructure.Parking;
 import fr.miage.groupe2projetpoo.entity.utilisateur.Agent;
-import fr.miage.groupe2projetpoo.entity.utilisateur.AgentParticulier;
-import fr.miage.groupe2projetpoo.entity.utilisateur.AgentProfessionnel;
+import fr.miage.groupe2projetpoo.entity.utilisateur.Utilisateur;
+import fr.miage.groupe2projetpoo.service.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,28 +13,41 @@ import java.util.*;
  * Controller REST pour tester les options payantes via Hoppscotch
  */
 @RestController
-@RequestMapping("/api/options-test")
+@RequestMapping("/api/options")
 public class OptionPayanteController {
 
-    // Agent de test en mémoire
-    private Agent agentTest;
+    private final UserService userService;
 
-    public OptionPayanteController() {
-        // Créer un agent professionnel de test avec nomEntreprise et siret
-        agentTest = new AgentProfessionnel("Dupont", "Jean", "pass123", "agent@test.com", "0601020304", "Entreprise Test", "12345678901234");
+    public OptionPayanteController(UserService userService) {
+        this.userService = userService;
+    }
+
+    // Méthode utilitaire pour récupérer un agent
+    private Agent getAgent(String email) {
+        if (email == null)
+            return null;
+        Optional<Utilisateur> userOpt = userService.findByEmail(email);
+        if (userOpt.isPresent() && userOpt.get() instanceof Agent) {
+            return (Agent) userOpt.get();
+        }
+        return null;
     }
 
     /**
-     * GET /api/options-test - Voir toutes les options de l'agent de test
+     * GET /api/options - Voir toutes les options d'un agent
      */
     @GetMapping
-    public ResponseEntity<Map<String, Object>> voirOptions() {
+    public ResponseEntity<Map<String, Object>> voirOptions(@RequestParam String agentEmail) {
+        Agent agent = getAgent(agentEmail);
+        if (agent == null)
+            return ResponseEntity.badRequest().body(Map.of("message", "Agent introuvable"));
+
         Map<String, Object> result = new HashMap<>();
-        result.put("agentEmail", agentTest.getEmail());
-        result.put("agentNom", agentTest.getNom() + " " + agentTest.getPrenom());
-        
+        result.put("agentEmail", agent.getEmail());
+        result.put("agentNom", agent.getNom() + " " + agent.getPrenom());
+
         List<Map<String, Object>> options = new ArrayList<>();
-        for (OptionPayante opt : agentTest.getOptionsPayantes()) {
+        for (OptionPayante opt : agent.getOptionsPayantes()) {
             Map<String, Object> optInfo = new HashMap<>();
             optInfo.put("type", opt.getClass().getSimpleName());
             optInfo.put("nom", opt.getNom());
@@ -43,134 +55,113 @@ public class OptionPayanteController {
             optInfo.put("active", opt.isEstActive());
             options.add(optInfo);
         }
-        
+
         result.put("options", options);
-        result.put("factureMensuelle", agentTest.calculerFactureMensuelle());
-        result.put("aAcceptationManuelle", agentTest.aAcceptationManuelle());
-        
+        result.put("factureMensuelle", agent.calculerFactureMensuelle());
+        result.put("AcceptationManuelle", agent.aAcceptationManuelle());
+
         return ResponseEntity.ok(result);
     }
 
     /**
-     * POST /api/options-test/acceptation-manuelle - Ajouter l'option Acceptation Manuelle (10€/mois)
+     * POST /api/options/add - Ajouter une option payante
+     * Body: { "agentEmail": "...", "typeOption": "MANUEL" | "ASSURANCE" |
+     * "ENTRETIEN_PONCTUEL" | "ENTRETIEN_AUTO" }
      */
-    @PostMapping("/acceptation-manuelle")
-    public ResponseEntity<Map<String, Object>> ajouterAcceptationManuelle() {
-        OptionAcceptationManuelle option = new OptionAcceptationManuelle();
-        agentTest.ajouterOption(option);
-        
-        return ResponseEntity.ok(Map.of(
-            "success", true,
-            "message", "Option Acceptation Manuelle ajoutée",
-            "option", Map.of(
-                "nom", option.getNom(),
-                "tarifMensuel", option.getTarifMensuel(),
-                "delaiHeures", OptionAcceptationManuelle.getDelaiEnHeures()
-            ),
-            "nouvelleFacture", agentTest.calculerFactureMensuelle()
-        ));
+    @PostMapping("/add")
+    public ResponseEntity<Map<String, Object>> ajouterOption(@RequestBody Map<String, String> request) {
+        String agentEmail = request.get("agentEmail");
+        String typeOption = request.get("typeOption");
+
+        Agent agent = getAgent(agentEmail);
+        if (agent == null)
+            return ResponseEntity.badRequest().body(Map.of("message", "Agent introuvable"));
+
+        OptionPayante option = null;
+        String message = "";
+
+        switch (typeOption) {
+            case "MANUEL":
+                option = new OptionAcceptationManuelle();
+                message = "Option Acceptation Manuelle ajoutée";
+                break;
+            case "ASSURANCE":
+                // Création simplifiée pour le test
+                Assurance assurancePerso = new Assurance(99, "Assurance Agent " + agent.getNom(), 12.0);
+                option = new OptionAssurancePersonnalisee(assurancePerso);
+                message = "Option Assurance Personnalisée ajoutée";
+                break;
+            case "ENTRETIEN_PONCTUEL":
+                option = new OptionEntretien(false);
+                message = "Option Entretien Ponctuel ajoutée";
+                break;
+            case "ENTRETIEN_AUTO":
+                option = new OptionEntretien(true);
+                message = "Option Entretien Automatique ajoutée";
+                break;
+            default:
+                return ResponseEntity.badRequest().body(Map.of("message",
+                        "Type d'option invalide (MANUEL, ASSURANCE, ENTRETIEN_PONCTUEL, ENTRETIEN_AUTO)"));
+        }
+
+        if (option != null) {
+            agent.ajouterOption(option);
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", message,
+                    "option", Map.of(
+                            "nom", option.getNom(),
+                            "tarifMensuel", option.getTarifMensuel()),
+                    "nouvelleFacture", agent.calculerFactureMensuelle()));
+        }
+
+        return ResponseEntity.badRequest().body(Map.of("message", "Erreur lors de la création de l'option"));
     }
 
     /**
-     * POST /api/options-test/assurance-personnalisee - Ajouter l'option Assurance Personnalisée (15€/mois)
-     */
-    @PostMapping("/assurance-personnalisee")
-    public ResponseEntity<Map<String, Object>> ajouterAssurancePersonnalisee() {
-        // Créer une assurance personnalisée
-        Assurance assurancePerso = new Assurance(99, "Assurance Agent Dupont", 12.0);
-        OptionAssurancePersonnalisee option = new OptionAssurancePersonnalisee(assurancePerso);
-        agentTest.ajouterOption(option);
-        
-        return ResponseEntity.ok(Map.of(
-            "success", true,
-            "message", "Option Assurance Personnalisée ajoutée",
-            "option", Map.of(
-                "nom", option.getNom(),
-                "tarifMensuel", option.getTarifMensuel(),
-                "assuranceAgent", assurancePerso.getNom()
-            ),
-            "nouvelleFacture", agentTest.calculerFactureMensuelle()
-        ));
-    }
-
-    /**
-     * POST /api/options-test/entretien-ponctuel - Ajouter l'option Entretien Ponctuel (5€/mois)
-     */
-    @PostMapping("/entretien-ponctuel")
-    public ResponseEntity<Map<String, Object>> ajouterEntretienPonctuel() {
-        OptionEntretien option = new OptionEntretien(false);  // ponctuel
-        agentTest.ajouterOption(option);
-        
-        return ResponseEntity.ok(Map.of(
-            "success", true,
-            "message", "Option Entretien Ponctuel ajoutée",
-            "option", Map.of(
-                "nom", option.getNom(),
-                "tarifMensuel", option.getTarifMensuel(),
-                "automatique", option.isAutomatique()
-            ),
-            "nouvelleFacture", agentTest.calculerFactureMensuelle()
-        ));
-    }
-
-    /**
-     * POST /api/options-test/entretien-automatique - Ajouter l'option Entretien Automatique (20€/mois)
-     */
-    @PostMapping("/entretien-automatique")
-    public ResponseEntity<Map<String, Object>> ajouterEntretienAutomatique() {
-        OptionEntretien option = new OptionEntretien(true);  // automatique
-        agentTest.ajouterOption(option);
-        
-        return ResponseEntity.ok(Map.of(
-            "success", true,
-            "message", "Option Entretien Automatique ajoutée",
-            "option", Map.of(
-                "nom", option.getNom(),
-                "tarifMensuel", option.getTarifMensuel(),
-                "automatique", option.isAutomatique()
-            ),
-            "nouvelleFacture", agentTest.calculerFactureMensuelle()
-        ));
-    }
-
-    /**
-     * DELETE /api/options-test/reset - Supprimer toutes les options (pour recommencer les tests)
+     * DELETE /api/options/reset - Supprimer toutes les options (pour recommencer
+     * les tests)
      */
     @DeleteMapping("/reset")
-    public ResponseEntity<Map<String, Object>> resetOptions() {
-        agentTest.getOptionsPayantes().clear();
-        
+    public ResponseEntity<Map<String, Object>> resetOptions(@RequestParam String agentEmail) {
+        Agent agent = getAgent(agentEmail);
+        if (agent == null)
+            return ResponseEntity.badRequest().body(Map.of("message", "Agent introuvable"));
+
+        agent.getOptionsPayantes().clear();
+
         return ResponseEntity.ok(Map.of(
-            "success", true,
-            "message", "Toutes les options ont été supprimées",
-            "factureMensuelle", agentTest.calculerFactureMensuelle()
-        ));
+                "success", true,
+                "message", "Toutes les options ont été supprimées pour " + agentEmail,
+                "factureMensuelle", agent.calculerFactureMensuelle()));
     }
 
     /**
-     * GET /api/options-test/facture - Voir la facture mensuelle détaillée
+     * GET /api/options/facture - Voir la facture mensuelle détaillée
      */
     @GetMapping("/facture")
-    public ResponseEntity<Map<String, Object>> voirFacture() {
+    public ResponseEntity<Map<String, Object>> voirFacture(@RequestParam String agentEmail) {
+        Agent agent = getAgent(agentEmail);
+        if (agent == null)
+            return ResponseEntity.badRequest().body(Map.of("message", "Agent introuvable"));
+
         List<Map<String, Object>> details = new ArrayList<>();
         double total = 0;
-        
-        for (OptionPayante opt : agentTest.getOptionsPayantes()) {
+
+        for (OptionPayante opt : agent.getOptionsPayantes()) {
             double cout = opt.calculerCoutMensuel();
             details.add(Map.of(
-                "option", opt.getNom(),
-                "tarif", opt.getTarifMensuel(),
-                "active", opt.isEstActive(),
-                "cout", cout
-            ));
+                    "option", opt.getNom(),
+                    "tarif", opt.getTarifMensuel(),
+                    "active", opt.isEstActive(),
+                    "cout", cout));
             total += cout;
         }
-        
+
         return ResponseEntity.ok(Map.of(
-            "agentEmail", agentTest.getEmail(),
-            "nombreOptions", agentTest.getOptionsPayantes().size(),
-            "details", details,
-            "totalFacture", total
-        ));
+                "agentEmail", agent.getEmail(),
+                "nombreOptions", agent.getOptionsPayantes().size(),
+                "details", details,
+                "totalFacture", total));
     }
 }

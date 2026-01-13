@@ -28,7 +28,8 @@ public class VehicleController {
      * Ajouter un vehicule - POST /api/vehicules/add
      */
     @PostMapping("/add/{type}")
-    public ResponseEntity<Map<String, Object>> addVehicule(@PathVariable String type, @RequestBody Map<String, String> request) {
+    public ResponseEntity<Map<String, Object>> addVehicule(@PathVariable String type,
+            @RequestBody Map<String, String> request) {
         try {
             TypeVehicule typeEnum = TypeVehicule.valueOf(type.toUpperCase());
             String id = request.get("idVehicule");
@@ -40,7 +41,7 @@ public class VehicleController {
             String proprietaire = request.get("proprietaire");
             boolean estEnPause = Boolean.parseBoolean(request.get("estEnPause"));
 
-            Vehicle vehicule = vehicleService.addVehicule(id,typeEnum, marque, couleur, modele, ville,
+            Vehicle vehicule = vehicleService.addVehicule(id, typeEnum, marque, couleur, modele, ville,
                     prixVehiculeParJour, proprietaire, estEnPause);
             // if (vehicule != null) {
             return ResponseEntity.ok(Map.of(
@@ -141,9 +142,8 @@ public class VehicleController {
     @GetMapping("/all")
     public ResponseEntity<?> getAllVehicules() {
         return ResponseEntity.ok(Map.of(
-            "success", true,
-                "vehicules", vehicleService.getAllVehicules()
-        ));
+                "success", true,
+                "vehicules", vehicleService.getAllVehicules()));
     }
 
     // chercher par ville
@@ -179,19 +179,16 @@ public class VehicleController {
     @GetMapping("/disponibles")
     public ResponseEntity<?> getTousVehiculesDisponibles() {
 
-       try {
-           return ResponseEntity.ok(Map.of(
-                   "success", true,
-                   "vehicules", vehicleService.getVehiculeByEnPause()
-           ));
-       }catch (IllegalArgumentException e){
-           return ResponseEntity.status(404).body(Map.of(
-                   "success", false,
-                   "message", e.getMessage()
-           ));
-       }
+        try {
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "vehicules", vehicleService.getVehiculeByEnPause()));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(404).body(Map.of(
+                    "success", false,
+                    "message", e.getMessage()));
+        }
     }
-
 
     // Suppression d'un vehicule
     @DeleteMapping("/{id}")
@@ -213,8 +210,8 @@ public class VehicleController {
     @PutMapping("/{idV}")
     public ResponseEntity<?> updateVehicule(@PathVariable String idV, @RequestBody Map<String, String> request) {
         try {
-            //String id = request.get("idVehicule");
-            //TypeVehicule type = vehicleService.getVehiculeByID(idV).getType();
+            // String id = request.get("idVehicule");
+            // TypeVehicule type = vehicleService.getVehiculeByID(idV).getType();
             String marque = request.get("marqueVehicule");
             String couleur = request.get("couleurVehicule");
             String modele = request.get("modeleVehicule");
@@ -222,7 +219,8 @@ public class VehicleController {
             double prixVehiculeParJour = Double.parseDouble(request.get("prixVehiculeParJour"));
             String proprietaire = request.get("proprietaire");
             boolean estEnPause = Boolean.parseBoolean(request.get("estEnPause"));
-            Vehicle newData = new Vehicle(idV, marque, couleur, modele, ville, prixVehiculeParJour,proprietaire, estEnPause) {
+            Vehicle newData = new Vehicle(idV, marque, couleur, modele, ville, prixVehiculeParJour, proprietaire,
+                    estEnPause) {
                 @Override
                 public TypeVehicule getType() {
                     return null;
