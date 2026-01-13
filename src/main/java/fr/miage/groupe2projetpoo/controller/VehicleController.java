@@ -231,7 +231,7 @@ public class VehicleController {
             return ResponseEntity.ok(Map.of(
                     "success", true,
                     "message", "Véhicule mis à jour avec succès",
-                    "vehicule", updatedV));
+                    "vehicule", mapVehicleInfo(updatedV)));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(404).body(Map.of(
                     "success", false,
