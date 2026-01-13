@@ -1,5 +1,7 @@
 package fr.miage.groupe2projetpoo.entity.utilisateur;
 
+import fr.miage.groupe2projetpoo.entity.assurance.OptionAcceptationManuelle;
+import fr.miage.groupe2projetpoo.entity.assurance.OptionPayante;
 import fr.miage.groupe2projetpoo.entity.notation.NoteAgent;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,18 +16,21 @@ public abstract class Agent extends Utilisateur {
 
     private List<NoteAgent> notations = new ArrayList<>();
 
-
     // Liste des véhicules gérés par l'agent (relation un-à-plusieurs)
     private List<Vehicle> vehicleList;
 
     // Liste des contrats de location gérés par l'agent (relation un-à-plusieurs)
     private List<RentalContract> contracts;
 
+    // Liste des options payantes souscrites par l'agent
+    private List<OptionPayante> optionsPayantes = new ArrayList<>();
+
     // Constructeur par défaut
     public Agent() {
         super();
         this.vehicleList = new ArrayList<>();
         this.contracts = new ArrayList<>();
+        this.optionsPayantes = new ArrayList<>();
     }
 
     // Constructeur avec paramètres
@@ -33,6 +38,7 @@ public abstract class Agent extends Utilisateur {
         super(nom, prenom, password, email, tel);
         this.vehicleList = new ArrayList<>();
         this.contracts = new ArrayList<>();
+        this.optionsPayantes = new ArrayList<>();
     }
 
     // === Gestion des véhicules ===
@@ -81,6 +87,76 @@ public abstract class Agent extends Utilisateur {
         }
     }
 
+    // === Gestion des options payantes ===
+
+    public List<OptionPayante> getOptionsPayantes() {
+        return optionsPayantes;
+    }
+
+    public void setOptionsPayantes(List<OptionPayante> optionsPayantes) {
+        this.optionsPayantes = optionsPayantes;
+    }
+
+    /**
+     * Ajoute une option payante à l'agent
+     */
+    public void ajouterOption(OptionPayante option) {
+        this.optionsPayantes.add(option);
+    }
+
+    /**
+     * Retire une option payante de l'agent
+     */
+    public void retirerOption(OptionPayante option) {
+        this.optionsPayantes.remove(option);
+    }
+
+    /**
+     * Vérifie si l'agent a une option spécifique active
+     * @param typeOption La classe de l'option à vérifier
+     */
+    public boolean aOptionActive(Class<? extends OptionPayante> typeOption) {
+        for (OptionPayante opt : optionsPayantes) {
+            if (typeOption.isInstance(opt) && opt.isEstActive()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Récupère une option spécifique si elle existe
+     */
+    @SuppressWarnings("unchecked")
+    public <T extends OptionPayante> T getOption(Class<T> typeOption) {
+        for (OptionPayante opt : optionsPayantes) {
+            if (typeOption.isInstance(opt)) {
+                return (T) opt;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Vérifie si l'agent a l'option d'acceptation manuelle active
+     */
+    public boolean aAcceptationManuelle() {
+        return aOptionActive(OptionAcceptationManuelle.class);
+    }
+
+    /**
+     * Calcule le total de la facture mensuelle pour toutes les options actives
+     */
+    public double calculerFactureMensuelle() {
+        double total = 0;
+        for (OptionPayante option : optionsPayantes) {
+            total += option.calculerCoutMensuel();
+        }
+        return total;
+    }
+
+    // === Gestion des notations ===
+
     public List<NoteAgent> getNotations() {
         return notations;
     }
@@ -89,7 +165,6 @@ public abstract class Agent extends Utilisateur {
         this.notations = notations;
     }
 
-    // Méthodes pour les notations
     public void ajouterNotation(NoteAgent notation) {
         this.notations.add(notation);
     }
@@ -105,3 +180,4 @@ public abstract class Agent extends Utilisateur {
         return somme / notations.size();
     }
 }
+

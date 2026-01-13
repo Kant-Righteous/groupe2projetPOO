@@ -140,4 +140,28 @@ public class RentalController {
     public ResponseEntity<List<Assurance>> getAssurances() {
         return ResponseEntity.ok(rentalService.getToutesLesAssurances());
     }
+
+    // ===== ENDPOINTS POUR L'ACCEPTATION MANUELLE =====
+
+    /**
+     * POST /api/rentals/{id}/accept - L'agent accepte manuellement un contrat
+     */
+    @PostMapping("/{id}/accept")
+    public ResponseEntity<?> accepterContrat(@PathVariable int id) {
+        try {
+            RentalContract contrat = rentalService.accepterContratParAgent(id);
+            return ResponseEntity.ok(contrat);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    /**
+     * GET /api/rentals/pending - Contrats en attente d'acceptation par l'agent
+     */
+    @GetMapping("/pending")
+    public ResponseEntity<List<RentalContract>> getContratsEnAttente() {
+        return ResponseEntity.ok(rentalService.getContratsEnAttente());
+    }
 }
+
