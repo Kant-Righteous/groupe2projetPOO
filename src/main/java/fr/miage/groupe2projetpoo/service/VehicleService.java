@@ -33,10 +33,11 @@ public class VehicleService {
         this.userRepository = userRepository;
     }
 
+
     // Methodes
-    /**
-     * ajout d'un vehicule
-     */
+    /*************************************** ADD / MODIFIER / DELETE *********************************************/
+
+    // Ajout d'un vehicule
     public Vehicle addVehicule(String idVehicule, TypeVehicule typeVehicule, String marqueVehicule,
             String couleurVehicule, String modeleVehicule, String villeVehicules, double prixVehiculeParJour,
             String proprietaire, boolean estEnPause) {
@@ -64,9 +65,7 @@ public class VehicleService {
         return vehiculeRepository.save(vehicule);
     }
 
-    /**
-     * Mise ajour de la liste des disponibilités
-     */
+    // Mise ajour de la liste des disponibilités
     public void upDateDisponibilites(String id, Map<String, Boolean> dispoRquest) {
         Vehicle v = vehiculeRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Véhicule introuvable"));
@@ -76,6 +75,24 @@ public class VehicleService {
             Boolean dispo = keyVal.getValue();
             v.getDisponibilites().put(date, dispo);
         }
+    }
+
+    // Update vehicule
+    public Vehicle updateVehicule(String id, Vehicle newData) {
+        Vehicle vehicule = vehiculeRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Véhicule introuvable!"));
+        // Mise à jour des champs
+        // vehicule.setIdVehicule(newData.getIdVehicule());
+        // vehicule.setTypeVehicule(newData.getTypeVehicule());
+        vehicule.setMarqueVehicule(newData.getMarqueVehicule());
+        vehicule.setModeleVehicule(newData.getModeleVehicule());
+        vehicule.setCouleurVehicule(newData.getCouleurVehicule());
+        vehicule.setVilleVehicule(newData.getVilleVehicule());
+        vehicule.setPrixVehiculeParJour(newData.getPrixVehiculeParJour());
+        vehicule.setProprietaire(newData.getProprietaire());
+        vehicule.setEstEnpause(newData.getEstEnpause());
+        vehiculeRepository.modifVehicule(id, vehicule);
+        return vehicule;
     }
 
     /**
@@ -89,9 +106,11 @@ public class VehicleService {
         vehiculeRepository.deleteById(id);
     }
 
-    /**
-     * get vehicle infos
-     */
+
+
+    /*********************************** GETTER D'INFO ************************************/
+
+    //get vehicle infos
     public Vehicle getVehiculeByID(String id) {
         Vehicle v = vehiculeRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Véhicule introuvable"));
@@ -141,20 +160,5 @@ public class VehicleService {
         return v.estDisponible(deb, fin);
     }
 
-    public Vehicle updateVehicule(String id, Vehicle newData) {
-        Vehicle vehicule = vehiculeRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Véhicule introuvable!"));
-        // Mise à jour des champs
-        // vehicule.setIdVehicule(newData.getIdVehicule());
-        // vehicule.setTypeVehicule(newData.getTypeVehicule());
-        vehicule.setMarqueVehicule(newData.getMarqueVehicule());
-        vehicule.setModeleVehicule(newData.getModeleVehicule());
-        vehicule.setCouleurVehicule(newData.getCouleurVehicule());
-        vehicule.setVilleVehicule(newData.getVilleVehicule());
-        vehicule.setPrixVehiculeParJour(newData.getPrixVehiculeParJour());
-        vehicule.setProprietaire(newData.getProprietaire());
-        vehicule.setEstEnpause(newData.getEstEnpause());
-        vehiculeRepository.modifVehicule(id, vehicule);
-        return vehicule;
-    }
+
 }

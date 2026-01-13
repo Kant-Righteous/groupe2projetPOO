@@ -7,6 +7,8 @@ import java.util.*;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import fr.miage.groupe2projetpoo.entity.utilisateur.Agent;
+import org.slf4j.spi.LocationAwareLogger;
+import org.springframework.beans.propertyeditors.LocaleEditor;
 import org.springframework.cglib.core.Local;
 
 import java.time.LocalDate;
@@ -25,10 +27,10 @@ public abstract class Vehicle {
     private String Proprietaire;
     @JsonIgnore
     private Map<LocalDate, Boolean> disponibilites = new HashMap<>();
-
     @JsonIgnore
     private List<RentalContract> historiqueContrats = new ArrayList<>();
     private List<NoteVehicule> notations = new ArrayList<>();
+    private List<Disponibilite> planningDisponible = new ArrayList<>();
 
     // Constructeur
     public Vehicle(String idVehicule, String marqueVehicule,
@@ -195,5 +197,25 @@ public abstract class Vehicle {
 
     public void ajouterContrat(RentalContract contrat) {
         this.historiqueContrats.add(contrat);
+    }
+
+    // === Ajouter planning de disponibilité
+    public void AddPlanningDispo(LocalDate debut, LocalDate fin){
+        for(Disponibilite d : planningDisponible){
+            if(d.chevauchement(debut, fin)){
+                throw new IllegalArgumentException("Créneau déjà occupé");
+            }
+        }
+        planningDisponible.add(new Disponibilite(debut,fin));
+    }
+
+    // verifier la disponibilité dans planning
+    public boolean estDiponible(LocalDate debut, LocalDate fin) {
+        for(Disponibilite d: planningDisponible){
+            if(d.chevauchement(debut, fin)){
+                return false;
+            }
+        }
+        return true;
     }
 }
