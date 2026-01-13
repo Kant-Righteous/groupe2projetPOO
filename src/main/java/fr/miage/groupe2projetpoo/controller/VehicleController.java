@@ -2,6 +2,8 @@ package fr.miage.groupe2projetpoo.controller;
 
 import fr.miage.groupe2projetpoo.entity.vehicule.TypeVehicule;
 import fr.miage.groupe2projetpoo.entity.vehicule.Vehicle;
+import fr.miage.groupe2projetpoo.entity.location.RentalContract;
+import fr.miage.groupe2projetpoo.entity.notation.NoteVehicule;
 import fr.miage.groupe2projetpoo.service.VehicleService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -73,7 +75,6 @@ public class VehicleController {
     }
 
     // Afficher les infos d'un vehicule enregistré
-
     /**
      * Récupérer les information d'un véhicules par id - GET
      * /api/vehicules/{id}/info
@@ -82,21 +83,9 @@ public class VehicleController {
     public ResponseEntity<Map<String, Object>> GetVehiculesByID(@PathVariable String id) {
         try {
             Vehicle v = vehicleService.getVehiculeByID(id);
-
-            // Transformer les infos du véhicules en Map pour la réponse JSON
-            Map<String, Object> map = new HashMap<>();
-            map.put("id", v.getIdVehicule());
-            map.put("type", v.getType());
-            map.put("marque", v.getMarqueVehicule());
-            map.put("modele", v.getModeleVehicule());
-            map.put("couleur", v.getCouleurVehicule());
-            map.put("ville", v.getVilleVehicule());
-            map.put("estEnPause", v.getEstEnpause());
-            map.put("prixParJour", v.getPrixVehiculeParJour());
-
             return ResponseEntity.ok(Map.of(
                     "success", true,
-                    "vehicule", map));
+                    "vehicule", mapVehicleToMap(v)));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(404).body(Map.of(
                     "success", false,
@@ -116,6 +105,38 @@ public class VehicleController {
             return ResponseEntity.ok(Map.of(
                     "success", true,
                     "vehicule", map));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(404).body(Map.of(
+                    "success", false,
+                    "message", e.getMessage()));
+        }
+    }
+
+    // afficher l'historique des contrats d'un vehicule
+    @GetMapping("/historiqueContrat/{id}")
+    public ResponseEntity<Map<String, Object>> GetContractListVehicules(@PathVariable String id) {
+        try {
+            Vehicle v = vehicleService.getVehiculeByID(id);
+
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "historique des contract", v.getHistoriqueContrats()));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(404).body(Map.of(
+                    "success", false,
+                    "message", e.getMessage()));
+        }
+    }
+
+    // afficher la liste des Notations d'un vehicule
+    @GetMapping("/notations/{id}")
+    public ResponseEntity<Map<String, Object>> GetNotationsListVehicules(@PathVariable String id) {
+        try {
+            Vehicle v = vehicleService.getVehiculeByID(id);
+
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "Notations", v.getNotations()));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(404).body(Map.of(
                     "success", false,
@@ -153,20 +174,31 @@ public class VehicleController {
         try {
             List<Vehicle> listV = vehicleService.getVehiculeByVille(ville);
             List<Map<String, Object>> result = listV.stream().map(v -> {
-                Map<String, Object> map = new HashMap<>();
-                map.put("id", v.getIdVehicule());
-                map.put("type", v.getType());
-                map.put("marque", v.getMarqueVehicule());
-                map.put("modele", v.getModeleVehicule());
-                map.put("couleur", v.getCouleurVehicule());
-                map.put("ville", v.getVilleVehicule());
-                map.put("EstEnpause", v.getEstEnpause());
-                map.put("prixJour", v.getPrixVehiculeParJour());
-                return map;
+                return mapVehicleInfo(v);
             }).toList();
             return ResponseEntity.ok(Map.of(
                     "success", true,
                     "ville", ville,
+                    "vehicules", result));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(404).body(Map.of(
+                    "success", false,
+                    "message", e.getMessage()));
+        }
+    }
+
+    // chercher par type
+    // http://localhost:8080/api/vehicules/type/{type}
+    @GetMapping("/type/{type}")
+    public ResponseEntity<?> getVehiculesByType(@PathVariable String type) {
+        try {
+            List<Vehicle> listV = vehicleService.getVehiculesByType(type);
+            List<Map<String, Object>> result = listV.stream().map(v -> {
+                return mapVehicleInfo(v);
+            }).toList();
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "type", type,
                     "vehicules", result));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(404).body(Map.of(
@@ -231,12 +263,67 @@ public class VehicleController {
             return ResponseEntity.ok(Map.of(
                     "success", true,
                     "message", "Véhicule mis à jour avec succès",
-                    "vehicule", updatedV));
+                    "vehicule", mapVehicleInfo(updatedV)));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(404).body(Map.of(
                     "success", false,
                     "message", e.getMessage()));
         }
 
+    }
+
+    private Map<String, Object> mapVehicleToMap(Vehicle v) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("id", v.getIdVehicule());
+        map.put("type", v.getType());
+        map.put("marque", v.getMarqueVehicule());
+        map.put("modele", v.getModeleVehicule());
+        map.put("couleur", v.getCouleurVehicule());
+        map.put("ville", v.getVilleVehicule());
+        map.put("estEnPause", v.getEstEnpause());
+        map.put("prixParJour", v.getPrixVehiculeParJour());
+
+        // Ajout des notations
+        List<Map<String, Object>> notationsList = v.getNotations().stream().map(n -> {
+            Map<String, Object> noteMap = new HashMap<>();
+            noteMap.put("id", n.getId());
+            noteMap.put("auteur", n.getAuthorEmail());
+            noteMap.put("commentaire", n.getCommentaire());
+            noteMap.put("noteGlobale", n.calculerNoteGlobale());
+            noteMap.put("date", n.getDate());
+            noteMap.put("confort", n.getConfort());
+            noteMap.put("proprete", n.getProprete());
+            return noteMap;
+        }).toList();
+        map.put("notations", notationsList);
+
+        // Ajout de l'historique des contrats
+        List<Map<String, Object>> contratsList = v.getHistoriqueContrats().stream().map(c -> {
+            Map<String, Object> contratMap = new HashMap<>();
+            contratMap.put("id", c.getIdC());
+            contratMap.put("dateDebut", c.getDateDebut());
+            contratMap.put("dateFin", c.getDateFin());
+            contratMap.put("statut", c.isStatut());
+            contratMap.put("prixTotal", c.getPrixTotal());
+            if (c.getLoueur() != null) {
+                contratMap.put("loueur", c.getLoueur().getEmail());
+            }
+            return contratMap;
+        }).toList();
+        map.put("historiqueContrats", contratsList);
+
+        return map;
+    }
+    private Map<String, Object> mapVehicleInfo(Vehicle v) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("id", v.getIdVehicule());
+        map.put("type", v.getType());
+        map.put("marque", v.getMarqueVehicule());
+        map.put("modele", v.getModeleVehicule());
+        map.put("couleur", v.getCouleurVehicule());
+        map.put("ville", v.getVilleVehicule());
+        map.put("estEnPause", v.getEstEnpause());
+        map.put("prixParJour", v.getPrixVehiculeParJour());
+        return map;
     }
 }
