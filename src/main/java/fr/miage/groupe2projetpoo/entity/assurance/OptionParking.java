@@ -8,6 +8,7 @@ public class OptionParking extends OptionPayante {
     private int dureeMaxStationnement;
     private int nbJoursInclus;
     private double tarifPreference;
+    private double tauxReduction = 0.20; // 20% de réduction par défaut
     private Parking parkingPartenaire;
 
     public OptionParking() {
@@ -53,6 +54,14 @@ public class OptionParking extends OptionPayante {
 
     public void setParkingPartenaire(Parking parkingPartenaire) {
         this.parkingPartenaire = parkingPartenaire;
+    }
+
+    public double getTauxReduction() {
+        return tauxReduction;
+    }
+
+    public void setTauxReduction(double tauxReduction) {
+        this.tauxReduction = tauxReduction;
     }
 
     // Méthodes métier

@@ -53,13 +53,13 @@ public class RentalController {
      * 
      * Body JSON attendu:
      * {
-     *   "loueurEmail": "jean@email.com",
-     *   "vehiculeId": "V001",
-     *   "dateDebut": "2026-01-15",
-     *   "dateFin": "2026-01-20",
-     *   "lieuPrise": "Paris",
-     *   "lieuDepose": "Paris",
-     *   "assuranceNom": "AZA Classique"
+     * "loueurEmail": "jean@email.com",
+     * "vehiculeId": "V001",
+     * "dateDebut": "2026-01-15",
+     * "dateFin": "2026-01-20",
+     * "lieuPrise": "Paris",
+     * "lieuDepose": "Paris",
+     * "assuranceNom": "AZA Classique"
      * }
      */
     @PostMapping
@@ -73,9 +73,20 @@ public class RentalController {
             String lieuDepose = (String) request.get("lieuDepose");
             String assuranceNom = (String) request.get("assuranceNom");
 
+            // Nouveau paramètre optionnel
+            boolean avecOptionParking = false;
+            if (request.containsKey("avecOptionParking")) {
+                Object optVal = request.get("avecOptionParking");
+                if (optVal instanceof Boolean) {
+                    avecOptionParking = (Boolean) optVal;
+                } else if (optVal instanceof String) {
+                    avecOptionParking = Boolean.parseBoolean((String) optVal);
+                }
+            }
+
             RentalContract contrat = rentalService.creerContrat(
-                    loueurEmail, vehiculeId, dateDebut, dateFin, lieuPrise, lieuDepose, assuranceNom
-            );
+                    loueurEmail, vehiculeId, dateDebut, dateFin, lieuPrise, lieuDepose, assuranceNom,
+                    avecOptionParking);
 
             return ResponseEntity.status(HttpStatus.CREATED).body(contrat);
         } catch (ParseException e) {
@@ -121,7 +132,8 @@ public class RentalController {
     }
 
     /**
-     * GET /api/rentals/loueur/{email} - Récupérer les contrats d'un loueur par email
+     * GET /api/rentals/loueur/{email} - Récupérer les contrats d'un loueur par
+     * email
      */
     @GetMapping("/loueur/{email}")
     public ResponseEntity<List<RentalContract>> getContratsParLoueur(@PathVariable String email) {
@@ -180,12 +192,13 @@ public class RentalController {
     // ===== ENDPOINTS POUR LE KILOMÉTRAGE (US.L.10) =====
 
     /**
-     * POST /api/rentals/{id}/kilometrage-debut - Renseigner le kilométrage à la prise
+     * POST /api/rentals/{id}/kilometrage-debut - Renseigner le kilométrage à la
+     * prise
      * 
      * Body JSON:
      * {
-     *   "kilometrage": 45230,
-     *   "photoNom": "photo_km_debut_contrat1_20260114.jpg"
+     * "kilometrage": 45230,
+     * "photoNom": "photo_km_debut_contrat1_20260114.jpg"
      * }
      */
     @PostMapping("/{id}/kilometrage-debut")
@@ -219,8 +232,8 @@ public class RentalController {
      * 
      * Body JSON:
      * {
-     *   "kilometrage": 45580,
-     *   "photoNom": "photo_km_fin_contrat1_20260120.jpg"
+     * "kilometrage": 45580,
+     * "photoNom": "photo_km_fin_contrat1_20260120.jpg"
      * }
      */
     @PostMapping("/{id}/kilometrage-fin")
@@ -254,19 +267,26 @@ public class RentalController {
     }
 
     /**
-     * GET /api/rentals/{id}/kilometrage - Consulter les informations kilométriques d'un contrat
+     * GET /api/rentals/{id}/kilometrage - Consulter les informations kilométriques
+     * d'un contrat
      */
     @GetMapping("/{id}/kilometrage")
     public ResponseEntity<?> getKilometrage(@PathVariable int id) {
         return rentalService.getContratById(id)
                 .map(contrat -> ResponseEntity.ok(Map.of(
                         "contratId", id,
-                        "kilometrageDebut", contrat.getKilometrageDebut() != null ? contrat.getKilometrageDebut() : "Non renseigné",
-                        "photoDebut", contrat.getPhotoKilometrageDebut() != null ? contrat.getPhotoKilometrageDebut() : "Non renseignée",
-                        "kilometrageFin", contrat.getKilometrageFin() != null ? contrat.getKilometrageFin() : "Non renseigné",
-                        "photoFin", contrat.getPhotoKilometrageFin() != null ? contrat.getPhotoKilometrageFin() : "Non renseignée",
-                        "distanceParcourue", contrat.calculerDistanceParcourue() != null ? contrat.calculerDistanceParcourue() + " km" : "Non disponible")))
+                        "kilometrageDebut",
+                        contrat.getKilometrageDebut() != null ? contrat.getKilometrageDebut() : "Non renseigné",
+                        "photoDebut",
+                        contrat.getPhotoKilometrageDebut() != null ? contrat.getPhotoKilometrageDebut()
+                                : "Non renseignée",
+                        "kilometrageFin",
+                        contrat.getKilometrageFin() != null ? contrat.getKilometrageFin() : "Non renseigné",
+                        "photoFin",
+                        contrat.getPhotoKilometrageFin() != null ? contrat.getPhotoKilometrageFin() : "Non renseignée",
+                        "distanceParcourue",
+                        contrat.calculerDistanceParcourue() != null ? contrat.calculerDistanceParcourue() + " km"
+                                : "Non disponible")))
                 .orElse(ResponseEntity.notFound().build());
     }
 }
-
