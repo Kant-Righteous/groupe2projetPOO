@@ -6,7 +6,7 @@ import fr.miage.groupe2projetpoo.entity.assurance.OptionPayante;
 import fr.miage.groupe2projetpoo.entity.infrastructure.Parking;
 import fr.miage.groupe2projetpoo.entity.utilisateur.Agent;
 import fr.miage.groupe2projetpoo.entity.utilisateur.Utilisateur;
-import fr.miage.groupe2projetpoo.repository.UserRepository;
+import fr.miage.groupe2projetpoo.service.UserService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,10 +17,11 @@ import java.util.Optional;
 @RequestMapping("/api/options")
 public class OptionPayanteController {
 
-    private final UserRepository userRepository;
+    // Utilisation du Service au lieu du Repository
+    private final UserService userService;
 
-    public OptionPayanteController(UserRepository userRepository) {
-        this.userRepository = userRepository;
+    public OptionPayanteController(UserService userService) {
+        this.userService = userService;
     }
 
     /**
@@ -28,7 +29,7 @@ public class OptionPayanteController {
      */
     @GetMapping("/agent/{email}")
     public List<OptionPayante> getOptionsAgent(@PathVariable String email) {
-        Optional<Utilisateur> userOpt = userRepository.findByEmail(email);
+        Optional<Utilisateur> userOpt = userService.findByEmail(email);
         if (userOpt.isPresent() && userOpt.get() instanceof Agent) {
             return ((Agent) userOpt.get()).getOptionsPayantes();
         }
@@ -40,7 +41,7 @@ public class OptionPayanteController {
      */
     @PostMapping("/souscrire/entretien/{email}")
     public Map<String, String> souscrireOptionEntretien(@PathVariable String email) {
-        Optional<Utilisateur> userOpt = userRepository.findByEmail(email);
+        Optional<Utilisateur> userOpt = userService.findByEmail(email);
 
         if (userOpt.isPresent() && userOpt.get() instanceof Agent) {
             Agent agent = (Agent) userOpt.get();
@@ -48,8 +49,9 @@ public class OptionPayanteController {
             OptionEntretien option = new OptionEntretien(true);
             agent.ajouterOption(option);
 
-            // Note: En mode InMemory, l'objet agent est modifié en mémoire directement.
-            // Si JPA, il faudrait userRepository.save(agent);
+            // Sauvegarde (si nécessaire selon l'implémentation du service/repo)
+            // Dans InMemory, l'objet est modifié par référence, mais on pourrait appeler
+            // userService.saveUser(agent) pour être propre.
 
             return Map.of("message", "Option Entretien ajoutée avec succès à " + agent.getNom());
         }
@@ -61,13 +63,12 @@ public class OptionPayanteController {
      */
     @PostMapping("/souscrire/parking/{email}")
     public Map<String, String> souscrireOptionParking(@PathVariable String email) {
-        Optional<Utilisateur> userOpt = userRepository.findByEmail(email);
+        Optional<Utilisateur> userOpt = userService.findByEmail(email);
 
         if (userOpt.isPresent() && userOpt.get() instanceof Agent) {
             Agent agent = (Agent) userOpt.get();
 
-            // Création d'un parking fictif pour l'exemple (ou à récupérer d'un repo
-            // Parking)
+            // Création d'un parking fictif pour l'exemple
             Parking parking = new Parking(1, "Parking Central", "10 Rue de la Paix", "Paris", 200, 15.0);
 
             // Utilisation du nouveau constructeur complet
