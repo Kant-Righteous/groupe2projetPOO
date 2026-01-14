@@ -1,5 +1,6 @@
 package fr.miage.groupe2projetpoo.repository;
 
+import fr.miage.groupe2projetpoo.entity.vehicule.Disponibilite;
 import org.springframework.stereotype.Repository;
 
 import fr.miage.groupe2projetpoo.entity.utilisateur.Utilisateur;
@@ -34,4 +35,9 @@ public interface VehicleRepository {
 
     // Modifier un vehicule
     public void modifVehicule(String id, Vehicle modif);
+
+    public List<Disponibilite> getPlanning(String id);
+    public void addPlanning(String id,LocalDate debut, LocalDate fin);
+    public void removeCreneau(String id, int index);
+    public boolean estDisponible(String id, LocalDate debut, LocalDate fin);
 }

@@ -3,10 +3,14 @@ package fr.miage.groupe2projetpoo.entity.vehicule;
 import fr.miage.groupe2projetpoo.entity.location.RentalContract;
 import fr.miage.groupe2projetpoo.entity.notation.NoteVehicule;
 
+import fr.miage.groupe2projetpoo.entity.maintenance.ControleTechnique;
+import fr.miage.groupe2projetpoo.entity.maintenance.Entretien;
 import java.util.*;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import fr.miage.groupe2projetpoo.entity.utilisateur.Agent;
+import org.slf4j.spi.LocationAwareLogger;
+import org.springframework.beans.propertyeditors.LocaleEditor;
 import org.springframework.cglib.core.Local;
 
 import java.time.LocalDate;
@@ -23,12 +27,16 @@ public abstract class Vehicle {
     private boolean estEnpause;
     private double prixVehiculeParJour;
     private String Proprietaire;
+    private int kilometrageActuel; // US.A.11 et US.L.10
+    // Maintenance (US.A.8, US.A.10)
+    private ControleTechnique controleTechnique;
+    private List<Entretien> historiqueEntretiens = new ArrayList<>();
     @JsonIgnore
     private Map<LocalDate, Boolean> disponibilites = new HashMap<>();
-
     @JsonIgnore
     private List<RentalContract> historiqueContrats = new ArrayList<>();
     private List<NoteVehicule> notations = new ArrayList<>();
+    private List<Disponibilite> planningDisponible = new ArrayList<>();
 
     // Constructeur
     public Vehicle(String idVehicule, String marqueVehicule,
@@ -42,6 +50,7 @@ public abstract class Vehicle {
         this.estEnpause = estEnpause;
         this.prixVehiculeParJour = prixVehiculeJour;
         this.Proprietaire = proprietaire;
+        this.kilometrageActuel = 0; // Défaut
         initiliserDisponibilites();
     }
 
@@ -111,6 +120,14 @@ public abstract class Vehicle {
         return estEnpause;
     }
 
+    public List<Disponibilite> getPlanningDisponible() {
+        return planningDisponible;
+    }
+
+    public int getKilometrageActuel() {
+        return kilometrageActuel;
+    }
+
     /********************** SETTER **********************/
     public void setIdVehicule(String idV) {
         this.idVehicule = idV;
@@ -151,7 +168,7 @@ public abstract class Vehicle {
         this.Proprietaire = proprietaire;
     }
 
-    public boolean estDisponible(LocalDate debut, LocalDate fin) {
+    public boolean estDisponibleMap(LocalDate debut, LocalDate fin) {
         LocalDate d = debut;
         while (!d.isAfter(fin)) {
             Boolean dispo = disponibilites.get(d);
@@ -171,6 +188,10 @@ public abstract class Vehicle {
         this.estEnpause = estEnpause;
     }
 
+    public void setKilometrageActuel(int kilometrageActuel) {
+        this.kilometrageActuel = kilometrageActuel;
+    }
+
     /************************** Methodes ******************************/
     // Méthodes pour les notations
     public void ajouterNotation(NoteVehicule notation) {
@@ -188,6 +209,28 @@ public abstract class Vehicle {
         return somme / notations.size();
     }
 
+    // === Gestion Maintenance ===
+    public ControleTechnique getControleTechnique() {
+        return controleTechnique;
+    }
+
+    public void setControleTechnique(ControleTechnique controleTechnique) {
+        this.controleTechnique = controleTechnique;
+    }
+
+    public List<Entretien> getHistoriqueEntretiens() {
+        return historiqueEntretiens;
+    }
+
+    public void setHistoriqueEntretiens(
+            List<Entretien> historiqueEntretiens) {
+        this.historiqueEntretiens = historiqueEntretiens;
+    }
+
+    public void ajouterEntretien(Entretien entretien) {
+        this.historiqueEntretiens.add(entretien);
+    }
+
     // === Gestion de l'historique des contrats ===
     public List<RentalContract> getHistoriqueContrats() {
         return historiqueContrats;
@@ -195,5 +238,30 @@ public abstract class Vehicle {
 
     public void ajouterContrat(RentalContract contrat) {
         this.historiqueContrats.add(contrat);
+    }
+
+    // === Ajouter planning de disponibilité
+    public void addPlanningDispo(LocalDate debut, LocalDate fin){
+        for(Disponibilite d : planningDisponible){
+            if(d.chevauchement(debut, fin)){
+                throw new IllegalArgumentException("Créneau déjà occupé");
+            }
+        }
+        planningDisponible.add(new Disponibilite(debut,fin));
+    }
+
+    // verifier la disponibilité dans planning
+    public boolean estDisponible(LocalDate debut, LocalDate fin) {
+        for(Disponibilite d: planningDisponible){
+            if(d.chevauchement(debut, fin)){
+                return false;
+            }
+        }
+        return true;
+    }
+
+    // Suuprimer Planning
+    public void removeCreneauPlanning(int index){
+        planningDisponible.remove(index);
     }
 }

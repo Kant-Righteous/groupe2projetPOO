@@ -75,6 +75,17 @@ public class RentalService {
         RentalContract contrat = new RentalContract(
                 loueur, vehicule, dateDebut, dateFin, lieuPrise, lieuDepose, assurance, agentProprietaire);
 
+        // Find the owner (Agent) of the vehicle
+        String proprietaireEmail = vehicule.getProprietaire();
+        Utilisateur proprietaire = userRepository.findByEmail(proprietaireEmail)
+                .orElse(null);
+
+        if (proprietaire instanceof Agent) {
+            contrat.setAgent((Agent) proprietaire);
+            // Also link the contract to the agent
+            ((Agent) proprietaire).addContract(contrat);
+        }
+
         return rentalRepository.save(contrat);
     }
 
@@ -167,4 +178,3 @@ public class RentalService {
                 .toList();
     }
 }
-
