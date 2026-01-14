@@ -168,8 +168,7 @@ public class MaintenanceService {
         Vehicle vehicle = vehicleRepository.findById(vehicleId)
                 .orElseThrow(() -> new IllegalArgumentException("Véhicule introuvable"));
 
-        // 3. Vérifier disponibilité (pas loué)
-        if (!vehicle.estDisponible(date, date)) {
+        if (!vehicle.estDisponiblePlanning(date, date)) {
             throw new IllegalStateException("Le véhicule est déjà loué à cette date");
         }
 
@@ -188,7 +187,7 @@ public class MaintenanceService {
                 null, agent, vehicle, company, date, prix, MaintenanceStatus.PREVU);
 
         // 7. Marquer le véhicule comme indisponible à cette date pour l'entretien
-        vehicle.getDisponibilites().put(date, false);
+        vehicle.setEstEnpause(false);
         vehicleRepository.save(vehicle);
 
         return maintenanceRepository.saveIntervention(intervention);
@@ -211,7 +210,7 @@ public class MaintenanceService {
         // Si on annule, on libère le véhicule
         if (status == MaintenanceStatus.ANNULE && intervention.getStatut() != MaintenanceStatus.ANNULE) {
             Vehicle v = intervention.getVehicule();
-            v.getDisponibilites().put(intervention.getDateIntervention(), true);
+            v.setEstEnpause(false);
             vehicleRepository.save(v);
         }
 

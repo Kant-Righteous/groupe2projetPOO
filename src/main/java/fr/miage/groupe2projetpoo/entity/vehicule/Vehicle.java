@@ -248,7 +248,7 @@ public abstract class Vehicle {
     }
 
     // verifier la disponibilité dans planning
-    public boolean estDisponible(LocalDate debut, LocalDate fin) {
+    public boolean estDisponiblePlanning(LocalDate debut, LocalDate fin) {
         for (Disponibilite d : planningDisponible) {
             if (d.chevauchement(debut, fin)) {
                 return false;
