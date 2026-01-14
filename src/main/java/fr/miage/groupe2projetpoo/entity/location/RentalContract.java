@@ -51,6 +51,9 @@ public class RentalContract {
     private String photoKilometrageFin;     // Nom du fichier photo de preuve (retour)
     private Date dateRenseignementFin;      // Date/heure de renseignement du KM retour
 
+    // Statut du contrat de location (cycle de vie)
+    private StatutLocation statutLocation = StatutLocation.EN_ATTENTE_SIGNATURE;
+
     // Constructeur par défaut (nécessaire pour Jackson JSON)
     public RentalContract() {
     }
@@ -369,6 +372,8 @@ public class RentalContract {
             this.SignatureAgent = true;
             this.dateSignatureAgent = new Date();
             validerContrat();
+            // Transition : EN_ATTENTE_SIGNATURE → SIGNE
+            this.statutLocation = StatutLocation.SIGNE;
         }
     }
 
@@ -399,6 +404,8 @@ public class RentalContract {
         this.SignatureAgent = true;
         this.dateSignatureAgent = new Date();
         validerContrat();
+        // Transition : EN_ATTENTE_SIGNATURE → SIGNE
+        this.statutLocation = StatutLocation.SIGNE;
         System.out.println("Succès : Contrat accepté par l'agent.");
     }
 
@@ -458,6 +465,10 @@ public class RentalContract {
      * @param photoNom Nom du fichier photo de preuve
      */
     public void renseignerKilometrageDebut(int km, String photoNom) {
+        // Validation du statut
+        if (this.statutLocation != StatutLocation.SIGNE) {
+            throw new IllegalStateException("Le contrat doit être signé avant de prendre le véhicule. Statut actuel: " + this.statutLocation);
+        }
         if (photoNom == null || photoNom.trim().isEmpty()) {
             throw new IllegalArgumentException("La photo de preuve est obligatoire");
         }
@@ -467,7 +478,10 @@ public class RentalContract {
         this.kilometrageDebut = km;
         this.photoKilometrageDebut = photoNom;
         this.dateRenseignementDebut = new Date();
+        // Transition : SIGNE → EN_COURS
+        this.statutLocation = StatutLocation.EN_COURS;
         System.out.println("Kilométrage départ enregistré: " + km + " km (Photo: " + photoNom + ")");
+        System.out.println("Statut du contrat: " + this.statutLocation);
     }
 
     /**
@@ -476,6 +490,10 @@ public class RentalContract {
      * @param photoNom Nom du fichier photo de preuve
      */
     public void renseignerKilometrageFin(int km, String photoNom) {
+        // Validation du statut
+        if (this.statutLocation != StatutLocation.EN_COURS) {
+            throw new IllegalStateException("Le véhicule doit être en cours de location. Statut actuel: " + this.statutLocation);
+        }
         if (this.kilometrageDebut == null) {
             throw new IllegalStateException("Le kilométrage de départ n'a pas encore été renseigné");
         }
@@ -488,8 +506,11 @@ public class RentalContract {
         this.kilometrageFin = km;
         this.photoKilometrageFin = photoNom;
         this.dateRenseignementFin = new Date();
+        // Transition : EN_COURS → TERMINEE
+        this.statutLocation = StatutLocation.TERMINEE;
         System.out.println("Kilométrage retour enregistré: " + km + " km (Photo: " + photoNom + ")");
         System.out.println("Distance parcourue: " + (km - this.kilometrageDebut) + " km");
+        System.out.println("Statut du contrat: " + this.statutLocation + " - Location terminée");
     }
 
     /**
@@ -526,5 +547,50 @@ public class RentalContract {
 
     public Date getDateRenseignementFin() {
         return dateRenseignementFin;
+    }
+
+    // ===== GESTION DU STATUT DE LOCATION =====
+
+    public StatutLocation getStatutLocation() {
+        return statutLocation;
+    }
+
+    public void setStatutLocation(StatutLocation statutLocation) {
+        this.statutLocation = statutLocation;
+    }
+
+    /**
+     * Vérifie si la location est en cours (véhicule actuellement loué)
+     */
+    public boolean estEnCours() {
+        return this.statutLocation == StatutLocation.EN_COURS;
+    }
+
+    /**
+     * Vérifie si la location est terminée
+     */
+    public boolean estTerminee() {
+        return this.statutLocation == StatutLocation.TERMINEE;
+    }
+
+    /**
+     * Vérifie si le contrat est signé et prêt pour la prise du véhicule
+     */
+    public boolean estPretPourPrise() {
+        return this.statutLocation == StatutLocation.SIGNE;
+    }
+
+    /**
+     * Annuler le contrat de location
+     */
+    public void annulerContrat() {
+        if (this.statutLocation == StatutLocation.EN_COURS) {
+            throw new IllegalStateException("Impossible d'annuler un contrat en cours. Le véhicule doit d'abord être rendu.");
+        }
+        if (this.statutLocation == StatutLocation.TERMINEE) {
+            throw new IllegalStateException("Impossible d'annuler un contrat déjà terminé.");
+        }
+        this.statutLocation = StatutLocation.ANNULEE;
+        System.out.println("Contrat annulé. Statut: " + this.statutLocation);
     }
 }
