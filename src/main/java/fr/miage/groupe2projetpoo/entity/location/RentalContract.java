@@ -45,13 +45,13 @@ public class RentalContract {
     private Date dateExpiration; // Date limite pour que l'agent accepte (6h après signature loueur)
 
     // US.L.10 - Kilométrage et preuves photos
-    private Integer kilometrageDebut;       // KM à la prise du véhicule
-    private String photoKilometrageDebut;   // Nom du fichier photo de preuve (départ)
-    private Date dateRenseignementDebut;    // Date/heure de renseignement du KM départ
+    private Integer kilometrageDebut; // KM à la prise du véhicule
+    private String photoKilometrageDebut; // Nom du fichier photo de preuve (départ)
+    private Date dateRenseignementDebut; // Date/heure de renseignement du KM départ
 
-    private Integer kilometrageFin;         // KM au retour du véhicule
-    private String photoKilometrageFin;     // Nom du fichier photo de preuve (retour)
-    private Date dateRenseignementFin;      // Date/heure de renseignement du KM retour
+    private Integer kilometrageFin; // KM au retour du véhicule
+    private String photoKilometrageFin; // Nom du fichier photo de preuve (retour)
+    private Date dateRenseignementFin; // Date/heure de renseignement du KM retour
 
     // Statut du contrat de location (cycle de vie)
     private StatutLocation statutLocation = StatutLocation.EN_ATTENTE_SIGNATURE;
@@ -228,7 +228,8 @@ public class RentalContract {
         this.agent = agent;
     }
 
-    // Constructeur avec Agent (recommandé - permet la sélection automatique de l'assurance)
+    // Constructeur avec Agent (recommandé - permet la sélection automatique de
+    // l'assurance)
     public RentalContract(Loueur loueur, Vehicle vehicule, Date dateDebut, Date dateFin, String lieuPrise,
             String lieuDepose, Assurance assurance, Agent agent) {
         // 1. Affectation des données saisies par le loueur
@@ -299,76 +300,102 @@ public class RentalContract {
                 '}';
     }
 
+    // Option Vienci : Si true, le loueur a choisi de déposer le véhicule au parking
+    // partenaire
+    private boolean optionParkingSelectionnee = false;
+
+    // Nouveaux attributs pour le détail du prix
+    private double prixSansReduction;
+    private String detailsReduction;
+
     private void calculerPrix() {
         // 1. Calcul de la durée en jours
         long diffInMillies = Math.abs(this.dateFin.getTime() - this.dateDebut.getTime());
-        // On ajoute +1 car une location du lundi au lundi compte pour 1 jour complet
-        // (ou règle métier à définir)
-        // Ici on assume des jours pleins, convertis depuis millisecondes
         long diffInDays = (diffInMillies / (1000 * 60 * 60 * 24)) + 1;
 
-        // 2. Récupération des Tarifs
-        // IL MANQUE CECI DANS VOTRE CLASSE VEHICLE :
-        double prixJournalierVehicule = this.Vehicule.getPrixVehiculeParJour();
+        // 2. Gestion des Tarifs et Réductions Vienci
+        double prixJournalierBase = this.Vehicule.getPrixVehiculeParJour();
+        this.prixSansReduction = prixJournalierBase * diffInDays; // Prix total de base (part Agent) sur la durée
 
-        // IL MANQUE CECI DANS VOTRE CLASSE ASSURANCE (si applicable) :
-        // Le sujet dit que le prix dépend du véhicule, on imagine que l'objet assurance
-        // stocke le prix calculé
-        double prixAssurance = (this.assurance != null) ? this.assurance.calculerPrime(this.Vehicule) : 0.0;
+        double multiplicateur = 1.0;
+        StringBuilder details = new StringBuilder();
 
-        // 3. Définition des règles de la plateforme [cite: 281]
+        // Vérification des options de l'agent
+        if (this.agent != null) {
+            fr.miage.groupe2projetpoo.entity.assurance.OptionParking optParking = this.agent
+                    .getOption(fr.miage.groupe2projetpoo.entity.assurance.OptionParking.class);
+
+            if (optParking != null && optParking.isEstActive()) {
+                double reduction = optParking.getTauxReduction();
+
+                // Cas A : Réduction si le Véhicule est récupéré depuis le Parking Partenaire
+                // (Incitation au départ)
+                String lieuActuelVehicule = this.Vehicule.getDernierLieuDepose();
+                String nomParking = (optParking.getParkingPartenaire() != null)
+                        ? optParking.getParkingPartenaire().getNom()
+                        : "";
+
+                if (lieuActuelVehicule != null && lieuActuelVehicule.equalsIgnoreCase(nomParking)) {
+                    multiplicateur *= (1.0 - reduction);
+                    if (details.length() > 0)
+                        details.append(" + ");
+                    details.append("Départ du Parking Partenaire (-").append((int) (reduction * 100)).append("%)");
+                }
+
+                // Cas B : Réduction si le Loueur choisit de déposer au Parking Partenaire
+                // (Incitation au retour)
+                if (this.optionParkingSelectionnee) {
+                    multiplicateur *= (1.0 - reduction);
+                    if (details.length() > 0)
+                        details.append(" + ");
+                    details.append("Retour au Parking Partenaire (-").append((int) (reduction * 100)).append("%)");
+                }
+            }
+        }
+
+        if (details.length() == 0) {
+            this.detailsReduction = "Aucune réduction appliquée";
+        } else {
+            this.detailsReduction = details.toString();
+        }
+
+        double prixJournalierFinal = prixJournalierBase * multiplicateur;
+
+        // 3. Définition des règles de la plateforme
         this.commissionPourcentage = 0.10; // 10%
         this.commissionFixeParJour = 2.0; // 2€
 
-        // 3.1 Application de la réduction longue durée (US.A.7)
-        appliquerReductionLongueDuree(diffInDays);
-
         // 4. Calcul de la part Agent
-        // Ex: 30€ * 5 jours = 150€
-        this.montantAgent = prixJournalierVehicule * diffInDays;
+        this.montantAgent = prixJournalierFinal * diffInDays;
 
-        // 5. Calcul de la part Plateforme [cite: 284-285]
-        // Ex: (150€ * 10%) + (5 jours * 2€) = 15€ + 10€ = 25€
-        // Note: la commission peut être réduite par appliquerReductionLongueDuree()
+        // 5. Calcul de la part Plateforme
         double partVariable = this.montantAgent * this.commissionPourcentage;
         double partFixe = diffInDays * this.commissionFixeParJour;
         this.montantPlatforme = partVariable + partFixe;
 
         // 6. Calcul du Total Final à payer par le loueur
-        // Total = Part Agent + Commission Plateforme + Assurance (+ Options si vous les
-        // activez)
+        // IL MANQUE CECI DANS VOTRE CLASSE ASSURANCE (si applicable) :
+        double prixAssurance = (this.assurance != null) ? this.assurance.calculerPrime(this.Vehicule) : 0.0;
+
         this.prixTotal = this.montantAgent + this.montantPlatforme + prixAssurance;
     }
 
-    /**
-     * Applique une réduction sur la commission variable en fonction de la durée de location.
-     * US.A.7 - Réduction longue durée pour fidéliser les agents.
-     * 
-     * Barème de réduction sur la commission variable :
-     * - 7 à 13 jours : -5% (commission passe de 10% à 9.5%)
-     * - 14 à 29 jours : -10% (commission passe de 10% à 9%)
-     * - 30 jours et plus : -15% (commission passe de 10% à 8.5%)
-     * 
-     * @param nbJours Nombre de jours de location
-     */
-    private void appliquerReductionLongueDuree(long nbJours) {
-        if (nbJours >= 30) {
-            // Location mensuelle : -15% sur la commission
-            this.commissionPourcentage = 0.10 * 0.85; // 10% × 85% = 8.5%
-            System.out.println("✅ Réduction longue durée appliquée : -15% (location ≥30 jours)");
-            System.out.println("   Commission variable : 10% → 8.5%");
-        } else if (nbJours >= 14) {
-            // Location bi-hebdomadaire : -10% sur la commission
-            this.commissionPourcentage = 0.10 * 0.90; // 10% × 90% = 9%
-            System.out.println("✅ Réduction longue durée appliquée : -10% (location ≥14 jours)");
-            System.out.println("   Commission variable : 10% → 9%");
-        } else if (nbJours >= 7) {
-            // Location hebdomadaire : -5% sur la commission
-            this.commissionPourcentage = 0.10 * 0.95; // 10% × 95% = 9.5%
-            System.out.println("✅ Réduction longue durée appliquée : -5% (location ≥7 jours)");
-            System.out.println("   Commission variable : 10% → 9.5%");
-        }
-        // Sinon (< 7 jours), pas de réduction : commission reste à 10%
+    public boolean isOptionParkingSelectionnee() {
+        return optionParkingSelectionnee;
+    }
+
+    public void setOptionParkingSelectionnee(boolean optionParkingSelectionnee) {
+        this.optionParkingSelectionnee = optionParkingSelectionnee;
+        // Recalculer le prix si l'option change
+        calculerPrix();
+    }
+
+    public double getPrixSansReduction() {
+        return prixSansReduction;
+    }
+
+    public String getDetailsReduction() {
+        return detailsReduction;
     }
 
     /**
@@ -386,9 +413,10 @@ public class RentalContract {
         // 2. Vérification que les dates appartiennent aux disponibilités du véhicule
         LocalDate debutLocal = this.dateDebut.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
         LocalDate finLocal = this.dateFin.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-        
+
         if (!this.Vehicule.estDisponibleMap(debutLocal, finLocal)) {
-            System.out.println("Erreur : Le véhicule n'est pas disponible pour la période du " + debutLocal + " au " + finLocal);
+            System.out.println(
+                    "Erreur : Le véhicule n'est pas disponible pour la période du " + debutLocal + " au " + finLocal);
             return;
         }
 
@@ -498,13 +526,15 @@ public class RentalContract {
 
     /**
      * Enregistrer le kilométrage au départ (prise du véhicule)
-     * @param km Kilométrage relevé
+     * 
+     * @param km       Kilométrage relevé
      * @param photoNom Nom du fichier photo de preuve
      */
     public void renseignerKilometrageDebut(int km, String photoNom) {
         // Validation du statut
         if (this.statutLocation != StatutLocation.SIGNE) {
-            throw new IllegalStateException("Le contrat doit être signé avant de prendre le véhicule. Statut actuel: " + this.statutLocation);
+            throw new IllegalStateException(
+                    "Le contrat doit être signé avant de prendre le véhicule. Statut actuel: " + this.statutLocation);
         }
         if (photoNom == null || photoNom.trim().isEmpty()) {
             throw new IllegalArgumentException("La photo de preuve est obligatoire");
@@ -523,13 +553,15 @@ public class RentalContract {
 
     /**
      * Enregistrer le kilométrage au retour du véhicule
-     * @param km Kilométrage relevé
+     * 
+     * @param km       Kilométrage relevé
      * @param photoNom Nom du fichier photo de preuve
      */
     public void renseignerKilometrageFin(int km, String photoNom) {
         // Validation du statut
         if (this.statutLocation != StatutLocation.EN_COURS) {
-            throw new IllegalStateException("Le véhicule doit être en cours de location. Statut actuel: " + this.statutLocation);
+            throw new IllegalStateException(
+                    "Le véhicule doit être en cours de location. Statut actuel: " + this.statutLocation);
         }
         if (this.kilometrageDebut == null) {
             throw new IllegalStateException("Le kilométrage de départ n'a pas encore été renseigné");
@@ -538,7 +570,8 @@ public class RentalContract {
             throw new IllegalArgumentException("La photo de preuve est obligatoire");
         }
         if (km < this.kilometrageDebut) {
-            throw new IllegalArgumentException("Le kilométrage de fin (" + km + " km) ne peut pas être inférieur au kilométrage de départ (" + this.kilometrageDebut + " km)");
+            throw new IllegalArgumentException("Le kilométrage de fin (" + km
+                    + " km) ne peut pas être inférieur au kilométrage de départ (" + this.kilometrageDebut + " km)");
         }
         this.kilometrageFin = km;
         this.photoKilometrageFin = photoNom;
@@ -552,6 +585,7 @@ public class RentalContract {
 
     /**
      * Calcule la distance parcourue pendant la location
+     * 
      * @return Distance en km, ou null si non renseignée
      */
     public Integer calculerDistanceParcourue() {
@@ -622,7 +656,8 @@ public class RentalContract {
      */
     public void annulerContrat() {
         if (this.statutLocation == StatutLocation.EN_COURS) {
-            throw new IllegalStateException("Impossible d'annuler un contrat en cours. Le véhicule doit d'abord être rendu.");
+            throw new IllegalStateException(
+                    "Impossible d'annuler un contrat en cours. Le véhicule doit d'abord être rendu.");
         }
         if (this.statutLocation == StatutLocation.TERMINEE) {
             throw new IllegalStateException("Impossible d'annuler un contrat déjà terminé.");

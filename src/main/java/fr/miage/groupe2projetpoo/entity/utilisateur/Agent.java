@@ -10,6 +10,7 @@ import java.util.List;
 
 import fr.miage.groupe2projetpoo.entity.location.RentalContract;
 import fr.miage.groupe2projetpoo.entity.vehicule.Vehicle;
+import fr.miage.groupe2projetpoo.entity.utilisateur.MaintenanceCompany;
 
 /**
  * Classe abstraite représentant un agent
@@ -27,12 +28,16 @@ public abstract class Agent extends Utilisateur {
     // Liste des options payantes souscrites par l'agent
     private List<OptionPayante> optionsPayantes = new ArrayList<>();
 
+    // Entreprise d'entretien préférée (pour l'automatisation)
+    private MaintenanceCompany entrepriseEntretienPreferee;
+
     // Constructeur par défaut
     public Agent() {
         super();
         this.vehicleList = new ArrayList<>();
         this.contracts = new ArrayList<>();
         this.optionsPayantes = new ArrayList<>();
+        this.entrepriseEntretienPreferee = null;
     }
 
     // Constructeur avec paramètres
@@ -41,6 +46,7 @@ public abstract class Agent extends Utilisateur {
         this.vehicleList = new ArrayList<>();
         this.contracts = new ArrayList<>();
         this.optionsPayantes = new ArrayList<>();
+        this.entrepriseEntretienPreferee = null;
     }
 
     // === Gestion des véhicules ===
@@ -81,6 +87,7 @@ public abstract class Agent extends Utilisateur {
             this.contracts = new ArrayList<>();
         }
         this.contracts.add(contract);
+        contract.setAgent(this); // Assurer la liaison bidirectionnelle
     }
 
     public void removeContract(RentalContract contract) {
@@ -174,6 +181,14 @@ public abstract class Agent extends Utilisateur {
             total += option.calculerCoutMensuel();
         }
         return total;
+    }
+
+    public MaintenanceCompany getEntrepriseEntretienPreferee() {
+        return entrepriseEntretienPreferee;
+    }
+
+    public void setEntrepriseEntretienPreferee(MaintenanceCompany entrepriseEntretienPreferee) {
+        this.entrepriseEntretienPreferee = entrepriseEntretienPreferee;
     }
 
     // === Gestion des notations ===

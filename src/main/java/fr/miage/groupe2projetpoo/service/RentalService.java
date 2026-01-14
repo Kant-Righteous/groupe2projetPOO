@@ -1,6 +1,7 @@
 package fr.miage.groupe2projetpoo.service;
 
 import fr.miage.groupe2projetpoo.entity.assurance.Assurance;
+import fr.miage.groupe2projetpoo.entity.assurance.OptionEntretien;
 import fr.miage.groupe2projetpoo.entity.location.RentalContract;
 import fr.miage.groupe2projetpoo.entity.utilisateur.Agent;
 import fr.miage.groupe2projetpoo.entity.utilisateur.Loueur;
@@ -20,13 +21,15 @@ public class RentalService {
     private final RentalRepository rentalRepository;
     private final UserRepository userRepository;
     private final VehicleRepository vehicleRepository;
+    private final MaintenanceService maintenanceService;
 
     @Autowired
     public RentalService(RentalRepository rentalRepository, UserRepository userRepository,
-            VehicleRepository vehicleRepository) {
+            VehicleRepository vehicleRepository, MaintenanceService maintenanceService) {
         this.rentalRepository = rentalRepository;
         this.userRepository = userRepository;
         this.vehicleRepository = vehicleRepository;
+        this.maintenanceService = maintenanceService;
     }
 
     // ===== MÉTHODES CRUD =====
@@ -45,7 +48,7 @@ public class RentalService {
     public RentalContract creerContrat(String loueurEmail, String vehiculeId,
             Date dateDebut, Date dateFin,
             String lieuPrise, String lieuDepose,
-            String assuranceNom) {
+            String assuranceNom, boolean avecOptionParking) {
 
         Utilisateur user = userRepository.findByEmail(loueurEmail)
                 .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé avec l'email: " + loueurEmail));
@@ -85,6 +88,24 @@ public class RentalService {
             // Also link the contract to the agent
 >>>>>>> 8c04ac62128a318ee46d0295355993af06692111
             agentProprietaire.addContract(contrat);
+
+            // GESTION OPTION PARKING (Vienci)
+            if (avecOptionParking) {
+                fr.miage.groupe2projetpoo.entity.assurance.OptionParking optParking = agentProprietaire
+                        .getOption(fr.miage.groupe2projetpoo.entity.assurance.OptionParking.class);
+
+                if (optParking != null && optParking.isEstActive()) {
+                    // Force le lieu de dépose au parking partenaire
+                    if (optParking.getParkingPartenaire() != null) {
+                        contrat.setLieuDepose(optParking.getParkingPartenaire().getNom());
+                        // Active l'option sur le contrat (ce qui déclenchera le recalcul du prix)
+                        contrat.setOptionParkingSelectionnee(true);
+                    }
+                } else {
+                    // Log ou exception si l'option est demandée mais non disponible
+                    System.out.println("Attention: Option Parking demandée mais non active pour cet agent.");
+                }
+            }
         }
 
         return rentalRepository.save(contrat);
@@ -178,4 +199,42 @@ public class RentalService {
                 .filter(c -> c.estEnAttenteAgent())
                 .toList();
     }
+
+    /**
+     * Terminer un contrat et déclencher l'entretien automatique si l'option est active
+     */
+    public RentalContract terminerContrat(int contratId) {
+        RentalContract contrat = rentalRepository.findById(contratId)
+                .orElseThrow(() -> new RuntimeException("Contrat non trouvé avec l'ID: " + contratId));
+
+        // 1. Marquer comme terminé
+        contrat.setStatut(false);
+
+        // 2. Déclencher l'entretien automatique
+        Agent agent = contrat.getAgent();
+
+        // Sécurité : si l'agent n'est pas lié, on le cherche via le propriétaire du véhicule
+        if (agent == null && contrat.getVehicule() != null) {
+            String ownerEmail = contrat.getVehicule().getProprietaire();
+            Utilisateur u = userRepository.findByEmail(ownerEmail).orElse(null);
+            if (u instanceof Agent) agent = (Agent) u;
+        }
+
+        if (agent != null && agent.aOptionActive(OptionEntretien.class)) {
+            OptionEntretien opt = agent.getOption(OptionEntretien.class);
+            if (opt.isAutomatique() && agent.getEntrepriseEntretienPreferee() != null) {
+                // Planifier pour le lendemain
+                java.time.LocalDate dateEntretien = java.time.LocalDate.now().plusDays(1);
+                maintenanceService.requestMaintenance(
+                    agent.getEmail(),
+                    contrat.getVehicule().getIdVehicule(),
+                    agent.getEntrepriseEntretienPreferee().getEmail(),
+                    dateEntretien
+                );
+            }
+        }
+
+        return rentalRepository.save(contrat);
+    }
 }
+
