@@ -25,7 +25,7 @@ public class RentalService {
 
     @Autowired
     public RentalService(RentalRepository rentalRepository, UserRepository userRepository,
-            VehicleRepository vehicleRepository, MaintenanceService maintenanceService) {
+            VehicleRepository vehicleRepository) {
         this.rentalRepository = rentalRepository;
         this.userRepository = userRepository;
         this.vehicleRepository = vehicleRepository;
@@ -69,11 +69,16 @@ public class RentalService {
         RentalContract contrat = new RentalContract(
                 loueur, vehicule, dateDebut, dateFin, lieuPrise, lieuDepose, assurance);
 
-        // Liaison avec l'agent (propriétaire du véhicule)
-        String ownerEmail = vehicule.getProprietaire();
-        userRepository.findByEmail(ownerEmail).ifPresent(u -> {
-            if (u instanceof Agent) contrat.setAgent((Agent) u);
-        });
+        // Find the owner (Agent) of the vehicle
+        String proprietaireEmail = vehicule.getProprietaire();
+        Utilisateur proprietaire = userRepository.findByEmail(proprietaireEmail)
+                .orElse(null);
+
+        if (proprietaire instanceof Agent) {
+            contrat.setAgent((Agent) proprietaire);
+            // Also link the contract to the agent
+            ((Agent) proprietaire).addContract(contrat);
+        }
 
         return rentalRepository.save(contrat);
     }
@@ -175,11 +180,11 @@ public class RentalService {
                 .orElseThrow(() -> new RuntimeException("Contrat non trouvé avec l'ID: " + contratId));
 
         // 1. Marquer comme terminé
-        contrat.setStatut(false); 
-        
+        contrat.setStatut(false);
+
         // 2. Déclencher l'entretien automatique
         Agent agent = contrat.getAgent();
-        
+
         // Sécurité : si l'agent n'est pas lié, on le cherche via le propriétaire du véhicule
         if (agent == null && contrat.getVehicule() != null) {
             String ownerEmail = contrat.getVehicule().getProprietaire();
@@ -200,7 +205,7 @@ public class RentalService {
                 );
             }
         }
-        
+
         return rentalRepository.save(contrat);
     }
 }
