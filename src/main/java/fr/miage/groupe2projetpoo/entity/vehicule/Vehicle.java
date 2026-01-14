@@ -241,19 +241,19 @@ public abstract class Vehicle {
     }
 
     // === Ajouter planning de disponibilité
-    public void addPlanningDispo(LocalDate debut, LocalDate fin){
-        for(Disponibilite d : planningDisponible){
-            if(d.chevauchement(debut, fin)){
+    public void addPlanningDispo(LocalDate debut, LocalDate fin) {
+        for (Disponibilite d : planningDisponible) {
+            if (d.chevauchement(debut, fin)) {
                 throw new IllegalArgumentException("Créneau déjà occupé");
             }
         }
-        planningDisponible.add(new Disponibilite(debut,fin));
+        planningDisponible.add(new Disponibilite(debut, fin));
     }
 
     // verifier la disponibilité dans planning
     public boolean estDisponible(LocalDate debut, LocalDate fin) {
-        for(Disponibilite d: planningDisponible){
-            if(d.chevauchement(debut, fin)){
+        for (Disponibilite d : planningDisponible) {
+            if (d.chevauchement(debut, fin)) {
                 return false;
             }
         }
@@ -261,7 +261,34 @@ public abstract class Vehicle {
     }
 
     // Suuprimer Planning
-    public void removeCreneauPlanning(int index){
+    public void removeCreneauPlanning(int index) {
         planningDisponible.remove(index);
+    }
+
+    /**
+     * Récupère le dernier lieu de dépose du véhicule basé sur l'historique des
+     * contrats.
+     * Si aucun contrat terminé n'est trouvé, retourne la ville du véhicule.
+     */
+    public String getDernierLieuDepose() {
+        if (historiqueContrats == null || historiqueContrats.isEmpty()) {
+            return this.villeVehicule;
+        }
+
+        RentalContract dernierContrat = null;
+        for (RentalContract c : historiqueContrats) {
+            // On cherche le contrat terminé le plus récent
+            if (c.estTerminee()) {
+                if (dernierContrat == null || c.getDateFin().after(dernierContrat.getDateFin())) {
+                    dernierContrat = c;
+                }
+            }
+        }
+
+        if (dernierContrat != null) {
+            return dernierContrat.getLieuDepose();
+        }
+
+        return this.villeVehicule;
     }
 }
