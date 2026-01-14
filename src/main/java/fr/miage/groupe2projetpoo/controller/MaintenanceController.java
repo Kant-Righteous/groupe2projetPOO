@@ -61,4 +61,53 @@ public class MaintenanceController {
                 "alertes_ct", rappels,
                 "conseils_entretien_km", conseils);
     }
+
+    /**
+     * Test US.A.8 : Renseigner informations Contrôle Technique
+     */
+    @GetMapping("/test-us-a8")
+    public Map<String, Object> testUSA8() {
+        // 1. Création véhicule
+        Vehicle v = new Voiture("TEST-8", "Citroen", "Blanche", "C3", "Paris", 25.0, "agent@test.com", false);
+
+        // 2. Renseignement du CT (L'action de l'US)
+        ControleTechnique ct = new ControleTechnique(LocalDate.now(), true, "AutoSur Paris 15", "Pare-brise fissuré");
+        v.setControleTechnique(ct);
+
+        // 3. Vérification que c'est bien enregistré
+        java.time.format.DateTimeFormatter fmt = java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
+        return Map.of(
+                "test", "US.A.8 - Renseigner CT",
+                "vehicule", v.getModeleVehicule() + " (" + v.getIdVehicule() + ")",
+                "ct_enregistre", Map.of(
+                        "date", v.getControleTechnique().getDatePassage().format(fmt),
+                        "valide", v.getControleTechnique().isEstValide(),
+                        "centre", v.getControleTechnique().getCentreControle(),
+                        "remarques", v.getControleTechnique().getRemarques()));
+    }
+
+    /**
+     * Test US.A.9 : Rappels Contrôle Technique
+     */
+    @GetMapping("/test-us-a9")
+    public Map<String, Object> testUSA9() {
+        Agent agent = new AgentParticulier("Test9", "Agent", "pass", "t9@test.com", "0102030405");
+
+        // Véhicule avec CT expirant bientôt (validité 2 ans, fait il y a 2 ans moins 10
+        // jours)
+        Vehicle v = new Voiture("TEST-9", "Peugeot", "Grise", "308", "Lyon", 40.0, "agent@test.com", false);
+        LocalDate dateCT = LocalDate.now().minusYears(2).plusDays(10); // Reste 10 jours
+        v.setControleTechnique(new ControleTechnique(dateCT, true, "Dekra", "RAS"));
+
+        agent.addVehicle(v);
+
+        // Appel du service
+        List<String> rappels = maintenanceService.genererRappelsControleTechnique(agent);
+
+        return Map.of(
+                "test", "US.A.9 - Rappels CT",
+                "vehicule_situation", "CT fait le " + dateCT + " (Expire dans 10 jours)",
+                "alertes_recues", rappels);
+    }
 }
