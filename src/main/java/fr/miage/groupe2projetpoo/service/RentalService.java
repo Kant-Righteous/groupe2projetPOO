@@ -66,18 +66,22 @@ public class RentalService {
             throw new RuntimeException("Assurance non trouvée avec le nom: " + assuranceNom);
         }
 
-        RentalContract contrat = new RentalContract(
-                loueur, vehicule, dateDebut, dateFin, lieuPrise, lieuDepose, assurance);
-
-        // Find the owner (Agent) of the vehicle
+        // Récupérer l'agent propriétaire du véhicule pour vérifier ses options
         String proprietaireEmail = vehicule.getProprietaire();
-        Utilisateur proprietaire = userRepository.findByEmail(proprietaireEmail)
-                .orElse(null);
+        Agent agentProprietaire = null;
+        Optional<Utilisateur> proprietaireOpt = userRepository.findByEmail(proprietaireEmail);
+        if (proprietaireOpt.isPresent() && proprietaireOpt.get() instanceof Agent) {
+            agentProprietaire = (Agent) proprietaireOpt.get();
+        }
 
-        if (proprietaire instanceof Agent) {
-            contrat.setAgent((Agent) proprietaire);
+        // Création du contrat avec l'agent propriétaire (pour auto-sélection assurance)
+        RentalContract contrat = new RentalContract(
+                loueur, vehicule, dateDebut, dateFin, lieuPrise, lieuDepose, assurance, agentProprietaire);
+
+        if (agentProprietaire != null) {
+            contrat.setAgent(agentProprietaire);
             // Also link the contract to the agent
-            ((Agent) proprietaire).addContract(contrat);
+            agentProprietaire.addContract(contrat);
         }
 
         return rentalRepository.save(contrat);
@@ -136,7 +140,7 @@ public class RentalService {
     }
 
     public List<Vehicle> getTousLesVehicules() {
-        return (List<Vehicle>) vehicleRepository.findAll();
+        return new ArrayList<>(vehicleRepository.findAll());
     }
 
     public List<Assurance> getToutesLesAssurances() {

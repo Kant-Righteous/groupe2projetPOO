@@ -1,6 +1,8 @@
 package fr.miage.groupe2projetpoo.entity.utilisateur;
 
+import fr.miage.groupe2projetpoo.entity.assurance.Assurance;
 import fr.miage.groupe2projetpoo.entity.assurance.OptionAcceptationManuelle;
+import fr.miage.groupe2projetpoo.entity.assurance.OptionAssurancePersonnalisee;
 import fr.miage.groupe2projetpoo.entity.assurance.OptionPayante;
 import fr.miage.groupe2projetpoo.entity.notation.NoteAgent;
 import java.util.ArrayList;
@@ -149,6 +151,25 @@ public abstract class Agent extends Utilisateur {
      */
     public boolean aAcceptationManuelle() {
         return aOptionActive(OptionAcceptationManuelle.class);
+    }
+
+    /**
+     * Vérifie si l'agent a l'option assurance personnalisée active
+     */
+    public boolean aAssurancePersonnalisee() {
+        return aOptionActive(OptionAssurancePersonnalisee.class);
+    }
+
+    /**
+     * Récupère l'assurance personnalisée de l'agent si disponible
+     * @return L'assurance personnalisée ou null si non définie
+     */
+    public Assurance getAssurancePersonnalisee() {
+        OptionAssurancePersonnalisee option = getOption(OptionAssurancePersonnalisee.class);
+        if (option != null && option.aAssuranceDefinie()) {
+            return option.getAssuranceAgent();
+        }
+        return null;
     }
 
     /**
