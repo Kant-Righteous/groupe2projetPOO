@@ -163,5 +163,97 @@ public class RentalController {
     public ResponseEntity<List<RentalContract>> getContratsEnAttente() {
         return ResponseEntity.ok(rentalService.getContratsEnAttente());
     }
+
+    // ===== ENDPOINTS POUR LE KILOMÉTRAGE (US.L.10) =====
+
+    /**
+     * POST /api/rentals/{id}/kilometrage-debut - Renseigner le kilométrage à la prise
+     * 
+     * Body JSON:
+     * {
+     *   "kilometrage": 45230,
+     *   "photoNom": "photo_km_debut_contrat1_20260114.jpg"
+     * }
+     */
+    @PostMapping("/{id}/kilometrage-debut")
+    public ResponseEntity<?> renseignerKilometrageDebut(
+            @PathVariable int id,
+            @RequestBody Map<String, Object> request) {
+        try {
+            RentalContract contrat = rentalService.getContratById(id)
+                    .orElseThrow(() -> new RuntimeException("Contrat non trouvé"));
+
+            int km = ((Number) request.get("kilometrage")).intValue();
+            String photoNom = (String) request.get("photoNom");
+
+            contrat.renseignerKilometrageDebut(km, photoNom);
+            rentalService.getTousLesContrats(); // Force save (workaround for InMemory)
+
+            return ResponseEntity.ok(Map.of(
+                    "message", "Kilométrage départ enregistré avec succès",
+                    "kilometrage", km,
+                    "photo", photoNom,
+                    "date", contrat.getDateRenseignementDebut()));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    /**
+     * POST /api/rentals/{id}/kilometrage-fin - Renseigner le kilométrage au retour
+     * 
+     * Body JSON:
+     * {
+     *   "kilometrage": 45580,
+     *   "photoNom": "photo_km_fin_contrat1_20260120.jpg"
+     * }
+     */
+    @PostMapping("/{id}/kilometrage-fin")
+    public ResponseEntity<?> renseignerKilometrageFin(
+            @PathVariable int id,
+            @RequestBody Map<String, Object> request) {
+        try {
+            RentalContract contrat = rentalService.getContratById(id)
+                    .orElseThrow(() -> new RuntimeException("Contrat non trouvé"));
+
+            int km = ((Number) request.get("kilometrage")).intValue();
+            String photoNom = (String) request.get("photoNom");
+
+            contrat.renseignerKilometrageFin(km, photoNom);
+            rentalService.getTousLesContrats(); // Force save
+
+            Integer distance = contrat.calculerDistanceParcourue();
+
+            return ResponseEntity.ok(Map.of(
+                    "message", "Kilométrage retour enregistré avec succès",
+                    "kilometrageDebut", contrat.getKilometrageDebut(),
+                    "kilometrageFin", km,
+                    "distanceParcourue", distance != null ? distance : 0,
+                    "photo", photoNom,
+                    "date", contrat.getDateRenseignementFin()));
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    /**
+     * GET /api/rentals/{id}/kilometrage - Consulter les informations kilométriques d'un contrat
+     */
+    @GetMapping("/{id}/kilometrage")
+    public ResponseEntity<?> getKilometrage(@PathVariable int id) {
+        return rentalService.getContratById(id)
+                .map(contrat -> ResponseEntity.ok(Map.of(
+                        "contratId", id,
+                        "kilometrageDebut", contrat.getKilometrageDebut() != null ? contrat.getKilometrageDebut() : "Non renseigné",
+                        "photoDebut", contrat.getPhotoKilometrageDebut() != null ? contrat.getPhotoKilometrageDebut() : "Non renseignée",
+                        "kilometrageFin", contrat.getKilometrageFin() != null ? contrat.getKilometrageFin() : "Non renseigné",
+                        "photoFin", contrat.getPhotoKilometrageFin() != null ? contrat.getPhotoKilometrageFin() : "Non renseignée",
+                        "distanceParcourue", contrat.calculerDistanceParcourue() != null ? contrat.calculerDistanceParcourue() + " km" : "Non disponible")))
+                .orElse(ResponseEntity.notFound().build());
+    }
 }
 

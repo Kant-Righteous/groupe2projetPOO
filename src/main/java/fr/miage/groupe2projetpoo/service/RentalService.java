@@ -2,6 +2,7 @@ package fr.miage.groupe2projetpoo.service;
 
 import fr.miage.groupe2projetpoo.entity.assurance.Assurance;
 import fr.miage.groupe2projetpoo.entity.location.RentalContract;
+import fr.miage.groupe2projetpoo.entity.utilisateur.Agent;
 import fr.miage.groupe2projetpoo.entity.utilisateur.Loueur;
 import fr.miage.groupe2projetpoo.entity.utilisateur.Utilisateur;
 import fr.miage.groupe2projetpoo.entity.vehicule.Vehicle;
@@ -62,8 +63,17 @@ public class RentalService {
             throw new RuntimeException("Assurance non trouvée avec le nom: " + assuranceNom);
         }
 
+        // Récupérer l'agent propriétaire du véhicule pour vérifier ses options
+        String proprietaireEmail = vehicule.getProprietaire();
+        Agent agentProprietaire = null;
+        Optional<Utilisateur> proprietaireOpt = userRepository.findByEmail(proprietaireEmail);
+        if (proprietaireOpt.isPresent() && proprietaireOpt.get() instanceof Agent) {
+            agentProprietaire = (Agent) proprietaireOpt.get();
+        }
+
+        // Création du contrat avec l'agent propriétaire (pour auto-sélection assurance)
         RentalContract contrat = new RentalContract(
-                loueur, vehicule, dateDebut, dateFin, lieuPrise, lieuDepose, assurance);
+                loueur, vehicule, dateDebut, dateFin, lieuPrise, lieuDepose, assurance, agentProprietaire);
 
         return rentalRepository.save(contrat);
     }
