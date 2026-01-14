@@ -1,7 +1,9 @@
 package fr.miage.groupe2projetpoo.service;
 
 import fr.miage.groupe2projetpoo.entity.assurance.Assurance;
+import fr.miage.groupe2projetpoo.entity.assurance.OptionEntretien;
 import fr.miage.groupe2projetpoo.entity.location.RentalContract;
+import fr.miage.groupe2projetpoo.entity.utilisateur.Agent;
 import fr.miage.groupe2projetpoo.entity.utilisateur.Loueur;
 import fr.miage.groupe2projetpoo.entity.utilisateur.Utilisateur;
 import fr.miage.groupe2projetpoo.entity.vehicule.Vehicle;
@@ -19,13 +21,15 @@ public class RentalService {
     private final RentalRepository rentalRepository;
     private final UserRepository userRepository;
     private final VehicleRepository vehicleRepository;
+    private final MaintenanceService maintenanceService;
 
     @Autowired
     public RentalService(RentalRepository rentalRepository, UserRepository userRepository,
-            VehicleRepository vehicleRepository) {
+            VehicleRepository vehicleRepository, MaintenanceService maintenanceService) {
         this.rentalRepository = rentalRepository;
         this.userRepository = userRepository;
         this.vehicleRepository = vehicleRepository;
+        this.maintenanceService = maintenanceService;
     }
 
     // ===== MÉTHODES CRUD =====
@@ -64,6 +68,12 @@ public class RentalService {
 
         RentalContract contrat = new RentalContract(
                 loueur, vehicule, dateDebut, dateFin, lieuPrise, lieuDepose, assurance);
+
+        // Liaison avec l'agent (propriétaire du véhicule)
+        String ownerEmail = vehicule.getProprietaire();
+        userRepository.findByEmail(ownerEmail).ifPresent(u -> {
+            if (u instanceof Agent) contrat.setAgent((Agent) u);
+        });
 
         return rentalRepository.save(contrat);
     }
@@ -155,6 +165,43 @@ public class RentalService {
         return rentalRepository.findAll().stream()
                 .filter(c -> c.estEnAttenteAgent())
                 .toList();
+    }
+
+    /**
+     * Terminer un contrat et déclencher l'entretien automatique si l'option est active
+     */
+    public RentalContract terminerContrat(int contratId) {
+        RentalContract contrat = rentalRepository.findById(contratId)
+                .orElseThrow(() -> new RuntimeException("Contrat non trouvé avec l'ID: " + contratId));
+
+        // 1. Marquer comme terminé
+        contrat.setStatut(false); 
+        
+        // 2. Déclencher l'entretien automatique
+        Agent agent = contrat.getAgent();
+        
+        // Sécurité : si l'agent n'est pas lié, on le cherche via le propriétaire du véhicule
+        if (agent == null && contrat.getVehicule() != null) {
+            String ownerEmail = contrat.getVehicule().getProprietaire();
+            Utilisateur u = userRepository.findByEmail(ownerEmail).orElse(null);
+            if (u instanceof Agent) agent = (Agent) u;
+        }
+
+        if (agent != null && agent.aOptionActive(OptionEntretien.class)) {
+            OptionEntretien opt = agent.getOption(OptionEntretien.class);
+            if (opt.isAutomatique() && agent.getEntrepriseEntretienPreferee() != null) {
+                // Planifier pour le lendemain
+                java.time.LocalDate dateEntretien = java.time.LocalDate.now().plusDays(1);
+                maintenanceService.requestMaintenance(
+                    agent.getEmail(),
+                    contrat.getVehicule().getIdVehicule(),
+                    agent.getEntrepriseEntretienPreferee().getEmail(),
+                    dateEntretien
+                );
+            }
+        }
+        
+        return rentalRepository.save(contrat);
     }
 }
 

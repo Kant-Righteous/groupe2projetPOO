@@ -1,10 +1,14 @@
 package fr.miage.groupe2projetpoo.controller;
 
+import fr.miage.groupe2projetpoo.entity.assurance.OptionEntretien;
 import fr.miage.groupe2projetpoo.entity.entretien.MaintenanceIntervention;
 import fr.miage.groupe2projetpoo.entity.entretien.MaintenancePrice;
 import fr.miage.groupe2projetpoo.entity.entretien.MaintenanceStatus;
+import fr.miage.groupe2projetpoo.entity.utilisateur.Agent;
 import fr.miage.groupe2projetpoo.entity.utilisateur.MaintenanceCompany;
+import fr.miage.groupe2projetpoo.entity.utilisateur.Utilisateur;
 import fr.miage.groupe2projetpoo.entity.vehicule.TypeVehicule;
+import fr.miage.groupe2projetpoo.repository.UserRepository;
 import fr.miage.groupe2projetpoo.service.MaintenanceService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,9 +22,11 @@ import java.util.Map;
 public class MaintenanceController {
 
     private final MaintenanceService maintenanceService;
+    private final UserRepository userRepository;
 
-    public MaintenanceController(MaintenanceService maintenanceService) {
+    public MaintenanceController(MaintenanceService maintenanceService, UserRepository userRepository) {
         this.maintenanceService = maintenanceService;
+        this.userRepository = userRepository;
     }
 
     @PostMapping("/companies/register")
@@ -41,9 +47,8 @@ public class MaintenanceController {
     }
 
     @PutMapping("/companies/{email:.+}/refere")
-    public ResponseEntity<?> setCompanyRefere(@PathVariable String email, @RequestBody Map<String, Boolean> request) {
+    public ResponseEntity<?> setCompanyRefere(@PathVariable String email, @RequestParam(required = false, defaultValue = "true") boolean refere) {
         try {
-            boolean refere = request.getOrDefault("refere", true);
             maintenanceService.setCompanyRefere(email, refere);
             return ResponseEntity.ok(Map.of("success", true, "message", "Statut référencé mis à jour"));
         } catch (Exception e) {
@@ -86,6 +91,15 @@ public class MaintenanceController {
         return ResponseEntity.ok(maintenanceService.getAvailableCompanies());
     }
 
+    @GetMapping("/companies/{email:.+}")
+    public ResponseEntity<?> getCompanyByEmail(@PathVariable String email) {
+        try {
+            return ResponseEntity.ok(maintenanceService.getCompanyByEmail(email));
+        } catch (Exception e) {
+            return ResponseEntity.status(404).body(Map.of("success", false, "message", e.getMessage()));
+        }
+    }
+
     @PostMapping("/request")
     public ResponseEntity<?> requestMaintenance(@RequestBody Map<String, String> request) {
         try {
@@ -107,6 +121,52 @@ public class MaintenanceController {
             MaintenanceStatus status = MaintenanceStatus.valueOf(request.get("statut").toUpperCase());
             maintenanceService.updateInterventionStatus(id, status);
             return ResponseEntity.ok(Map.of("success", true, "message", "Statut de l'intervention mis à jour"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
+        }
+    }
+
+    @PutMapping("/agent/{email:.+}/preferred-company")
+    public ResponseEntity<?> setPreferredCompany(@PathVariable String email, @RequestBody Map<String, String> request) {
+        try {
+            String companyEmail = request.get("companyEmail");
+            Utilisateur user = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new IllegalArgumentException("Agent introuvable"));
+            if (!(user instanceof Agent)) throw new IllegalArgumentException("L'utilisateur n'est pas un agent");
+            
+            MaintenanceCompany company = maintenanceService.getCompanyByEmail(companyEmail);
+            ((Agent) user).setEntrepriseEntretienPreferee(company);
+            
+            return ResponseEntity.ok(Map.of("success", true, "message", "Entreprise préférée mise à jour"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/agent/{email:.+}/subscribe-option")
+    public ResponseEntity<?> subscribeOption(@PathVariable String email, @RequestBody Map<String, Boolean> request) {
+        try {
+            boolean automatique = request.getOrDefault("automatique", false);
+            Utilisateur user = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new IllegalArgumentException("Agent introuvable"));
+            if (!(user instanceof Agent)) throw new IllegalArgumentException("L'utilisateur n'est pas un agent");
+            
+            Agent agent = (Agent) user;
+            // On vérifie si l'option existe déjà pour ne pas la doubler
+            if (!agent.aOptionActive(OptionEntretien.class)) {
+                agent.ajouterOption(new OptionEntretien(automatique));
+            } else {
+                // On met à jour le mode si elle existe déjà
+                OptionEntretien opt = agent.getOption(OptionEntretien.class);
+                if (automatique) opt.activerModeAutomatique();
+                else opt.activerModePonctuel();
+            }
+            
+            return ResponseEntity.ok(Map.of(
+                "success", true, 
+                "message", "Abonnement à l'option " + (automatique ? "Automatique" : "Ponctuelle") + " réussi",
+                "facture_mensuelle", agent.calculerFactureMensuelle()
+            ));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
         }

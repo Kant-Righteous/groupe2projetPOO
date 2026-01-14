@@ -99,6 +99,19 @@ public class RentalController {
     }
 
     /**
+     * PUT /api/rentals/{id}/termine - Terminer une location (déclenche l'entretien auto si option active)
+     */
+    @PutMapping("/{id}/termine")
+    public ResponseEntity<?> terminerContrat(@PathVariable int id) {
+        try {
+            RentalContract contrat = rentalService.terminerContrat(id);
+            return ResponseEntity.ok(contrat);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    /**
      * DELETE /api/rentals/{id} - Supprimer un contrat
      */
     @DeleteMapping("/{id}")
