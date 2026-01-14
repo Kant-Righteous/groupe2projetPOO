@@ -1,11 +1,7 @@
 package fr.miage.groupe2projetpoo.service;
 
 import fr.miage.groupe2projetpoo.entity.utilisateur.*;
-import fr.miage.groupe2projetpoo.entity.vehicule.TypeVehicule;
-import fr.miage.groupe2projetpoo.entity.vehicule.Vehicle;
-import fr.miage.groupe2projetpoo.entity.vehicule.Voiture;
-import fr.miage.groupe2projetpoo.entity.vehicule.Moto;
-import fr.miage.groupe2projetpoo.entity.vehicule.Camion;
+import fr.miage.groupe2projetpoo.entity.vehicule.*;
 import fr.miage.groupe2projetpoo.repository.UserRepository;
 import fr.miage.groupe2projetpoo.repository.VehicleRepository;
 import org.springframework.http.ResponseEntity;
@@ -33,10 +29,11 @@ public class VehicleService {
         this.userRepository = userRepository;
     }
 
-    // Methodes
-    /**
-     * ajout d'un vehicule
-     */
+
+
+    /*************************************** ADD / MODIFIER / DELETE *********************************************/
+
+    // Ajout d'un vehicule
     public Vehicle addVehicule(String idVehicule, TypeVehicule typeVehicule, String marqueVehicule,
             String couleurVehicule, String modeleVehicule, String villeVehicules, double prixVehiculeParJour,
             String proprietaire, boolean estEnPause) {
@@ -64,9 +61,7 @@ public class VehicleService {
         return vehiculeRepository.save(vehicule);
     }
 
-    /**
-     * Mise ajour de la liste des disponibilités
-     */
+    // Mise ajour de la liste des disponibilités
     public void upDateDisponibilites(String id, Map<String, Boolean> dispoRquest) {
         Vehicle v = vehiculeRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Véhicule introuvable"));
@@ -76,6 +71,24 @@ public class VehicleService {
             Boolean dispo = keyVal.getValue();
             v.getDisponibilites().put(date, dispo);
         }
+    }
+
+    // Update vehicule
+    public Vehicle updateVehicule(String id, Vehicle newData) {
+        Vehicle vehicule = vehiculeRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Véhicule introuvable!"));
+        // Mise à jour des champs
+        // vehicule.setIdVehicule(newData.getIdVehicule());
+        // vehicule.setTypeVehicule(newData.getTypeVehicule());
+        vehicule.setMarqueVehicule(newData.getMarqueVehicule());
+        vehicule.setModeleVehicule(newData.getModeleVehicule());
+        vehicule.setCouleurVehicule(newData.getCouleurVehicule());
+        vehicule.setVilleVehicule(newData.getVilleVehicule());
+        vehicule.setPrixVehiculeParJour(newData.getPrixVehiculeParJour());
+        vehicule.setProprietaire(newData.getProprietaire());
+        vehicule.setEstEnpause(newData.getEstEnpause());
+        vehiculeRepository.modifVehicule(id, vehicule);
+        return vehicule;
     }
 
     /**
@@ -89,9 +102,11 @@ public class VehicleService {
         vehiculeRepository.deleteById(id);
     }
 
-    /**
-     * get vehicle infos
-     */
+
+
+    /*********************************** GETTER D'INFO ************************************/
+
+    //get vehicle infos
     public Vehicle getVehiculeByID(String id) {
         Vehicle v = vehiculeRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Véhicule introuvable"));
@@ -138,23 +153,51 @@ public class VehicleService {
      */
     public boolean verifierDisponibilite(String id, LocalDate deb, LocalDate fin) {
         Vehicle v = getVehiculeByID(id);
-        return v.estDisponible(deb, fin);
+        return v.estDisponibleMap(deb, fin);
     }
 
-    public Vehicle updateVehicule(String id, Vehicle newData) {
-        Vehicle vehicule = vehiculeRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Véhicule introuvable!"));
-        // Mise à jour des champs
-        // vehicule.setIdVehicule(newData.getIdVehicule());
-        // vehicule.setTypeVehicule(newData.getTypeVehicule());
-        vehicule.setMarqueVehicule(newData.getMarqueVehicule());
-        vehicule.setModeleVehicule(newData.getModeleVehicule());
-        vehicule.setCouleurVehicule(newData.getCouleurVehicule());
-        vehicule.setVilleVehicule(newData.getVilleVehicule());
-        vehicule.setPrixVehiculeParJour(newData.getPrixVehiculeParJour());
-        vehicule.setProprietaire(newData.getProprietaire());
-        vehicule.setEstEnpause(newData.getEstEnpause());
-        vehiculeRepository.modifVehicule(id, vehicule);
-        return vehicule;
+
+    // -----------------------------------------------
+    //                 Planning
+    // -----------------------------------------------
+
+    // Récupération du planning
+    public List<Disponibilite> getPlanning(String id){
+        if(!vehiculeRepository.existsById(id)){
+            throw new IllegalArgumentException("Véhicule introuvable");
+        }
+        return vehiculeRepository.getPlanning(id);
     }
+
+    // Ajout d’un créneau de disponibilité
+    public void addDisponibilite(String idVehicule, LocalDate debut, LocalDate fin) {
+        if (debut == null || fin == null) {
+            throw new IllegalArgumentException("Les dates ne peuvent pas être nulles");
+        }
+        if (debut.isAfter(fin)) {
+            throw new IllegalArgumentException("La date de début doit être avant la date de fin");
+        }
+        if (!vehiculeRepository.existsById(idVehicule)) {
+            throw new IllegalArgumentException("Véhicule introuvable");
+        }
+        vehiculeRepository.addPlanning(idVehicule, debut, fin);
+    }
+
+    // Suppression d’un créneau
+    public void removeDisponibilite(String idVehicule, int index) {
+        if (!vehiculeRepository.existsById(idVehicule)) {
+            throw new IllegalArgumentException("Véhicule introuvable");
+        }
+        vehiculeRepository.removeCreneau(idVehicule, index);
+    }
+    // Vérification de disponibilité
+    public boolean estDisponible(String idVehicule, LocalDate debut, LocalDate fin) {
+        if (!vehiculeRepository.existsById(idVehicule)) {
+            throw new IllegalArgumentException("Véhicule introuvable");
+        }
+        return vehiculeRepository.estDisponible(idVehicule, debut, fin);
+    }
+
+
+
 }

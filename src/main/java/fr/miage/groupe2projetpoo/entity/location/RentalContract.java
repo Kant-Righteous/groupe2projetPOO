@@ -44,6 +44,15 @@ public class RentalContract {
     // Attribut pour l'acceptation manuelle (option payante)
     private Date dateExpiration; // Date limite pour que l'agent accepte (6h après signature loueur)
 
+    // US.L.10 - Kilométrage et preuves photos
+    private Integer kilometrageDebut;       // KM à la prise du véhicule
+    private String photoKilometrageDebut;   // Nom du fichier photo de preuve (départ)
+    private Date dateRenseignementDebut;    // Date/heure de renseignement du KM départ
+
+    private Integer kilometrageFin;         // KM au retour du véhicule
+    private String photoKilometrageFin;     // Nom du fichier photo de preuve (retour)
+    private Date dateRenseignementFin;      // Date/heure de renseignement du KM retour
+
     // Constructeur par défaut (nécessaire pour Jackson JSON)
     public RentalContract() {
     }
@@ -216,30 +225,49 @@ public class RentalContract {
         this.agent = agent;
     }
 
-    // Constructeur
+    // Constructeur avec Agent (recommandé - permet la sélection automatique de l'assurance)
     public RentalContract(Loueur loueur, Vehicle vehicule, Date dateDebut, Date dateFin, String lieuPrise,
-            String lieuDepose, Assurance assurance) {
+            String lieuDepose, Assurance assurance, Agent agent) {
         // 1. Affectation des données saisies par le loueur
         this.loueur = loueur;
-        this.Vehicule = vehicule; // Attention à la majuscule 'V' dans votre attribut
+        this.Vehicule = vehicule;
         this.dateDebut = dateDebut;
         this.dateFin = dateFin;
         this.lieuPrise = lieuPrise;
         this.lieuDepose = lieuDepose;
-        this.assurance = assurance;
+        this.agent = agent;
 
-        // 2. Initialisation automatique des champs système
-        this.dateCréationContrat = new Date(); // Date d'aujourd'hui
-        this.statut = false; // false = En attente / Non validé
+        // 2. Sélection automatique de l'assurance selon l'option de l'agent
+        // Si l'agent a l'option assurance personnalisée, on l'utilise
+        // Sinon, on utilise l'assurance fournie (AZA par défaut)
+        if (agent != null && agent.aAssurancePersonnalisee()) {
+            Assurance assuranceAgent = agent.getAssurancePersonnalisee();
+            if (assuranceAgent != null) {
+                this.assurance = assuranceAgent;
+            } else {
+                this.assurance = assurance; // Fallback sur l'assurance fournie
+            }
+        } else {
+            this.assurance = assurance;
+        }
+
+        // 3. Initialisation automatique des champs système
+        this.dateCréationContrat = new Date();
+        this.statut = false;
         this.SignatureLoueur = false;
         this.SignatureAgent = false;
         this.dateSignatureLoueur = null;
         this.dateSignatureAgent = null;
-        this.fichierPDF = null; // Sera généré plus tard
+        this.fichierPDF = null;
 
-        // 3. Calcul automatique des montants
-        // On appelle la méthode privée pour remplir prixTotal, montantAgent, etc.
+        // 4. Calcul automatique des montants
         this.calculerPrix();
+    }
+
+    // Constructeur sans Agent (pour rétro-compatibilité)
+    public RentalContract(Loueur loueur, Vehicle vehicule, Date dateDebut, Date dateFin, String lieuPrise,
+            String lieuDepose, Assurance assurance) {
+        this(loueur, vehicule, dateDebut, dateFin, lieuPrise, lieuDepose, assurance, null);
     }
 
     @Override
@@ -320,10 +348,9 @@ public class RentalContract {
         // 2. Vérification que les dates appartiennent aux disponibilités du véhicule
         LocalDate debutLocal = this.dateDebut.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
         LocalDate finLocal = this.dateFin.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-
-        if (!this.Vehicule.estDisponible(debutLocal, finLocal)) {
-            System.out.println(
-                    "Erreur : Le véhicule n'est pas disponible pour la période du " + debutLocal + " au " + finLocal);
+        
+        if (!this.Vehicule.estDisponibleMap(debutLocal, finLocal)) {
+            System.out.println("Erreur : Le véhicule n'est pas disponible pour la période du " + debutLocal + " au " + finLocal);
             return;
         }
 
@@ -425,4 +452,81 @@ public class RentalContract {
         return nomFichier;
     }
 
+    // ===== GESTION DU KILOMÉTRAGE (US.L.10) =====
+
+    /**
+     * Enregistrer le kilométrage au départ (prise du véhicule)
+     * @param km Kilométrage relevé
+     * @param photoNom Nom du fichier photo de preuve
+     */
+    public void renseignerKilometrageDebut(int km, String photoNom) {
+        if (photoNom == null || photoNom.trim().isEmpty()) {
+            throw new IllegalArgumentException("La photo de preuve est obligatoire");
+        }
+        if (km < 0) {
+            throw new IllegalArgumentException("Le kilométrage ne peut pas être négatif");
+        }
+        this.kilometrageDebut = km;
+        this.photoKilometrageDebut = photoNom;
+        this.dateRenseignementDebut = new Date();
+        System.out.println("Kilométrage départ enregistré: " + km + " km (Photo: " + photoNom + ")");
+    }
+
+    /**
+     * Enregistrer le kilométrage au retour du véhicule
+     * @param km Kilométrage relevé
+     * @param photoNom Nom du fichier photo de preuve
+     */
+    public void renseignerKilometrageFin(int km, String photoNom) {
+        if (this.kilometrageDebut == null) {
+            throw new IllegalStateException("Le kilométrage de départ n'a pas encore été renseigné");
+        }
+        if (photoNom == null || photoNom.trim().isEmpty()) {
+            throw new IllegalArgumentException("La photo de preuve est obligatoire");
+        }
+        if (km < this.kilometrageDebut) {
+            throw new IllegalArgumentException("Le kilométrage de fin (" + km + " km) ne peut pas être inférieur au kilométrage de départ (" + this.kilometrageDebut + " km)");
+        }
+        this.kilometrageFin = km;
+        this.photoKilometrageFin = photoNom;
+        this.dateRenseignementFin = new Date();
+        System.out.println("Kilométrage retour enregistré: " + km + " km (Photo: " + photoNom + ")");
+        System.out.println("Distance parcourue: " + (km - this.kilometrageDebut) + " km");
+    }
+
+    /**
+     * Calcule la distance parcourue pendant la location
+     * @return Distance en km, ou null si non renseignée
+     */
+    public Integer calculerDistanceParcourue() {
+        if (this.kilometrageDebut != null && this.kilometrageFin != null) {
+            return this.kilometrageFin - this.kilometrageDebut;
+        }
+        return null;
+    }
+
+    // Getters pour le kilométrage
+    public Integer getKilometrageDebut() {
+        return kilometrageDebut;
+    }
+
+    public String getPhotoKilometrageDebut() {
+        return photoKilometrageDebut;
+    }
+
+    public Date getDateRenseignementDebut() {
+        return dateRenseignementDebut;
+    }
+
+    public Integer getKilometrageFin() {
+        return kilometrageFin;
+    }
+
+    public String getPhotoKilometrageFin() {
+        return photoKilometrageFin;
+    }
+
+    public Date getDateRenseignementFin() {
+        return dateRenseignementFin;
+    }
 }

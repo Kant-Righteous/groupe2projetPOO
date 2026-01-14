@@ -1,5 +1,6 @@
 package fr.miage.groupe2projetpoo.controller;
 
+import fr.miage.groupe2projetpoo.entity.vehicule.Disponibilite;
 import fr.miage.groupe2projetpoo.entity.vehicule.TypeVehicule;
 import fr.miage.groupe2projetpoo.entity.vehicule.Vehicle;
 import fr.miage.groupe2projetpoo.entity.location.RentalContract;
@@ -10,10 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.security.PrivilegedExceptionAction;
 import java.time.LocalDate;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api/vehicules")
@@ -314,6 +312,7 @@ public class VehicleController {
 
         return map;
     }
+    // les infos simple de vehicule en map
     private Map<String, Object> mapVehicleInfo(Vehicle v) {
         Map<String, Object> map = new HashMap<>();
         map.put("id", v.getIdVehicule());
@@ -326,4 +325,90 @@ public class VehicleController {
         map.put("prixParJour", v.getPrixVehiculeParJour());
         return map;
     }
+
+    /************************************ Planning Disponibilités ********************************/
+
+    // Récupérer le planning complet d’un véhicule
+    @GetMapping("/planning/{id}")
+    public ResponseEntity<?> getPlanning(@PathVariable String id) {
+        try {
+            List<Disponibilite> planning = vehicleService.getPlanning(id);
+            // Construire une liste numérotée
+            List<Map<String, Object>> planningFormatte = new ArrayList<>();
+            int index = 1;
+            for (Disponibilite d : planning) {
+                Map<String, Object> creneau = new HashMap<>();
+                creneau.put("creneau", index);
+                creneau.put("debut", d.getDebut());
+                creneau.put("fin", d.getFin());
+                planningFormatte.add(creneau);
+                index++;
+            }
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "planning", planningFormatte ));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(404).body(Map.of(
+                    "success", false,
+                    "message", e.getMessage() ));
+        }
+    }
+
+    // Ajouter un créneau de disponibilité
+    @PostMapping("/planning/add/{id}")
+    public ResponseEntity<?> addDisponibilite(@PathVariable String id,@RequestBody Map<String, String> request){
+        try {
+            LocalDate debut = LocalDate.parse(request.get("debut"));
+            LocalDate fin = LocalDate.parse(request.get("fin"));
+            vehicleService.addDisponibilite(id, debut, fin);
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "Créneau ajouté avec succès" ));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", e.getMessage() ));
+        }
+    }
+
+    // Supprimer un créneau par index
+    // http://localhost:8080/api/vehicules
+    @DeleteMapping("/planning/delete/{id}/{index}")
+    public ResponseEntity<?> removeDisponibilite( @PathVariable String id, @PathVariable int index) {
+        try {
+            vehicleService.removeDisponibilite(id, index-1);
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "Créneau supprimé avec succès" ));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(404).body(Map.of(
+                    "success", false,
+                    "message", e.getMessage() ));
+        }
+    }
+
+    // Vérifier si un véhicule est disponible sur une période
+    @PostMapping("/planning/verifDisponible/{id}")
+    public ResponseEntity<?> estDisponible( @PathVariable String id, @RequestBody Map<String, String> request) {
+        try {
+            LocalDate debut = LocalDate.parse(request.get("debut"));
+            LocalDate fin = LocalDate.parse(request.get("fin"));
+            if(debut.isAfter(fin)){
+                return ResponseEntity.status(404).body(Map.of(
+                        "success", true,
+                        "message", "La date de debut doit être inferieur à la date de fin" ));
+            }
+            boolean dispo = vehicleService.estDisponible(id, debut, fin);
+
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "disponible", dispo ));
+
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(404).body(Map.of(
+                    "success", false,
+                    "message", e.getMessage() ));
+        }
+    }
+
 }

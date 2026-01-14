@@ -1,6 +1,8 @@
 package fr.miage.groupe2projetpoo.repository;
 
+import fr.miage.groupe2projetpoo.entity.vehicule.Disponibilite;
 import fr.miage.groupe2projetpoo.entity.vehicule.TypeVehicule;
+import org.springframework.cglib.core.Local;
 import org.springframework.stereotype.Repository;
 
 import fr.miage.groupe2projetpoo.entity.utilisateur.Utilisateur;
@@ -12,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+
 @Repository
 public class InMemoryVehicleRepository implements VehicleRepository {
 
@@ -75,7 +78,7 @@ public class InMemoryVehicleRepository implements VehicleRepository {
     @Override
     public Optional<Vehicle> findByDisponibility(LocalDate debut, LocalDate fin) {
         return vehicules.values().stream()
-                .filter(v -> v.estDisponible(debut, fin))
+                .filter(v -> v.estDisponibleMap(debut, fin))
                 .findFirst();
     }
 
@@ -99,4 +102,45 @@ public class InMemoryVehicleRepository implements VehicleRepository {
     }
 
 
+    /************************************* Planning ****************************************/
+
+    // Récupèrer le planning complet d'un vehicule
+    @Override
+    public List<Disponibilite> getPlanning(String id){
+        Vehicle v = vehicules.get(id);
+        if(v == null){
+            throw new IllegalArgumentException("Véhicule introuvable");
+        }
+        return v.getPlanningDisponible();
+    }
+
+    // Modifier planning
+    @Override
+    public void addPlanning(String id, LocalDate debut, LocalDate fin) {
+        Vehicle v = vehicules.get(id);
+        if(v == null){
+            throw new IllegalArgumentException("Véhicule introuvable");
+        }
+        v.addPlanningDispo(debut,fin);
+    }
+
+    // DELETE planning
+    @Override
+    public void removeCreneau(String id, int index){
+        Vehicle v = vehicules.get(id);
+        if(v == null){
+            throw new IllegalArgumentException("Véhicule introuvable");
+        }
+        v.removeCreneauPlanning(index);
+    }
+
+    // verifier la disponibilité d'un vehicule a un creneaux
+    @Override
+    public boolean estDisponible(String id, LocalDate debut, LocalDate fin){
+        Vehicle v = vehicules.get(id);
+        if(v == null){
+            throw new IllegalArgumentException("Véhicule introuvable");
+        }
+        return v.estDisponible(debut,fin);
+    }
 }
