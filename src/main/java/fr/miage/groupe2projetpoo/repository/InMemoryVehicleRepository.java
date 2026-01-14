@@ -68,18 +68,27 @@ public class InMemoryVehicleRepository implements VehicleRepository {
                 .toList();
     }
 
-    // Verifier l'existance de l'ID
-    @Override
-    public boolean existsById(String id) {
-        return vehicules.containsKey(id);
-    }
-
     // Chercher par disponibilité
     @Override
     public Optional<Vehicle> findByDisponibility(LocalDate debut, LocalDate fin) {
         return vehicules.values().stream()
                 .filter(v -> v.estDisponibleMap(debut, fin))
                 .findFirst();
+    }
+
+    // chercher par prix min-max
+    @Override
+    public List<Vehicle> findByPrix(double min, double max){
+        return vehicules.values().stream()
+                .filter(v -> v.getPrixVehiculeParJour()>= min && v.getPrixVehiculeParJour()<=max)
+                .toList();
+
+    }
+
+    // Verifier l'existance de l'ID
+    @Override
+    public boolean existsById(String id) {
+        return vehicules.containsKey(id);
     }
 
     /************************************** Autres Methodes ******************************************/
@@ -136,11 +145,11 @@ public class InMemoryVehicleRepository implements VehicleRepository {
 
     // verifier la disponibilité d'un vehicule a un creneaux
     @Override
-    public boolean estDisponible(String id, LocalDate debut, LocalDate fin){
+    public boolean estDisponiblePlanning(String id, LocalDate debut, LocalDate fin){
         Vehicle v = vehicules.get(id);
         if(v == null){
             throw new IllegalArgumentException("Véhicule introuvable");
         }
-        return v.estDisponible(debut,fin);
+        return v.estDisponiblePlanning(debut,fin);
     }
 }

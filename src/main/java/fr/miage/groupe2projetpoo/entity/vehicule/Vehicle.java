@@ -72,12 +72,6 @@ public abstract class Vehicle {
         return idVehicule;
     }
 
-    /*
-     * public String getTypeVehicule() {
-     * return typeVehicule;
-     * }
-     */
-
     public String getMarqueVehicule() {
         return marqueVehicule;
     }
@@ -97,12 +91,6 @@ public abstract class Vehicle {
     public List<NoteVehicule> getNotations() {
         return notations;
     }
-
-    /*
-     * public boolean getEstDisponible() {
-     * return estDisponible;
-     * }
-     */
 
     public double getPrixVehiculeParJour() {
         return prixVehiculeParJour;
@@ -154,30 +142,12 @@ public abstract class Vehicle {
         this.villeVehicule = ville;
     }
 
-    /*
-     * public void setEstDisponible(boolean estDisponible) {
-     * this.estDisponible = estDisponible;
-     * }
-     */
-
     public void setPrixVehiculeParJour(double prixVehiculeJour) {
         this.prixVehiculeParJour = prixVehiculeJour;
     }
 
     public void setProprietaire(String proprietaire) {
         this.Proprietaire = proprietaire;
-    }
-
-    public boolean estDisponibleMap(LocalDate debut, LocalDate fin) {
-        LocalDate d = debut;
-        while (!d.isAfter(fin)) {
-            Boolean dispo = disponibilites.get(d);
-            if (dispo == null || !dispo) {
-                return false;
-            }
-            d = d.plusDays(1);
-        }
-        return true;
     }
 
     public void setNotations(List<NoteVehicule> notations) {
@@ -240,28 +210,42 @@ public abstract class Vehicle {
         this.historiqueContrats.add(contrat);
     }
 
-    // === Ajouter planning de disponibilité
-    public void addPlanningDispo(LocalDate debut, LocalDate fin) {
-        for (Disponibilite d : planningDisponible) {
-            if (d.chevauchement(debut, fin)) {
+
+    // === Calendrier === a ne pas utiliser pour l'instant
+    public boolean estDisponibleMap(LocalDate debut, LocalDate fin) {
+        LocalDate d = debut;
+        while (!d.isAfter(fin)) {
+            Boolean dispo = disponibilites.get(d);
+            if (dispo == null || !dispo) {
+                return false;
+            }
+            d = d.plusDays(1);
+        }
+        return true;
+    }
+
+    // === Ajouter planning de disponibilité ===
+    public void addPlanningDispo(LocalDate debut, LocalDate fin){
+        for(Disponibilite d : planningDisponible){
+            if(d.chevauchement(debut, fin)){
                 throw new IllegalArgumentException("Créneau déjà occupé");
             }
         }
-        planningDisponible.add(new Disponibilite(debut, fin));
+        planningDisponible.add(new Disponibilite(debut,fin));
     }
 
     // verifier la disponibilité dans planning
-    public boolean estDisponible(LocalDate debut, LocalDate fin) {
-        for (Disponibilite d : planningDisponible) {
-            if (d.chevauchement(debut, fin)) {
+    public boolean estDisponiblePlanning(LocalDate debut, LocalDate fin) {
+        for(Disponibilite d: planningDisponible){
+            if(d.chevauchement(debut, fin)){
                 return false;
             }
         }
         return true;
     }
 
-    // Suuprimer Planning
-    public void removeCreneauPlanning(int index) {
+    // Suprimer Planning
+    public void removeCreneauPlanning(int index){
         planningDisponible.remove(index);
     }
 
