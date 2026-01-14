@@ -18,7 +18,8 @@ import java.util.List;
 
 public abstract class Vehicle {
     // Propriétés
-    private final String idVehicule;
+    private String idVehicule;
+    // private String typeVehicule;
     private String marqueVehicule;
     private String couleurVehicule;
     private String modeleVehicule;
@@ -99,9 +100,9 @@ public abstract class Vehicle {
         return Proprietaire;
     }
 
-    /*public Map<LocalDate, Boolean> getDisponibilites() {
+    public Map<LocalDate, Boolean> getDisponibilites() {
         return disponibilites;
-    }*/
+    }
 
     public boolean getEstEnpause() {
         return estEnpause;
@@ -115,8 +116,10 @@ public abstract class Vehicle {
         return kilometrageActuel;
     }
 
-
     /********************** SETTER **********************/
+    public void setIdVehicule(String idV) {
+        this.idVehicule = idV;
+    }
 
     /*
      * public void setTypeVehicule(String type) {
@@ -159,9 +162,8 @@ public abstract class Vehicle {
         this.kilometrageActuel = kilometrageActuel;
     }
 
-
     /************************** Methodes ******************************/
-    // === Méthodes pour les notations ===
+    // Méthodes pour les notations
     public void ajouterNotation(NoteVehicule notation) {
         this.notations.add(notation);
     }
@@ -198,10 +200,6 @@ public abstract class Vehicle {
     public void ajouterEntretien(Entretien entretien) {
         this.historiqueEntretiens.add(entretien);
     }
-
-
-
-
 
     // === Gestion de l'historique des contrats ===
     public List<RentalContract> getHistoriqueContrats() {
@@ -249,5 +247,32 @@ public abstract class Vehicle {
     // Suprimer Planning
     public void removeCreneauPlanning(int index){
         planningDisponible.remove(index);
+    }
+
+    /**
+     * Récupère le dernier lieu de dépose du véhicule basé sur l'historique des
+     * contrats.
+     * Si aucun contrat terminé n'est trouvé, retourne la ville du véhicule.
+     */
+    public String getDernierLieuDepose() {
+        if (historiqueContrats == null || historiqueContrats.isEmpty()) {
+            return this.villeVehicule;
+        }
+
+        RentalContract dernierContrat = null;
+        for (RentalContract c : historiqueContrats) {
+            // On cherche le contrat terminé le plus récent
+            if (c.estTerminee()) {
+                if (dernierContrat == null || c.getDateFin().after(dernierContrat.getDateFin())) {
+                    dernierContrat = c;
+                }
+            }
+        }
+
+        if (dernierContrat != null) {
+            return dernierContrat.getLieuDepose();
+        }
+
+        return this.villeVehicule;
     }
 }
