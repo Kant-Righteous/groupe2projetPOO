@@ -25,7 +25,7 @@ public class RentalService {
 
     @Autowired
     public RentalService(RentalRepository rentalRepository, UserRepository userRepository,
-            VehicleRepository vehicleRepository) {
+            VehicleRepository vehicleRepository, MaintenanceService maintenanceService) {
         this.rentalRepository = rentalRepository;
         this.userRepository = userRepository;
         this.vehicleRepository = vehicleRepository;
