@@ -48,7 +48,7 @@ public class RentalService {
     public RentalContract creerContrat(String loueurEmail, String vehiculeId,
             Date dateDebut, Date dateFin,
             String lieuPrise, String lieuDepose,
-            String assuranceNom) {
+            String assuranceNom, boolean avecOptionParking) {
 
         Utilisateur user = userRepository.findByEmail(loueurEmail)
                 .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé avec l'email: " + loueurEmail));
@@ -82,6 +82,24 @@ public class RentalService {
             contrat.setAgent(agentProprietaire);
             // Also link the contract to the agent
             agentProprietaire.addContract(contrat);
+
+            // GESTION OPTION PARKING (Vienci)
+            if (avecOptionParking) {
+                fr.miage.groupe2projetpoo.entity.assurance.OptionParking optParking = agentProprietaire
+                        .getOption(fr.miage.groupe2projetpoo.entity.assurance.OptionParking.class);
+
+                if (optParking != null && optParking.isEstActive()) {
+                    // Force le lieu de dépose au parking partenaire
+                    if (optParking.getParkingPartenaire() != null) {
+                        contrat.setLieuDepose(optParking.getParkingPartenaire().getNom());
+                        // Active l'option sur le contrat (ce qui déclenchera le recalcul du prix)
+                        contrat.setOptionParkingSelectionnee(true);
+                    }
+                } else {
+                    // Log ou exception si l'option est demandée mais non disponible
+                    System.out.println("Attention: Option Parking demandée mais non active pour cet agent.");
+                }
+            }
         }
 
         return rentalRepository.save(contrat);

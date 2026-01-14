@@ -29,9 +29,9 @@ public class VehicleService {
         this.userRepository = userRepository;
     }
 
-
-
-    /*************************************** ADD / MODIFIER / DELETE *********************************************/
+    /********************************
+     * ADD / MODIFIER / DELETE / GET --> VEHICULE
+     ************************************/
 
     // Ajout d'un vehicule
     public Vehicle addVehicule(String idVehicule, TypeVehicule typeVehicule, String marqueVehicule,
@@ -61,18 +61,6 @@ public class VehicleService {
         return vehiculeRepository.save(vehicule);
     }
 
-    // Mise ajour de la liste des disponibilités
-    public void upDateDisponibilites(String id, Map<String, Boolean> dispoRquest) {
-        Vehicle v = vehiculeRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Véhicule introuvable"));
-        // Entry permet de recupere key + value
-        for (Map.Entry<String, Boolean> keyVal : dispoRquest.entrySet()) {
-            LocalDate date = LocalDate.parse(keyVal.getKey());
-            Boolean dispo = keyVal.getValue();
-            v.getDisponibilites().put(date, dispo);
-        }
-    }
-
     // Update vehicule
     public Vehicle updateVehicule(String id, Vehicle newData) {
         Vehicle vehicule = vehiculeRepository.findById(id)
@@ -91,9 +79,7 @@ public class VehicleService {
         return vehicule;
     }
 
-    /**
-     * suppression d'un vehicule
-     */
+    // suppression d'un vehicule
     public void deleteVehicule(String id) {
         if (vehiculeRepository.findById(id).isEmpty()) {
             throw new IllegalArgumentException("Véhicule introuvable!");
@@ -102,11 +88,16 @@ public class VehicleService {
         vehiculeRepository.deleteById(id);
     }
 
+    // recuperer tous les vehicules
+    public Collection<Vehicle> getAllVehicules() {
+        return vehiculeRepository.findAll();
+    }
 
+    /***********************************
+     * GETTER D'INFO
+     ************************************/
 
-    /*********************************** GETTER D'INFO ************************************/
-
-    //get vehicle infos
+    // get vehicle infos
     public Vehicle getVehiculeByID(String id) {
         Vehicle v = vehiculeRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Véhicule introuvable"));
@@ -122,6 +113,17 @@ public class VehicleService {
         return listV;
     }
 
+    // recuperer les vehicules par prix
+    public List<Vehicle> getVehiculeByPrix(double min, double max) {
+
+        List<Vehicle> listV = vehiculeRepository.findByPrix(min, max);
+        if (listV.isEmpty()) {
+            throw new IllegalArgumentException("Aucun véhicule disponible pour le moment");
+        }
+        return listV;
+
+    }
+
     // recuperer les vehicule dispo sur le marché
     public List<Vehicle> getVehiculeByEnPause() {
         List<Vehicle> disponibles = vehiculeRepository.findByEnPause();
@@ -131,15 +133,26 @@ public class VehicleService {
         return disponibles;
     }
 
-    // recuperer tous les vehicules
-    public Collection<Vehicle> getAllVehicules() {
-        return vehiculeRepository.findAll();
-    }
-
     public List<Vehicle> getVehiculesByType(String type) {
         List<Vehicle> vehicules = vehiculeRepository.findByType(type);
         if (vehicules.isEmpty()) {
             throw new IllegalArgumentException("Aucun véhicule trouvé pour le type : " + type);
+        }
+        return vehicules;
+    }
+
+    public List<Vehicle> getVehiculesByModele(String modele) {
+        List<Vehicle> vehicules = vehiculeRepository.findByModele(modele);
+        if (vehicules.isEmpty()) {
+            throw new IllegalArgumentException("Aucun véhicule trouvé pour le modèle : " + modele);
+        }
+        return vehicules;
+    }
+
+    public List<Vehicle> getVehiculesByMarque(String marque) {
+        List<Vehicle> vehicules = vehiculeRepository.findByMarque(marque);
+        if (vehicules.isEmpty()) {
+            throw new IllegalArgumentException("Aucun véhicule trouvé pour la marque : " + marque);
         }
         return vehicules;
     }
@@ -156,14 +169,13 @@ public class VehicleService {
         return v.estDisponibleMap(deb, fin);
     }
 
-
     // -----------------------------------------------
-    //                 Planning
+    // Planning
     // -----------------------------------------------
 
     // Récupération du planning
-    public List<Disponibilite> getPlanning(String id){
-        if(!vehiculeRepository.existsById(id)){
+    public List<Disponibilite> getPlanning(String id) {
+        if (!vehiculeRepository.existsById(id)) {
             throw new IllegalArgumentException("Véhicule introuvable");
         }
         return vehiculeRepository.getPlanning(id);
@@ -190,14 +202,28 @@ public class VehicleService {
         }
         vehiculeRepository.removeCreneau(idVehicule, index);
     }
+
     // Vérification de disponibilité
-    public boolean estDisponible(String idVehicule, LocalDate debut, LocalDate fin) {
+    public boolean estDisponiblePlanning(String idVehicule, LocalDate debut, LocalDate fin) {
         if (!vehiculeRepository.existsById(idVehicule)) {
             throw new IllegalArgumentException("Véhicule introuvable");
         }
-        return vehiculeRepository.estDisponible(idVehicule, debut, fin);
+        return vehiculeRepository.estDisponiblePlanning(idVehicule, debut, fin);
     }
 
-
+    // Mise ajour de la liste des disponibilités
+    /*
+     * public void upDateDisponibilites(String id, Map<String, Boolean> dispoRquest)
+     * {
+     * Vehicle v = vehiculeRepository.findById(id)
+     * .orElseThrow(() -> new IllegalArgumentException("Véhicule introuvable"));
+     * // Entry permet de recupere key + value
+     * for (Map.Entry<String, Boolean> keyVal : dispoRquest.entrySet()) {
+     * LocalDate date = LocalDate.parse(keyVal.getKey());
+     * Boolean dispo = keyVal.getValue();
+     * v.getDisponibilites().put(date, dispo);
+     * }
+     * }
+     */
 
 }
