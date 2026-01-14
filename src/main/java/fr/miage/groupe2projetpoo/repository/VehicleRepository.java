@@ -13,18 +13,27 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
-
 public interface VehicleRepository {
     // Map de vehicule
     public Vehicle save(Vehicle v);
+
     // Chercher par ID
     public Optional<Vehicle> findById(String id);
+
     // Chercher par
     public List<Vehicle> findByVille(String ville);
+
     public List<Vehicle> findByType(String type);
+
     public List<Vehicle> findByEnPause();
+
     public Collection<Vehicle> findAll();
+
     public List<Vehicle> findByPrix(double min, double max);
+
+    public List<Vehicle> findByModele(String modele);
+
+    public List<Vehicle> findByMarque(String marque);
 
     // Verifier l'existance de l'ID
     public boolean existsById(String id);
@@ -39,7 +48,10 @@ public interface VehicleRepository {
     public void modifVehicule(String id, Vehicle modif);
 
     public List<Disponibilite> getPlanning(String id);
-    public void addPlanning(String id,LocalDate debut, LocalDate fin);
+
+    public void addPlanning(String id, LocalDate debut, LocalDate fin);
+
     public void removeCreneau(String id, int index);
+
     public boolean estDisponiblePlanning(String id, LocalDate debut, LocalDate fin);
 }
