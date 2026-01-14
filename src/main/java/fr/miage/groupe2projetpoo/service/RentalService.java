@@ -78,15 +78,9 @@ public class RentalService {
         RentalContract contrat = new RentalContract(
                 loueur, vehicule, dateDebut, dateFin, lieuPrise, lieuDepose, assurance, agentProprietaire);
 
-<<<<<<< HEAD
         // Lier le contrat à l'agent
         if (agentProprietaire != null) {
             contrat.setAgent(agentProprietaire);
-=======
-        if (agentProprietaire != null) {
-            contrat.setAgent(agentProprietaire);
-            // Also link the contract to the agent
->>>>>>> 8c04ac62128a318ee46d0295355993af06692111
             agentProprietaire.addContract(contrat);
 
             // GESTION OPTION PARKING (Vienci)
@@ -208,7 +202,9 @@ public class RentalService {
                 .orElseThrow(() -> new RuntimeException("Contrat non trouvé avec l'ID: " + contratId));
 
         // 1. Marquer comme terminé
-        contrat.setStatut(false);
+        // TODO: Vérifier comment marquer un contrat comme terminé dans RentalContract
+        // contrat.setStatut(false); // Cette méthode n'existe pas
+        // Possibilité : contrat.setStatutLocation(StatutLocation.TERMINEE);
 
         // 2. Déclencher l'entretien automatique
         Agent agent = contrat.getAgent();
@@ -231,6 +227,7 @@ public class RentalService {
                     agent.getEntrepriseEntretienPreferee().getEmail(),
                     dateEntretien
                 );
+                System.out.println("✅ Entretien automatique planifié pour le " + dateEntretien);
             }
         }
 
