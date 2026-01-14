@@ -33,6 +33,7 @@ public abstract class Vehicle {
     private List<RentalContract> historiqueContrats = new ArrayList<>();
     private List<NoteVehicule> notations = new ArrayList<>();
     private List<Disponibilite> planningDisponible = new ArrayList<>();
+    private String dernierLieuDepose; // Dernier lieu où le véhicule a été déposé
 
     // Constructeur
     public Vehicle(String idVehicule, String marqueVehicule,
@@ -157,6 +158,14 @@ public abstract class Vehicle {
         this.kilometrageActuel = kilometrageActuel;
     }
 
+    public String getDernierLieuDepose() {
+        return dernierLieuDepose;
+    }
+
+    public void setDernierLieuDepose(String dernierLieuDepose) {
+        this.dernierLieuDepose = dernierLieuDepose;
+    }
+
     /************************** Methodes ******************************/
     // === Méthodes pour les notations ===
     public void ajouterNotation(NoteVehicule notation) {
@@ -205,15 +214,7 @@ public abstract class Vehicle {
         this.historiqueContrats.add(contrat);
     }
 
-    <<<<<<<HEAD
-
-    // === Ajouter planning de disponibilité
-    public void addPlanningDispo(LocalDate debut, LocalDate fin) {
-        for (Disponibilite d : planningDisponible) {
-            if (d.chevauchement(debut, fin)) {
-=======
-
-    // === Calendrier === a ne pas utiliser pour l'instant
+    // === Calendrier === (utilise la Map de disponibilités)
     public boolean estDisponibleMap(LocalDate debut, LocalDate fin) {
         LocalDate d = debut;
         while (!d.isAfter(fin)) {
@@ -227,42 +228,32 @@ public abstract class Vehicle {
     }
 
     // === Ajouter planning de disponibilité ===
-    public void addPlanningDispo(LocalDate debut, LocalDate fin){
-        for(Disponibilite d : planningDisponible){
-            if(d.chevauchement(debut, fin)){
->>>>>>> 8c04ac62128a318ee46d0295355993af06692111
+    public void addPlanningDispo(LocalDate debut, LocalDate fin) {
+        for (Disponibilite d : planningDisponible) {
+            if (d.chevauchement(debut, fin)) {
                 throw new IllegalArgumentException("Créneau déjà occupé");
             }
         }
         planningDisponible.add(new Disponibilite(debut, fin));
     }
 
-    // verifier la disponibilité dans planning
-    <<<<<<<HEAD
-
+    // Vérifier la disponibilité dans le planning
     public boolean estDisponible(LocalDate debut, LocalDate fin) {
         for (Disponibilite d : planningDisponible) {
             if (d.chevauchement(debut, fin)) {
-=======
-
-    public boolean estDisponiblePlanning(LocalDate debut, LocalDate fin) {
-        for(Disponibilite d: planningDisponible){
-            if(d.chevauchement(debut, fin)){
->>>>>>> 8c04ac62128a318ee46d0295355993af06692111
                 return false;
             }
         }
         return true;
     }
 
-    <<<<<<<HEAD
+    // Alias pour compatibilité
+    public boolean estDisponiblePlanning(LocalDate debut, LocalDate fin) {
+        return estDisponible(debut, fin);
+    }
 
-    // Suuprimer Planning
+    // Supprimer un créneau du planning
     public void removeCreneauPlanning(int index) {
-=======
-    // Suprimer Planning
-    public void removeCreneauPlanning(int index){
->>>>>>> 8c04ac62128a318ee46d0295355993af06692111
         planningDisponible.remove(index);
     }
 }
