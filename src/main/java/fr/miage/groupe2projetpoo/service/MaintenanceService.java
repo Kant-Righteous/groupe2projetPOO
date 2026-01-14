@@ -168,6 +168,7 @@ public class MaintenanceService {
         Vehicle vehicle = vehicleRepository.findById(vehicleId)
                 .orElseThrow(() -> new IllegalArgumentException("Véhicule introuvable"));
 
+        // 3. Vérifier disponibilité (pas loué)
         if (!vehicle.estDisponiblePlanning(date, date)) {
             throw new IllegalStateException("Le véhicule est déjà loué à cette date");
         }

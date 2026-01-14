@@ -24,7 +24,7 @@ public class MaintenanceController {
         this.maintenanceService = maintenanceService;
     }
 
-    @GetMapping("/rappels")
+    @GetMapping("/rappels-test")
     public Map<String, Object> testerRappels() {
         // 1. Création d'un Agent test
         Agent agent = new AgentParticulier("Diallo", "Mamadou", "pass", "mamadou@test.com", "0600000000");
@@ -64,7 +64,7 @@ public class MaintenanceController {
     /**
      * Test US.A.10 : Historique des entretiens
      */
-    @GetMapping("/historique")
+    @GetMapping("/test-us-a10")
     public Map<String, Object> testUSA10() {
         // 1. Création véhicule
         Vehicle v = new Voiture("TEST-10", "Audi", "Noire", "A3", "Lille", 45.0, "agent@test.com", false);
@@ -82,7 +82,7 @@ public class MaintenanceController {
 
         // 3. Affichage pour vérification
         return Map.of(
-                "fonctionnalite", "US.A.10 - Historique Entretiens",
+                "test", "US.A.10 - Historique Entretiens",
                 "vehicule", v.getModeleVehicule(),
                 "historique", v.getHistoriqueEntretiens());
     }

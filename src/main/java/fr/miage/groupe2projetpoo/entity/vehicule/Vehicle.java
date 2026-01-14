@@ -15,8 +15,7 @@ import java.util.List;
 
 public abstract class Vehicle {
     // Propriétés
-    private String idVehicule;
-    // private String typeVehicule;
+    private final String idVehicule;
     private String marqueVehicule;
     private String couleurVehicule;
     private String modeleVehicule;
@@ -69,12 +68,6 @@ public abstract class Vehicle {
         return idVehicule;
     }
 
-    /*
-     * public String getTypeVehicule() {
-     * return typeVehicule;
-     * }
-     */
-
     public String getMarqueVehicule() {
         return marqueVehicule;
     }
@@ -95,12 +88,6 @@ public abstract class Vehicle {
         return notations;
     }
 
-    /*
-     * public boolean getEstDisponible() {
-     * return estDisponible;
-     * }
-     */
-
     public double getPrixVehiculeParJour() {
         return prixVehiculeParJour;
     }
@@ -109,9 +96,11 @@ public abstract class Vehicle {
         return Proprietaire;
     }
 
-    public Map<LocalDate, Boolean> getDisponibilites() {
-        return disponibilites;
-    }
+    /*
+     * public Map<LocalDate, Boolean> getDisponibilites() {
+     * return disponibilites;
+     * }
+     */
 
     public boolean getEstEnpause() {
         return estEnpause;
@@ -126,9 +115,6 @@ public abstract class Vehicle {
     }
 
     /********************** SETTER **********************/
-    public void setIdVehicule(String idV) {
-        this.idVehicule = idV;
-    }
 
     /*
      * public void setTypeVehicule(String type) {
@@ -151,30 +137,12 @@ public abstract class Vehicle {
         this.villeVehicule = ville;
     }
 
-    /*
-     * public void setEstDisponible(boolean estDisponible) {
-     * this.estDisponible = estDisponible;
-     * }
-     */
-
     public void setPrixVehiculeParJour(double prixVehiculeJour) {
         this.prixVehiculeParJour = prixVehiculeJour;
     }
 
     public void setProprietaire(String proprietaire) {
         this.Proprietaire = proprietaire;
-    }
-
-    public boolean estDisponibleMap(LocalDate debut, LocalDate fin) {
-        LocalDate d = debut;
-        while (!d.isAfter(fin)) {
-            Boolean dispo = disponibilites.get(d);
-            if (dispo == null || !dispo) {
-                return false;
-            }
-            d = d.plusDays(1);
-        }
-        return true;
     }
 
     public void setNotations(List<NoteVehicule> notations) {
@@ -190,7 +158,7 @@ public abstract class Vehicle {
     }
 
     /************************** Methodes ******************************/
-    // Méthodes pour les notations
+    // === Méthodes pour les notations ===
     public void ajouterNotation(NoteVehicule notation) {
         this.notations.add(notation);
     }
@@ -237,10 +205,32 @@ public abstract class Vehicle {
         this.historiqueContrats.add(contrat);
     }
 
+    <<<<<<<HEAD
+
     // === Ajouter planning de disponibilité
     public void addPlanningDispo(LocalDate debut, LocalDate fin) {
         for (Disponibilite d : planningDisponible) {
             if (d.chevauchement(debut, fin)) {
+=======
+
+    // === Calendrier === a ne pas utiliser pour l'instant
+    public boolean estDisponibleMap(LocalDate debut, LocalDate fin) {
+        LocalDate d = debut;
+        while (!d.isAfter(fin)) {
+            Boolean dispo = disponibilites.get(d);
+            if (dispo == null || !dispo) {
+                return false;
+            }
+            d = d.plusDays(1);
+        }
+        return true;
+    }
+
+    // === Ajouter planning de disponibilité ===
+    public void addPlanningDispo(LocalDate debut, LocalDate fin){
+        for(Disponibilite d : planningDisponible){
+            if(d.chevauchement(debut, fin)){
+>>>>>>> 8c04ac62128a318ee46d0295355993af06692111
                 throw new IllegalArgumentException("Créneau déjà occupé");
             }
         }
@@ -248,17 +238,31 @@ public abstract class Vehicle {
     }
 
     // verifier la disponibilité dans planning
-    public boolean estDisponiblePlanning(LocalDate debut, LocalDate fin) {
+    <<<<<<<HEAD
+
+    public boolean estDisponible(LocalDate debut, LocalDate fin) {
         for (Disponibilite d : planningDisponible) {
             if (d.chevauchement(debut, fin)) {
+=======
+
+    public boolean estDisponiblePlanning(LocalDate debut, LocalDate fin) {
+        for(Disponibilite d: planningDisponible){
+            if(d.chevauchement(debut, fin)){
+>>>>>>> 8c04ac62128a318ee46d0295355993af06692111
                 return false;
             }
         }
         return true;
     }
 
+    <<<<<<<HEAD
+
     // Suuprimer Planning
     public void removeCreneauPlanning(int index) {
+=======
+    // Suprimer Planning
+    public void removeCreneauPlanning(int index){
+>>>>>>> 8c04ac62128a318ee46d0295355993af06692111
         planningDisponible.remove(index);
     }
 }
