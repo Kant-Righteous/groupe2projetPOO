@@ -18,8 +18,7 @@ import java.util.List;
 
 public abstract class Vehicle {
     // Propriétés
-    private String idVehicule;
-    // private String typeVehicule;
+    private final String idVehicule;
     private String marqueVehicule;
     private String couleurVehicule;
     private String modeleVehicule;
@@ -72,12 +71,6 @@ public abstract class Vehicle {
         return idVehicule;
     }
 
-    /*
-     * public String getTypeVehicule() {
-     * return typeVehicule;
-     * }
-     */
-
     public String getMarqueVehicule() {
         return marqueVehicule;
     }
@@ -98,12 +91,6 @@ public abstract class Vehicle {
         return notations;
     }
 
-    /*
-     * public boolean getEstDisponible() {
-     * return estDisponible;
-     * }
-     */
-
     public double getPrixVehiculeParJour() {
         return prixVehiculeParJour;
     }
@@ -112,9 +99,9 @@ public abstract class Vehicle {
         return Proprietaire;
     }
 
-    public Map<LocalDate, Boolean> getDisponibilites() {
+    /*public Map<LocalDate, Boolean> getDisponibilites() {
         return disponibilites;
-    }
+    }*/
 
     public boolean getEstEnpause() {
         return estEnpause;
@@ -128,10 +115,8 @@ public abstract class Vehicle {
         return kilometrageActuel;
     }
 
+
     /********************** SETTER **********************/
-    public void setIdVehicule(String idV) {
-        this.idVehicule = idV;
-    }
 
     /*
      * public void setTypeVehicule(String type) {
@@ -154,30 +139,12 @@ public abstract class Vehicle {
         this.villeVehicule = ville;
     }
 
-    /*
-     * public void setEstDisponible(boolean estDisponible) {
-     * this.estDisponible = estDisponible;
-     * }
-     */
-
     public void setPrixVehiculeParJour(double prixVehiculeJour) {
         this.prixVehiculeParJour = prixVehiculeJour;
     }
 
     public void setProprietaire(String proprietaire) {
         this.Proprietaire = proprietaire;
-    }
-
-    public boolean estDisponibleMap(LocalDate debut, LocalDate fin) {
-        LocalDate d = debut;
-        while (!d.isAfter(fin)) {
-            Boolean dispo = disponibilites.get(d);
-            if (dispo == null || !dispo) {
-                return false;
-            }
-            d = d.plusDays(1);
-        }
-        return true;
     }
 
     public void setNotations(List<NoteVehicule> notations) {
@@ -192,8 +159,9 @@ public abstract class Vehicle {
         this.kilometrageActuel = kilometrageActuel;
     }
 
+
     /************************** Methodes ******************************/
-    // Méthodes pour les notations
+    // === Méthodes pour les notations ===
     public void ajouterNotation(NoteVehicule notation) {
         this.notations.add(notation);
     }
@@ -231,6 +199,10 @@ public abstract class Vehicle {
         this.historiqueEntretiens.add(entretien);
     }
 
+
+
+
+
     // === Gestion de l'historique des contrats ===
     public List<RentalContract> getHistoriqueContrats() {
         return historiqueContrats;
@@ -240,7 +212,21 @@ public abstract class Vehicle {
         this.historiqueContrats.add(contrat);
     }
 
-    // === Ajouter planning de disponibilité
+
+    // === Calendrier === a ne pas utiliser pour l'instant
+    public boolean estDisponibleMap(LocalDate debut, LocalDate fin) {
+        LocalDate d = debut;
+        while (!d.isAfter(fin)) {
+            Boolean dispo = disponibilites.get(d);
+            if (dispo == null || !dispo) {
+                return false;
+            }
+            d = d.plusDays(1);
+        }
+        return true;
+    }
+
+    // === Ajouter planning de disponibilité ===
     public void addPlanningDispo(LocalDate debut, LocalDate fin){
         for(Disponibilite d : planningDisponible){
             if(d.chevauchement(debut, fin)){
@@ -251,7 +237,7 @@ public abstract class Vehicle {
     }
 
     // verifier la disponibilité dans planning
-    public boolean estDisponible(LocalDate debut, LocalDate fin) {
+    public boolean estDisponiblePlanning(LocalDate debut, LocalDate fin) {
         for(Disponibilite d: planningDisponible){
             if(d.chevauchement(debut, fin)){
                 return false;
@@ -260,7 +246,7 @@ public abstract class Vehicle {
         return true;
     }
 
-    // Suuprimer Planning
+    // Suprimer Planning
     public void removeCreneauPlanning(int index){
         planningDisponible.remove(index);
     }
