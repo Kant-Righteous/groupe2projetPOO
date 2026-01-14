@@ -9,6 +9,7 @@ import java.time.LocalDate;
 public class Entretien {
 
     private String typeOperation; // ex: "Vidange", "Courroie", "Pneus"
+    @com.fasterxml.jackson.annotation.JsonFormat(pattern = "dd/MM/yyyy")
     private LocalDate dateRealisation;
     private int kilometrageAuMoment;
     private double cout;

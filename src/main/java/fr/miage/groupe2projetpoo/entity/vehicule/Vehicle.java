@@ -9,9 +9,6 @@ import java.util.*;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import fr.miage.groupe2projetpoo.entity.utilisateur.Agent;
-import org.slf4j.spi.LocationAwareLogger;
-import org.springframework.beans.propertyeditors.LocaleEditor;
-import org.springframework.cglib.core.Local;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -241,19 +238,19 @@ public abstract class Vehicle {
     }
 
     // === Ajouter planning de disponibilité
-    public void addPlanningDispo(LocalDate debut, LocalDate fin){
-        for(Disponibilite d : planningDisponible){
-            if(d.chevauchement(debut, fin)){
+    public void addPlanningDispo(LocalDate debut, LocalDate fin) {
+        for (Disponibilite d : planningDisponible) {
+            if (d.chevauchement(debut, fin)) {
                 throw new IllegalArgumentException("Créneau déjà occupé");
             }
         }
-        planningDisponible.add(new Disponibilite(debut,fin));
+        planningDisponible.add(new Disponibilite(debut, fin));
     }
 
     // verifier la disponibilité dans planning
     public boolean estDisponible(LocalDate debut, LocalDate fin) {
-        for(Disponibilite d: planningDisponible){
-            if(d.chevauchement(debut, fin)){
+        for (Disponibilite d : planningDisponible) {
+            if (d.chevauchement(debut, fin)) {
                 return false;
             }
         }
@@ -261,7 +258,7 @@ public abstract class Vehicle {
     }
 
     // Suuprimer Planning
-    public void removeCreneauPlanning(int index){
+    public void removeCreneauPlanning(int index) {
         planningDisponible.remove(index);
     }
 }

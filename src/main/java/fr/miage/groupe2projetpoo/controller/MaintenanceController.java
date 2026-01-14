@@ -58,7 +58,32 @@ public class MaintenanceController {
         return Map.of(
                 "agent", agent.getNom(),
                 "nombre_vehicules", agent.getVehicleList().size(),
-                "alertes_ct", rappels,
-                "conseils_entretien_km", conseils);
+                "alertes_recues", rappels);
+    }
+
+    /**
+     * Test US.A.10 : Historique des entretiens
+     */
+    @GetMapping("/test-us-a10")
+    public Map<String, Object> testUSA10() {
+        // 1. Création véhicule
+        Vehicle v = new Voiture("TEST-10", "Audi", "Noire", "A3", "Lille", 45.0, "agent@test.com", false);
+
+        // 2. Ajout d'entretiens (Ce que l'agent renseigne)
+        // Besoin d'importer Entretien
+        fr.miage.groupe2projetpoo.entity.maintenance.Entretien e1 = new fr.miage.groupe2projetpoo.entity.maintenance.Entretien(
+                "Changement Pneus Avant", LocalDate.now().minusMonths(6), 48000, 350.0, "Norauto");
+
+        fr.miage.groupe2projetpoo.entity.maintenance.Entretien e2 = new fr.miage.groupe2projetpoo.entity.maintenance.Entretien(
+                "Vidange Complète", LocalDate.now().minusMonths(1), 55000, 120.0, "Midas");
+
+        v.getHistoriqueEntretiens().add(e1);
+        v.getHistoriqueEntretiens().add(e2);
+
+        // 3. Affichage pour vérification
+        return Map.of(
+                "test", "US.A.10 - Historique Entretiens",
+                "vehicule", v.getModeleVehicule(),
+                "historique", v.getHistoriqueEntretiens());
     }
 }

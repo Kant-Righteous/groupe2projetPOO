@@ -12,153 +12,122 @@ import fr.miage.groupe2projetpoo.entity.utilisateur.Loueur;
 import fr.miage.groupe2projetpoo.entity.vehicule.Vehicle;
 import fr.miage.groupe2projetpoo.entity.vehicule.Voiture;
 import fr.miage.groupe2projetpoo.service.MaintenanceService;
+import fr.miage.groupe2projetpoo.service.RentalService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
-import java.time.ZoneId;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 
-/**
- * Contrôle centralisé pour la gestion des fonctionnalités avancées de l'Agent.
- * Regroupe : Maintenance, Facturation Options, Gestion Parking.
- */
 @RestController
 @RequestMapping("/api/gestion-agent")
 public class GestionAgentController {
 
     private final MaintenanceService maintenanceService;
+    // On garde RentalService si besoin pour d'autres tests, sinon on peut l'enlever
+    // private final RentalService rentalService;
 
     public GestionAgentController(MaintenanceService maintenanceService) {
         this.maintenanceService = maintenanceService;
     }
 
-    // ============================================================
-    // US.A.8, US.A.9, US.A.11 : GESTION MAINTENANCE
-    // ============================================================
+    // =================================================================================
+    // 1. MAINTENANCE ET CONTRÔLE TECHNIQUE (US.A.8, US.A.9, US.A.11)
+    // =================================================================================
 
     /**
-     * Voir les alertes et recommandations de maintenance pour la flotte.
+     * US.A.9 : Rappels Contrôle Technique
+     * US.A.11 : Recommandations basées sur le kilométrage
      */
     @GetMapping("/maintenance/alertes")
-    public Map<String, Object> consulterAlertesMaintenance() {
+    public Map<String, Object> getAlertesMaintenance() {
+        // 1. Setup Agent & Véhicules
         Agent agent = new AgentParticulier("Diallo", "Mamadou", "pass", "mamadou@test.com", "0600000000");
 
-        // Véhicule A : CT OK, mais Vidange à faire
-        Vehicle v1 = new Voiture("V1", "Renault", "Rouge", "Clio", "Paris", 30.0, "mamadou@test.com", false);
-        v1.setControleTechnique(new ControleTechnique(LocalDate.now().minusMonths(6), true, "Centre Auto", "RAS"));
-        v1.setKilometrageActuel(15050);
-
-        // Véhicule B : CT Périmé bientôt + Courroie
-        Vehicle v2 = new Voiture("V2", "Peugeot", "Noire", "208", "Lyon", 35.0, "mamadou@test.com", false);
-        v2.setControleTechnique(
-                new ControleTechnique(LocalDate.now().minusYears(2).plusDays(10), true, "Centre Auto", "Pneus usés"));
-        v2.setKilometrageActuel(102000);
-
-        // Véhicule C : Jamais de CT
-        Vehicle v3 = new Voiture("V3", "BMW", "Blanche", "Serie 1", "Marseille", 50.0, "mamadou@test.com", false);
+        Vehicle v1 = new Voiture("V100", "Renault", "Rouge", "Clio", "Paris", 30.0, "mamadou@test.com", false);
+        // CT périmé dans 10 jours (Rappel attendu)
+        v1.setControleTechnique(
+                new ControleTechnique(LocalDate.now().minusYears(2).plusDays(10), true, "Centre A", "RAS"));
+        v1.setKilometrageActuel(15500); // Vidange attendue (>15000)
 
         agent.addVehicle(v1);
-        agent.addVehicle(v2);
-        agent.addVehicle(v3);
 
-        List<String> rappels = maintenanceService.genererRappelsControleTechnique(agent);
-        List<String> conseils = maintenanceService.genererRecommandationsEntretien(agent);
+        // 2. Appel Service
+        List<String> rappelsCT = maintenanceService.genererRappelsControleTechnique(agent);
+        List<String> conseilsKm = maintenanceService.genererRecommandationsEntretien(agent);
 
-        return Map.of(
-                "agent", agent.getNom(),
-                "alertes_ct", rappels,
-                "conseils_entretien_km", conseils);
+        // 3. Réponse
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("titre", "Tableau de Bord Maintenance - Agent");
+        response.put("vehicule", v1.getModeleVehicule() + " (" + v1.getKilometrageActuel() + " km)");
+        response.put("alertes_controle_technique", rappelsCT);
+        response.put("conseils_entretien_km", conseilsKm);
+
+        return response;
     }
 
     /**
-     * Simuler le renseignement d'un Contrôle Technique.
+     * US.A.8 : Renseigner CT (Visualisation)
      */
     @GetMapping("/maintenance/info-ct")
-    public Map<String, Object> simulerRenseignementCT() {
-        Vehicle v = new Voiture("TEST-8", "Citroen", "Blanche", "C3", "Paris", 25.0, "agent@test.com", false);
+    public Map<String, Object> getInfoCT() {
+        Vehicle v = new Voiture("V200", "Peugeot", "Noire", "308", "Lyon", 40.0, "agent@test.com", false);
+        LocalDate dateCT = LocalDate.of(2025, 1, 14);
+        v.setControleTechnique(new ControleTechnique(dateCT, true, "AutoSur Lyon", "Usure pneus avant"));
 
-        // Renseignement du CT
-        ControleTechnique ct = new ControleTechnique(LocalDate.now(), true, "AutoSur Paris 15", "Pare-brise fissuré");
-        v.setControleTechnique(ct);
+        Map<String, Object> info = new LinkedHashMap<>();
+        info.put("vehicule", v.getModeleVehicule());
+        info.put("ct_fait_le", dateCT.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+        info.put("centre", v.getControleTechnique().getCentreControle());
+        info.put("remarques", v.getControleTechnique().getRemarques());
+        info.put("est_valide", v.getControleTechnique().isEstValide());
 
-        java.time.format.DateTimeFormatter fmt = java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy");
-
-        return Map.of(
-                "action", "Renseignement CT effectué",
-                "vehicule", v.getModeleVehicule(),
-                "ct_enregistre", Map.of(
-                        "date", v.getControleTechnique().getDatePassage().format(fmt),
-                        "valide", v.getControleTechnique().isEstValide(),
-                        "remarques", v.getControleTechnique().getRemarques()));
+        return info;
     }
 
-    // ============================================================
-    // US OPTIONS : FACTURATION
-    // ============================================================
+    // =================================================================================
+    // 2. FINANCES ET OPTIONS (Option Parking, Option Entretien)
+    // =================================================================================
 
-    /**
-     * Voir la facture mensuelle simulée avec options (Parking, Entretien).
-     */
     @GetMapping("/finance/facture")
-    public Map<String, Object> simulerFactureMensuelle() {
-        Agent agent = new AgentParticulier("Diallo", "Mamadou", "pass", "mamadou@test.com", "0600000000");
+    public Map<String, Object> simulerFacture() {
+        Agent agent = new AgentParticulier("Martin", "Alice", "pass", "alice@test.com", "0611223344");
 
-        // Ajout Option Parking (50€)
-        Parking parkingLille = new Parking(1, "Parking Lille Centre", "Rue Nationale", "Lille", 200, 15.0);
-        OptionParking optParking = new OptionParking("Forfait Stationnement", 50.0, 24, 30, 10.0, parkingLille);
-        agent.ajouterOption(optParking);
+        // Ajout Option Parking (ex: 20€)
+        Parking parking = new Parking(1, "Parking Gare", "10 rue de la Gare", "Lyon", 50, 20.0);
+        OptionParking optP = new OptionParking("Option Parking Gare", 20.0, 72, 30, 2.5, parking);
+        agent.ajouterOption(optP);
 
-        // Ajout Option Entretien Automatique (20€)
-        OptionEntretien optEntretien = new OptionEntretien(true);
-        agent.ajouterOption(optEntretien);
+        // Ajout Option Entretien Auto (ex: 50€)
+        OptionEntretien optE = new OptionEntretien(true);
+        agent.ajouterOption(optE);
 
         double total = agent.calculerFactureMensuelle();
 
         return Map.of(
-                "agent", agent.getNom(),
-                "options_souscrites", agent.getOptionsPayantes(),
-                "total_facture_mensuelle", total + " €");
+                "agent", agent.getNom() + " " + agent.getPrenom(),
+                "options_souscrites", List.of("Parking Gare (20.0€)", "Entretien Automatique (50.0€)"),
+                "total_mensuel_a_payer", total + "€");
     }
 
-    // ============================================================
-    // US PARKING : LOCATION POINT ARRIVEE
-    // ============================================================
+    // =================================================================================
+    // 3. LOCATION (Option Retour Parking)
+    // =================================================================================
 
-    /**
-     * Simuler une location avec un point de retour différent (Parking partenaire).
-     */
     @GetMapping("/location/retour-parking")
-    public Map<String, Object> simulerLocationRetourDifferent() {
-        Agent agent = new AgentParticulier("Diallo", "Mamadou", "pass", "mamadou@test.com", "0600000000");
-        Parking parkingLille = new Parking(1, "Parking Gare Lille", "1 Place de la Gare", "Lille", 500, 10.0);
+    public Map<String, Object> testRetourParking() {
+        // Simulation d'un contrat avec retour dans un parking partenaire
+        Parking p = new Parking(99, "Parking Centre", "1 Place Bellecour", "Lyon", 100, 15.0);
 
-        // Option Parking activée
-        OptionParking optParking = new OptionParking("Option Parking", 50.0, 48, 30, 8.0, parkingLille);
-        agent.ajouterOption(optParking);
-
-        // Loueur et Véhicule
-        Loueur loueur = new Loueur("Dupont", "Jean", "pass", "jean@test.com", "0612345678", "FR76 0001", "Google");
-        Vehicle v1 = new Voiture("V1", "Renault", "Rouge", "Clio", "Paris", 30.0, "mamadou@test.com", false);
-        agent.addVehicle(v1);
-
-        // Contrat avec retour différent
-        Date debut = new Date();
-        Date fin = Date.from(LocalDate.now().plusDays(3).atStartOfDay(ZoneId.systemDefault()).toInstant());
-        Assurance assurance = new Assurance(1, "Tous Risques", 5.0);
-
-        String lieuDepart = "Agence Paris";
-        String lieuRetour = parkingLille.getNom() + " (" + parkingLille.getVille() + ")";
-
-        RentalContract contrat = new RentalContract(loueur, v1, debut, fin, lieuDepart, lieuRetour, assurance);
+        String lieuPrise = "Agence Lyon Part-Dieu";
+        String lieuRetour = "Mise au parking : " + p.getNom() + " (" + p.getAdresse() + ")";
 
         return Map.of(
-                "message", "Simulation location avec retour Parking",
-                "lieu_depart", contrat.getLieuPrise(),
-                "lieu_retour_prevu", contrat.getLieuDepose(),
-                "prix_total", contrat.getPrixTotal() + " €");
+                "message", "Simulation Contrat avec Option Parking",
+                "depart", lieuPrise,
+                "retour_prevu", lieuRetour,
+                "note", "Le véhicule sera déposé directement au parking partenaire.");
     }
 }

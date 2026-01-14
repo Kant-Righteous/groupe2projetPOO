@@ -76,7 +76,7 @@ public class RentalService {
                 loueur, vehicule, dateDebut, dateFin, lieuPrise, lieuDepose, assurance, agentProprietaire);
 
         // Find the owner (Agent) of the vehicle
-        String proprietaireEmail = vehicule.getProprietaire();
+        // proprietaireEmail est déjà récupéré au dessus pour le constructeur
         Utilisateur proprietaire = userRepository.findByEmail(proprietaireEmail)
                 .orElse(null);
 
