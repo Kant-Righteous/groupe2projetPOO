@@ -320,12 +320,16 @@ public class RentalContract {
         this.commissionPourcentage = 0.10; // 10%
         this.commissionFixeParJour = 2.0; // 2€
 
+        // 3.1 Application de la réduction longue durée (US.A.7)
+        appliquerReductionLongueDuree(diffInDays);
+
         // 4. Calcul de la part Agent
         // Ex: 30€ * 5 jours = 150€
         this.montantAgent = prixJournalierVehicule * diffInDays;
 
         // 5. Calcul de la part Plateforme [cite: 284-285]
         // Ex: (150€ * 10%) + (5 jours * 2€) = 15€ + 10€ = 25€
+        // Note: la commission peut être réduite par appliquerReductionLongueDuree()
         double partVariable = this.montantAgent * this.commissionPourcentage;
         double partFixe = diffInDays * this.commissionFixeParJour;
         this.montantPlatforme = partVariable + partFixe;
@@ -334,6 +338,37 @@ public class RentalContract {
         // Total = Part Agent + Commission Plateforme + Assurance (+ Options si vous les
         // activez)
         this.prixTotal = this.montantAgent + this.montantPlatforme + prixAssurance;
+    }
+
+    /**
+     * Applique une réduction sur la commission variable en fonction de la durée de location.
+     * US.A.7 - Réduction longue durée pour fidéliser les agents.
+     * 
+     * Barème de réduction sur la commission variable :
+     * - 7 à 13 jours : -5% (commission passe de 10% à 9.5%)
+     * - 14 à 29 jours : -10% (commission passe de 10% à 9%)
+     * - 30 jours et plus : -15% (commission passe de 10% à 8.5%)
+     * 
+     * @param nbJours Nombre de jours de location
+     */
+    private void appliquerReductionLongueDuree(long nbJours) {
+        if (nbJours >= 30) {
+            // Location mensuelle : -15% sur la commission
+            this.commissionPourcentage = 0.10 * 0.85; // 10% × 85% = 8.5%
+            System.out.println("✅ Réduction longue durée appliquée : -15% (location ≥30 jours)");
+            System.out.println("   Commission variable : 10% → 8.5%");
+        } else if (nbJours >= 14) {
+            // Location bi-hebdomadaire : -10% sur la commission
+            this.commissionPourcentage = 0.10 * 0.90; // 10% × 90% = 9%
+            System.out.println("✅ Réduction longue durée appliquée : -10% (location ≥14 jours)");
+            System.out.println("   Commission variable : 10% → 9%");
+        } else if (nbJours >= 7) {
+            // Location hebdomadaire : -5% sur la commission
+            this.commissionPourcentage = 0.10 * 0.95; // 10% × 95% = 9.5%
+            System.out.println("✅ Réduction longue durée appliquée : -5% (location ≥7 jours)");
+            System.out.println("   Commission variable : 10% → 9.5%");
+        }
+        // Sinon (< 7 jours), pas de réduction : commission reste à 10%
     }
 
     /**
