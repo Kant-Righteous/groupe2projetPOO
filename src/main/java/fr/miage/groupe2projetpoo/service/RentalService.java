@@ -22,14 +22,17 @@ public class RentalService {
     private final UserRepository userRepository;
     private final VehicleRepository vehicleRepository;
     private final MaintenanceService maintenanceService;
+    private final UserService userService;
 
     @Autowired
     public RentalService(RentalRepository rentalRepository, UserRepository userRepository,
-            VehicleRepository vehicleRepository, MaintenanceService maintenanceService) {
+            VehicleRepository vehicleRepository, MaintenanceService maintenanceService,
+            UserService userService) {
         this.rentalRepository = rentalRepository;
         this.userRepository = userRepository;
         this.vehicleRepository = vehicleRepository;
         this.maintenanceService = maintenanceService;
+        this.userService = userService;
     }
 
     // ===== MÉTHODES CRUD =====
@@ -232,6 +235,20 @@ public class RentalService {
             }
         }
 
+        // 3. Déclencher la récompense de parrainage (US.L.9)
+        // Si le loueur a un parrain et c'est sa première location terminée
+        Loueur loueur = contrat.getLoueur();
+        if (loueur != null) {
+            userService.declencherRecompenseParrainage(loueur.getEmail());
+        }
+
+        // 4. Déclencher la récompense de parrainage Agent
+        // Si l'agent propriétaire du véhicule a un parrain et c'est le premier véhicule
+        // loué
+        if (agent != null) {
+            userService.declencherRecompenseParrainageAgent(agent.getEmail());
+        }
+
         return rentalRepository.save(contrat);
     }
 
@@ -253,6 +270,46 @@ public class RentalService {
         contrat.setStatutLocation(nouveauStatut);
 
         System.out.println("Statut du contrat " + contratId + " modifié: " + ancienStatut + " → " + nouveauStatut);
+
+        return rentalRepository.save(contrat);
+    }
+
+    // ===== MÉTHODE POUR RENSEIGNER LE KILOMÉTRAGE FIN ET DÉCLENCHER LES
+    // RÉCOMPENSES =====
+
+    /**
+     * Renseigner le kilométrage de fin et déclencher automatiquement les
+     * récompenses de parrainage
+     * 
+     * @param contratId ID du contrat
+     * @param km        Kilométrage au retour
+     * @param photoNom  Nom du fichier photo de preuve
+     * @return Le contrat mis à jour
+     */
+    public RentalContract renseignerKilometrageFin(int contratId, int km, String photoNom) {
+        RentalContract contrat = rentalRepository.findById(contratId)
+                .orElseThrow(() -> new RuntimeException("Contrat non trouvé avec l'ID: " + contratId));
+
+        // 1. Enregistrer le kilométrage de fin (cela change le statut à TERMINEE)
+        contrat.renseignerKilometrageFin(km, photoNom);
+
+        // 2. Déclencher la récompense de parrainage Loueur (US.L.9)
+        Loueur loueur = contrat.getLoueur();
+        if (loueur != null) {
+            userService.declencherRecompenseParrainage(loueur.getEmail());
+        }
+
+        // 3. Déclencher la récompense de parrainage Agent
+        // Récupérer l'agent propriétaire du véhicule
+        String proprietaireEmail = contrat.getVehicule().getProprietaire();
+        Agent agent = null;
+        if (proprietaireEmail != null) {
+            var userOpt = userRepository.findByEmail(proprietaireEmail);
+            if (userOpt.isPresent() && userOpt.get() instanceof Agent) {
+                agent = (Agent) userOpt.get();
+                userService.declencherRecompenseParrainageAgent(agent.getEmail());
+            }
+        }
 
         return rentalRepository.save(contrat);
     }

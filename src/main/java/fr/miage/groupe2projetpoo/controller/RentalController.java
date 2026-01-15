@@ -238,30 +238,32 @@ public class RentalController {
      * "kilometrage": 45580,
      * "photoNom": "photo_km_fin_contrat1_20260120.jpg"
      * }
+     * 
+     * NOTE: Cette action termine automatiquement la location et déclenche les
+     * récompenses de parrainage
      */
     @PostMapping("/{id}/kilometrage-fin")
     public ResponseEntity<?> renseignerKilometrageFin(
             @PathVariable int id,
             @RequestBody Map<String, Object> request) {
         try {
-            RentalContract contrat = rentalService.getContratById(id)
-                    .orElseThrow(() -> new RuntimeException("Contrat non trouvé"));
-
             int km = ((Number) request.get("kilometrage")).intValue();
             String photoNom = (String) request.get("photoNom");
 
-            contrat.renseignerKilometrageFin(km, photoNom);
-            rentalService.getTousLesContrats(); // Force save
+            // Appeler la méthode du service qui gère le km + les récompenses
+            RentalContract contrat = rentalService.renseignerKilometrageFin(id, km, photoNom);
 
             Integer distance = contrat.calculerDistanceParcourue();
 
             return ResponseEntity.ok(Map.of(
-                    "message", "Kilométrage retour enregistré avec succès",
+                    "message",
+                    "Kilométrage retour enregistré - Location terminée - Récompenses de parrainage déclenchées",
                     "kilometrageDebut", contrat.getKilometrageDebut(),
                     "kilometrageFin", km,
                     "distanceParcourue", distance != null ? distance : 0,
                     "photo", photoNom,
-                    "date", contrat.getDateRenseignementFin()));
+                    "date", contrat.getDateRenseignementFin(),
+                    "statutLocation", contrat.getStatutLocation().toString()));
         } catch (IllegalArgumentException | IllegalStateException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         } catch (RuntimeException e) {

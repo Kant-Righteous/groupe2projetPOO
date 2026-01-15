@@ -276,4 +276,179 @@ public class UserController {
             return ResponseEntity.notFound().build();
         }
     }
+
+    // ===== Parrainage (US.L.9) =====
+
+    /**
+     * Enregistrer un parrainage - POST /api/users/{email}/parrainage
+     * Le {email} est l'email du filleul (celui qui est parrainé)
+     * 
+     * Body: { "parrainEmail": "parrain@test.com" }
+     */
+    @PostMapping("/{email}/parrainage")
+    public ResponseEntity<Map<String, Object>> setParrainage(
+            @PathVariable String email,
+            @RequestBody Map<String, String> request) {
+
+        String parrainEmail = request.get("parrainEmail");
+
+        if (parrainEmail == null || parrainEmail.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", "L'email du parrain est requis"));
+        }
+
+        boolean success = userService.parrainerLoueur(email, parrainEmail);
+
+        if (success) {
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "Parrainage enregistré avec succès",
+                    "filleul", email,
+                    "parrain", parrainEmail));
+        } else {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message",
+                    "Échec du parrainage. Vérifiez que les deux emails sont des Loueurs valides et que le filleul n'a pas déjà un parrain."));
+        }
+    }
+
+    /**
+     * Récupérer les informations de parrainage - GET /api/users/{email}/parrainage
+     * 
+     * Retourne: parrain, filleuls, soldeParrainage, etc.
+     */
+    @GetMapping("/{email}/parrainage")
+    public ResponseEntity<Map<String, Object>> getParrainageInfo(@PathVariable String email) {
+        Map<String, Object> info = userService.getParrainageInfo(email);
+
+        if (info.containsKey("error")) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", info.get("error")));
+        }
+
+        info.put("success", true);
+        info.put("message", "Vous avez " + info.get("nombreFilleuls") + " filleul(s) et "
+                + info.get("soldeParrainage") + "€ de crédit parrainage");
+        return ResponseEntity.ok(info);
+    }
+
+    // ===== Parrainage Agent =====
+
+    /**
+     * Enregistrer un parrainage entre agents - POST
+     * /api/users/agents/{email}/parrainage
+     * Le {email} est l'email du filleul (agent qui est parrainé)
+     * 
+     * Body: { "parrainEmail": "parrain@test.com" }
+     */
+    @PostMapping("/agents/{email}/parrainage")
+    public ResponseEntity<Map<String, Object>> setParrainageAgent(
+            @PathVariable String email,
+            @RequestBody Map<String, String> request) {
+
+        String parrainEmail = request.get("parrainEmail");
+
+        if (parrainEmail == null || parrainEmail.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", "L'email du parrain est requis"));
+        }
+
+        boolean success = userService.parrainerAgent(email, parrainEmail);
+
+        if (success) {
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "Parrainage Agent enregistré avec succès",
+                    "filleul", email,
+                    "parrain", parrainEmail));
+        } else {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message",
+                    "Échec du parrainage. Vérifiez que les deux emails sont des Agents valides et que le filleul n'a pas déjà un parrain."));
+        }
+    }
+
+    /**
+     * Récupérer les informations de parrainage d'un agent - GET
+     * /api/users/agents/{email}/parrainage
+     * 
+     * Retourne: parrain, filleuls, soldeParrainage, etc.
+     */
+    @GetMapping("/agents/{email}/parrainage")
+    public ResponseEntity<Map<String, Object>> getParrainageAgentInfo(@PathVariable String email) {
+        Map<String, Object> info = userService.getParrainageAgentInfo(email);
+
+        if (info.containsKey("error")) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", info.get("error")));
+        }
+
+        info.put("success", true);
+        info.put("message", "Vous avez " + info.get("nombreFilleuls") + " filleul(s) et "
+                + info.get("soldeParrainage") + "€ de crédit parrainage (utilisable pour les options payantes)");
+        return ResponseEntity.ok(info);
+    }
+
+    // ===== Informations Agent (y compris options) =====
+
+    /**
+     * GET /api/users/agents/{email}/info - Récupérer les informations d'un agent
+     * incluant ses options
+     */
+    @GetMapping("/agents/{email}/info")
+    public ResponseEntity<Map<String, Object>> getAgentInfo(@PathVariable String email) {
+        java.util.Optional<Utilisateur> userOpt = userService.findByEmail(email);
+
+        if (userOpt == null || userOpt.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", "Utilisateur non trouvé: " + email));
+        }
+
+        Utilisateur user = userOpt.get();
+
+        if (!(user instanceof Agent)) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", "L'utilisateur n'est pas un Agent"));
+        }
+
+        Agent agent = (Agent) user;
+        Map<String, Object> info = new HashMap<>();
+
+        info.put("success", true);
+        info.put("email", agent.getEmail());
+        info.put("nom", agent.getNom());
+        info.put("prenom", agent.getPrenom());
+        info.put("tel", agent.getTel());
+        info.put("nombreVehicules", agent.getVehicleList() != null ? agent.getVehicleList().size() : 0);
+        info.put("nombreContrats", agent.getContracts() != null ? agent.getContracts().size() : 0);
+
+        // Options payantes
+        List<Map<String, Object>> optionsList = new java.util.ArrayList<>();
+        if (agent.getOptionsPayantes() != null) {
+            for (var option : agent.getOptionsPayantes()) {
+                Map<String, Object> optMap = new HashMap<>();
+                optMap.put("nom", option.getNom());
+                optMap.put("type", option.getClass().getSimpleName());
+                optMap.put("estActive", option.isEstActive());
+                optMap.put("coutMensuel", option.calculerCoutMensuel());
+                optionsList.add(optMap);
+            }
+        }
+        info.put("optionsPayantes", optionsList);
+
+        // Informations clés sur les options
+        info.put("AcceptationManuelle", agent.aAcceptationManuelle());
+        info.put("AssurancePersonnalisee", agent.aAssurancePersonnalisee());
+        info.put("factureMensuelle", agent.calculerFactureMensuelle());
+
+        return ResponseEntity.ok(info);
+    }
 }

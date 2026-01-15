@@ -24,6 +24,23 @@ public class Loueur extends Utilisateur {
     @JsonIgnore
     private List<RentalContract> contracts;
 
+    // === Parrainage (US.L.9) ===
+
+    // Référence au parrain (qui m'a parrainé)
+    @JsonIgnore
+    private Loueur parrain;
+
+    // Liste des filleuls (ceux que j'ai parrainés)
+    @JsonIgnore
+    private List<Loueur> filleuls = new ArrayList<>();
+
+    // Solde de parrainage (utilisable pour louer des véhicules)
+    private double soldeParrainage = 0.0;
+
+    // Indique si le loueur a complété au moins une location (pour déclencher la
+    // récompense)
+    private boolean aCompletePremiereLocation = false;
+
     // Constructeur par défaut
     public Loueur() {
         super();
@@ -135,5 +152,86 @@ public class Loueur extends Utilisateur {
         if (this.contracts != null) {
             this.contracts.remove(contract);
         }
+    }
+
+    // === Gestion du parrainage (US.L.9) ===
+
+    public Loueur getParrain() {
+        return parrain;
+    }
+
+    public void setParrain(Loueur parrain) {
+        this.parrain = parrain;
+    }
+
+    public List<Loueur> getFilleuls() {
+        if (this.filleuls == null) {
+            this.filleuls = new ArrayList<>();
+        }
+        return filleuls;
+    }
+
+    public void setFilleuls(List<Loueur> filleuls) {
+        this.filleuls = filleuls;
+    }
+
+    public void addFilleul(Loueur filleul) {
+        if (this.filleuls == null) {
+            this.filleuls = new ArrayList<>();
+        }
+        this.filleuls.add(filleul);
+    }
+
+    public double getSoldeParrainage() {
+        return soldeParrainage;
+    }
+
+    public void setSoldeParrainage(double soldeParrainage) {
+        this.soldeParrainage = soldeParrainage;
+    }
+
+    /**
+     * Ajouter une récompense au solde de parrainage
+     * 
+     * @param montant Montant à ajouter
+     */
+    public void ajouterRecompenseParrainage(double montant) {
+        this.soldeParrainage += montant;
+    }
+
+    /**
+     * Utiliser le solde de parrainage pour une location
+     * 
+     * @param montant Montant à utiliser
+     * @return true si le montant a pu être utilisé, false sinon
+     */
+    public boolean utiliserSoldeParrainage(double montant) {
+        if (montant <= this.soldeParrainage) {
+            this.soldeParrainage -= montant;
+            return true;
+        }
+        return false;
+    }
+
+    public boolean isACompletePremiereLocation() {
+        return aCompletePremiereLocation;
+    }
+
+    public void setACompletePremiereLocation(boolean aCompletePremiereLocation) {
+        this.aCompletePremiereLocation = aCompletePremiereLocation;
+    }
+
+    /**
+     * Obtenir l'email du parrain (pour éviter la sérialisation récursive)
+     */
+    public String getParrainEmail() {
+        return parrain != null ? parrain.getEmail() : null;
+    }
+
+    /**
+     * Obtenir le nombre de filleuls
+     */
+    public int getNombreFilleuls() {
+        return filleuls != null ? filleuls.size() : 0;
     }
 }
