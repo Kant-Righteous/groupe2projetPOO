@@ -11,6 +11,7 @@ import java.util.List;
 import fr.miage.groupe2projetpoo.entity.location.RentalContract;
 import fr.miage.groupe2projetpoo.entity.vehicule.Vehicle;
 import fr.miage.groupe2projetpoo.entity.utilisateur.MaintenanceCompany;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 /**
  * Classe abstraite représentant un agent
@@ -30,6 +31,23 @@ public abstract class Agent extends Utilisateur {
 
     // Entreprise d'entretien préférée (pour l'automatisation)
     private MaintenanceCompany entrepriseEntretienPreferee;
+
+    // === Parrainage (US.A - parrainage agent) ===
+
+    // Référence au parrain (qui m'a parrainé)
+    @JsonIgnore
+    private Agent parrain;
+
+    // Liste des filleuls (ceux que j'ai parrainés)
+    @JsonIgnore
+    private List<Agent> filleuls = new ArrayList<>();
+
+    // Solde de parrainage (utilisable pour les options payantes)
+    private double soldeParrainage = 0.0;
+
+    // Indique si l'agent a eu au moins un véhicule loué (pour déclencher la
+    // récompense)
+    private boolean aEuVehiculeLoue = false;
 
     // Constructeur par défaut
     public Agent() {
@@ -122,6 +140,7 @@ public abstract class Agent extends Utilisateur {
 
     /**
      * Vérifie si l'agent a une option spécifique active
+     * 
      * @param typeOption La classe de l'option à vérifier
      */
     public boolean aOptionActive(Class<? extends OptionPayante> typeOption) {
@@ -162,6 +181,7 @@ public abstract class Agent extends Utilisateur {
 
     /**
      * Récupère l'assurance personnalisée de l'agent si disponible
+     * 
      * @return L'assurance personnalisée ou null si non définie
      */
     public Assurance getAssurancePersonnalisee() {
@@ -215,5 +235,85 @@ public abstract class Agent extends Utilisateur {
         }
         return somme / notations.size();
     }
-}
 
+    // === Gestion du parrainage (Agent) ===
+
+    public Agent getParrain() {
+        return parrain;
+    }
+
+    public void setParrain(Agent parrain) {
+        this.parrain = parrain;
+    }
+
+    public List<Agent> getFilleuls() {
+        if (this.filleuls == null) {
+            this.filleuls = new ArrayList<>();
+        }
+        return filleuls;
+    }
+
+    public void setFilleuls(List<Agent> filleuls) {
+        this.filleuls = filleuls;
+    }
+
+    public void addFilleul(Agent filleul) {
+        if (this.filleuls == null) {
+            this.filleuls = new ArrayList<>();
+        }
+        this.filleuls.add(filleul);
+    }
+
+    public double getSoldeParrainage() {
+        return soldeParrainage;
+    }
+
+    public void setSoldeParrainage(double soldeParrainage) {
+        this.soldeParrainage = soldeParrainage;
+    }
+
+    /**
+     * Ajouter une récompense au solde de parrainage
+     * 
+     * @param montant Montant à ajouter
+     */
+    public void ajouterRecompenseParrainage(double montant) {
+        this.soldeParrainage += montant;
+    }
+
+    /**
+     * Utiliser le solde de parrainage pour une option payante
+     * 
+     * @param montant Montant à utiliser
+     * @return true si le montant a pu être utilisé, false sinon
+     */
+    public boolean utiliserSoldeParrainage(double montant) {
+        if (montant <= this.soldeParrainage) {
+            this.soldeParrainage -= montant;
+            return true;
+        }
+        return false;
+    }
+
+    public boolean isAEuVehiculeLoue() {
+        return aEuVehiculeLoue;
+    }
+
+    public void setAEuVehiculeLoue(boolean aEuVehiculeLoue) {
+        this.aEuVehiculeLoue = aEuVehiculeLoue;
+    }
+
+    /**
+     * Obtenir l'email du parrain (pour éviter la sérialisation récursive)
+     */
+    public String getParrainEmail() {
+        return parrain != null ? parrain.getEmail() : null;
+    }
+
+    /**
+     * Obtenir le nombre de filleuls
+     */
+    public int getNombreFilleuls() {
+        return filleuls != null ? filleuls.size() : 0;
+    }
+}
