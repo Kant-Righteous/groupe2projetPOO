@@ -2,6 +2,7 @@ package fr.miage.groupe2projetpoo.entity.location;
 
 import fr.miage.groupe2projetpoo.entity.assurance.Assurance;
 import fr.miage.groupe2projetpoo.entity.assurance.OptionAcceptationManuelle;
+import fr.miage.groupe2projetpoo.entity.maintenance.ControleTechnique;
 import fr.miage.groupe2projetpoo.entity.utilisateur.Agent;
 import fr.miage.groupe2projetpoo.entity.utilisateur.Loueur;
 import fr.miage.groupe2projetpoo.entity.vehicule.Vehicle;
@@ -443,6 +444,37 @@ public class RentalContract {
     }
 
     /**
+     * Vérifie que le véhicule a un contrôle technique valide avant la location.
+     * US.A.8 - Renseigner les informations sur le contrôle technique
+     * 
+     * @throws IllegalStateException si le CT est absent ou expiré
+     */
+    private void verifierControleTechnique() {
+        // 1. Récupérer le contrôle technique du véhicule
+        ControleTechnique ct = this.Vehicule.getControleTechnique();
+        
+        // 2. Vérifier qu'un CT existe
+        if (ct == null) {
+            throw new IllegalStateException(
+                "❌ Le véhicule " + this.Vehicule.getIdVehicule() + 
+                " ne peut pas être loué : aucun contrôle technique enregistré"
+            );
+        }
+        
+        // 3. Vérifier que le CT n'est pas expiré
+        if (ct.estExpire()) {
+            throw new IllegalStateException(
+                "❌ Le véhicule " + this.Vehicule.getIdVehicule() + 
+                " ne peut pas être loué : contrôle technique expiré depuis le " + 
+                ct.getDateExpiration()
+            );
+        }
+        
+        // 4. Tout est OK !
+        System.out.println("✅ Contrôle technique valide jusqu'au " + ct.getDateExpiration());
+    }
+
+    /**
      * Enregistre la signature du loueur sur le contrat.
      * Si l'agent a l'option "acceptation manuelle", le contrat reste en attente.
      * Sinon, l'agent signe automatiquement.
@@ -454,7 +486,10 @@ public class RentalContract {
             return;
         }
 
-        // 2. Vérification que les dates appartiennent aux disponibilités du véhicule
+        // 2. Vérification du contrôle technique (US.A.8)
+        verifierControleTechnique();
+
+        // 3. Vérification que les dates appartiennent aux disponibilités du véhicule
         LocalDate debutLocal = this.dateDebut.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
         LocalDate finLocal = this.dateFin.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
 
@@ -464,11 +499,11 @@ public class RentalContract {
             return;
         }
 
-        // 3. Application de la signature du loueur
+        // 4. Application de la signature du loueur
         this.SignatureLoueur = true;
         this.dateSignatureLoueur = new Date();
 
-        // 4. Vérifier si l'agent a l'option "acceptation manuelle"
+        // 5. Vérifier si l'agent a l'option "acceptation manuelle"
         if (this.agent != null && this.agent.aAcceptationManuelle()) {
             // L'agent doit accepter manuellement dans les 6 heures
             OptionAcceptationManuelle option = this.agent.getOption(OptionAcceptationManuelle.class);
