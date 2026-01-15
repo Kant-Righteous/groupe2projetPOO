@@ -157,7 +157,7 @@ public class RentalService {
     }
 
     public List<Vehicle> getTousLesVehicules() {
-        return (List<Vehicle>) vehicleRepository.findAll();
+        return new ArrayList<>(vehicleRepository.findAll());
     }
 
     public List<Assurance> getToutesLesAssurances() {
