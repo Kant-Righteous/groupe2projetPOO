@@ -174,4 +174,6 @@ public class InMemoryVehicleRepository implements VehicleRepository {
         }
         return v.estDisponiblePlanning(debut, fin);
     }
+
+
 }

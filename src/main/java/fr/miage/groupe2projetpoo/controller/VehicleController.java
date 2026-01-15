@@ -326,6 +326,51 @@ public class VehicleController {
         }
     }
 
+    @PostMapping("/MultiFiltrage")
+    public ResponseEntity<?> filtrerVehicules(@RequestBody Map<String, String> request) {
+        try {
+            List<Vehicle> vehicules = vehicleService.getAllVehicules().stream()
+                    .filter(v -> request.get("ville") == null
+                            || v.getVilleVehicule().equalsIgnoreCase(request.get("ville")))
+                    .filter(v -> request.get("type") == null
+                            || v.getType().toString().equalsIgnoreCase(request.get("type")))
+                    .filter(v -> request.get("estEnPause") == null
+                            || v.getEstEnpause() == Boolean.parseBoolean(request.get("estEnPause")))
+                    .filter(v -> request.get("modele") == null
+                            || v.getModeleVehicule().equalsIgnoreCase(request.get("modele")))
+                    .filter(v -> request.get("couleur") == null
+                            || v.getCouleurVehicule().equalsIgnoreCase(request.get("couleur")))
+                    .filter(v -> request.get("marque") == null
+                            || v.getMarqueVehicule().equalsIgnoreCase(request.get("marque")))
+                    .filter(v -> {
+                        if (request.get("debut") == null || request.get("fin") == null)
+                            return true;
+                        LocalDate debut = LocalDate.parse(request.get("debut"));
+                        LocalDate fin = LocalDate.parse(request.get("fin"));
+                        return vehicleService.estDisponiblePlanning(v.getIdVehicule(), debut, fin);
+                    })
+                    .filter(v -> {
+                        if (request.get("min") == null && request.get("max") == null)
+                            return true;
+                        double prix = v.getPrixVehiculeParJour();
+                        double min = request.get("min") != null ? Double.parseDouble(request.get("min")) : 0;
+                        double max = request.get("max") != null ? Double.parseDouble(request.get("max")) : Double.MAX_VALUE;
+                        return prix >= min && prix <= max;
+                    }).toList();
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "resultat", vehicules.stream().map(this::mapVehicleInfo).toList()));
+        }catch (IllegalArgumentException e) { return ResponseEntity.status(404).body(Map.of(
+                "success", false,
+                "message", e.getMessage()));
+        }
+    }
+
+
+
+
+
+
     /************************************
      * Planning Disponibilités
      ********************************/
@@ -417,6 +462,10 @@ public class VehicleController {
                     "message", e.getMessage()));
         }
     }
+
+
+
+
 
     // les infos simple de vehicule en map
     private Map<String, Object> mapVehicleInfo(Vehicle v) {
