@@ -478,6 +478,16 @@ public class VehicleController {
         map.put("ville", v.getVilleVehicule());
         map.put("estEnPause", v.getEstEnpause());
         map.put("prixParJour", v.getPrixVehiculeParJour());
+
+        // Ajout du label de réduction parking Vienci
+        boolean hasParkingReduction = vehicleService.hasParkingReduction(v);
+        map.put("tarifReduit", hasParkingReduction);
+        if (hasParkingReduction) {
+            double tauxReduction = vehicleService.getParkingReductionRate(v);
+            int pourcentage = (int) (tauxReduction * 100);
+            map.put("labelReduction", "Tarif réduit - Retour en parking partenaire (-" + pourcentage + "%)");
+        }
+
         return map;
     }
 
@@ -584,4 +594,161 @@ public class VehicleController {
      * "fin", f));
      * }
      */
+
+    // ===== RECOMMANDATION DE VÉHICULES PAR PROXIMITÉ =====
+
+    /**
+     * GET /api/vehicules/proches - Trouver les véhicules disponibles à proximité
+     * 
+     * Body JSON:
+     * {
+     * "ville": "Paris",
+     * "rayonKm": 50
+     * }
+     * 
+     * Rayon:
+     * - 0-49 km : même ville uniquement
+     * - 50-99 km : même région
+     * - 100+ km : toutes les régions
+     */
+    @PostMapping("/proches")
+    public ResponseEntity<?> getVehiculesProches(@RequestBody Map<String, Object> request) {
+        try {
+            String ville = (String) request.get("ville");
+            int rayonKm = 50; // Défaut: même région
+
+            if (request.containsKey("rayonKm")) {
+                Object rayonObj = request.get("rayonKm");
+                if (rayonObj instanceof Number) {
+                    rayonKm = ((Number) rayonObj).intValue();
+                } else if (rayonObj instanceof String) {
+                    rayonKm = Integer.parseInt((String) rayonObj);
+                }
+            }
+
+            List<Vehicle> vehiculesProches = vehicleService.getVehiculesProches(ville, rayonKm);
+
+            List<Map<String, Object>> result = vehiculesProches.stream().map(v -> {
+                return mapVehicleInfo(v);
+            }).toList();
+
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "villeRecherche", ville,
+                    "rayonKm", rayonKm,
+                    "nombreResultats", result.size(),
+                    "vehicules", result));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", e.getMessage()));
+        }
+    }
+
+    /**
+     * GET /api/vehicules/suggestions/{email} - Suggestions pour un loueur basées
+     * sur son profil
+     * 
+     * Récupère la ville du loueur depuis son profil et suggère les véhicules
+     * proches
+     */
+    @GetMapping("/suggestions/{email}")
+    public ResponseEntity<?> getSuggestionsPourLoueur(
+            @PathVariable String email,
+            @RequestParam(defaultValue = "50") int rayonKm) {
+        try {
+            // Cette méthode nécessite UserRepository - à implémenter via injection
+            // Pour l'instant, retourne une erreur suggérant d'utiliser /proches
+            return ResponseEntity.ok(Map.of(
+                    "success", false,
+                    "message",
+                    "Utilisez POST /api/vehicules/proches/gps avec vos coordonnées GPS pour obtenir des suggestions",
+                    "exemple", Map.of("latitude", 48.8566, "longitude", 2.3522, "rayonKm", 50)));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", e.getMessage()));
+        }
+    }
+
+    /**
+     * POST /api/vehicules/proches/gps - Trouver les véhicules par coordonnées GPS
+     * 
+     * Body JSON:
+     * {
+     * "latitude": 48.8566,
+     * "longitude": 2.3522,
+     * "rayonKm": 50
+     * }
+     * 
+     * Retourne les véhicules triés par distance croissante
+     */
+    @PostMapping("/proches/gps")
+    public ResponseEntity<?> getVehiculesProchesGPS(@RequestBody Map<String, Object> request) {
+        try {
+            Double latitude = null;
+            Double longitude = null;
+            int rayonKm = 50;
+
+            // Parser latitude
+            if (request.containsKey("latitude")) {
+                Object latObj = request.get("latitude");
+                if (latObj instanceof Number) {
+                    latitude = ((Number) latObj).doubleValue();
+                } else if (latObj instanceof String) {
+                    latitude = Double.parseDouble((String) latObj);
+                }
+            }
+
+            // Parser longitude
+            if (request.containsKey("longitude")) {
+                Object lonObj = request.get("longitude");
+                if (lonObj instanceof Number) {
+                    longitude = ((Number) lonObj).doubleValue();
+                } else if (lonObj instanceof String) {
+                    longitude = Double.parseDouble((String) lonObj);
+                }
+            }
+
+            // Parser rayon
+            if (request.containsKey("rayonKm")) {
+                Object rayonObj = request.get("rayonKm");
+                if (rayonObj instanceof Number) {
+                    rayonKm = ((Number) rayonObj).intValue();
+                } else if (rayonObj instanceof String) {
+                    rayonKm = Integer.parseInt((String) rayonObj);
+                }
+            }
+
+            // Validation
+            if (latitude == null || longitude == null) {
+                return ResponseEntity.badRequest().body(Map.of(
+                        "success", false,
+                        "message", "Les coordonnées GPS (latitude et longitude) sont requises"));
+            }
+
+            List<Map<String, Object>> resultatsGPS = vehicleService.getVehiculesProchesGPS(latitude, longitude,
+                    rayonKm);
+
+            // Transformer les résultats pour l'API
+            List<Map<String, Object>> vehiculesFormates = new ArrayList<>();
+            for (Map<String, Object> entry : resultatsGPS) {
+                Vehicle v = (Vehicle) entry.get("vehicule");
+                Map<String, Object> vehiculeInfo = mapVehicleInfo(v);
+                vehiculeInfo.put("distanceKm", entry.get("distanceKm"));
+                vehiculesFormates.add(vehiculeInfo);
+            }
+
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "coordonneesRecherche", Map.of("latitude", latitude, "longitude", longitude),
+                    "rayonKm", rayonKm,
+                    "nombreResultats", vehiculesFormates.size(),
+                    "vehicules", vehiculesFormates));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", e.getMessage()));
+        }
+    }
 }

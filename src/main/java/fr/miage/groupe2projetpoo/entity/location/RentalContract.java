@@ -56,6 +56,15 @@ public class RentalContract {
     // Statut du contrat de location (cycle de vie)
     private StatutLocation statutLocation = StatutLocation.EN_ATTENTE_SIGNATURE;
 
+    // Informations d'accès au parking Vienci (remplies lors de la validation si
+    // optionParking active)
+    private String parkingNom;
+    private String parkingAdresse;
+    private String parkingVille;
+    private String parkingCodeAcces;
+    private String parkingProcedureAcces;
+    private String parkingInstructionsSpeciales;
+
     // Constructeur par défaut (nécessaire pour Jackson JSON)
     public RentalContract() {
     }
@@ -365,6 +374,9 @@ public class RentalContract {
         this.commissionPourcentage = 0.10; // 10%
         this.commissionFixeParJour = 2.0; // 2€
 
+        // 3.1 Application de la réduction longue durée (US.A.7)
+        appliquerReductionLongueDuree(diffInDays);
+
         // 4. Calcul de la part Agent
         this.montantAgent = prixJournalierFinal * diffInDays;
 
@@ -378,6 +390,38 @@ public class RentalContract {
         double prixAssurance = (this.assurance != null) ? this.assurance.calculerPrime(this.Vehicule) : 0.0;
 
         this.prixTotal = this.montantAgent + this.montantPlatforme + prixAssurance;
+    }
+
+    /**
+     * Applique une réduction sur la commission variable en fonction de la durée de
+     * location.
+     * US.A.7 - Réduction longue durée pour fidéliser les agents.
+     * 
+     * Barème de réduction sur la commission variable :
+     * - 7 à 13 jours : -5% (commission passe de 10% à 9.5%)
+     * - 14 à 29 jours : -10% (commission passe de 10% à 9%)
+     * - 30 jours et plus : -15% (commission passe de 10% à 8.5%)
+     * 
+     * @param nbJours Nombre de jours de location
+     */
+    private void appliquerReductionLongueDuree(long nbJours) {
+        if (nbJours >= 30) {
+            // Location mensuelle : -15% sur la commission
+            this.commissionPourcentage = 0.10 * 0.85; // 10% × 85% = 8.5%
+            System.out.println("✅ Réduction longue durée appliquée : -15% (location ≥30 jours)");
+            System.out.println("   Commission variable : 10% → 8.5%");
+        } else if (nbJours >= 14) {
+            // Location bi-hebdomadaire : -10% sur la commission
+            this.commissionPourcentage = 0.10 * 0.90; // 10% × 90% = 9%
+            System.out.println("✅ Réduction longue durée appliquée : -10% (location ≥14 jours)");
+            System.out.println("   Commission variable : 10% → 9%");
+        } else if (nbJours >= 7) {
+            // Location hebdomadaire : -5% sur la commission
+            this.commissionPourcentage = 0.10 * 0.95; // 10% × 95% = 9.5%
+            System.out.println("✅ Réduction longue durée appliquée : -5% (location ≥7 jours)");
+            System.out.println("   Commission variable : 10% → 9.5%");
+        }
+        // Sinon (< 7 jours), pas de réduction : commission reste à 10%
     }
 
     public boolean isOptionParkingSelectionnee() {
@@ -663,6 +707,90 @@ public class RentalContract {
             throw new IllegalStateException("Impossible d'annuler un contrat déjà terminé.");
         }
         this.statutLocation = StatutLocation.ANNULEE;
-        System.out.println("Contrat annulé. Statut: " + this.statutLocation);
+    }
+
+    // ===== GESTION DES INFORMATIONS PARKING VIENCI =====
+
+    /**
+     * Remplit les informations d'accès au parking partenaire Vienci.
+     * Cette méthode doit être appelée lors de la validation du contrat
+     * si l'option parking est sélectionnée.
+     */
+    public void remplirInfoParking() {
+        if (this.optionParkingSelectionnee && this.agent != null) {
+            fr.miage.groupe2projetpoo.entity.assurance.OptionParking optParking = this.agent
+                    .getOption(fr.miage.groupe2projetpoo.entity.assurance.OptionParking.class);
+
+            if (optParking != null && optParking.isEstActive()) {
+                fr.miage.groupe2projetpoo.entity.infrastructure.Parking parking = optParking.getParkingPartenaire();
+                if (parking != null) {
+                    this.parkingNom = parking.getNom();
+                    this.parkingAdresse = parking.getAdresse();
+                    this.parkingVille = parking.getVille();
+                    this.parkingCodeAcces = parking.getCodeAcces();
+                    this.parkingProcedureAcces = parking.getProcedureAcces();
+                    this.parkingInstructionsSpeciales = parking.getInstructionsSpeciales();
+                }
+            }
+        }
+    }
+
+    /**
+     * Vérifie si les informations de parking sont disponibles
+     */
+    public boolean hasParkingInfo() {
+        return this.parkingNom != null && !this.parkingNom.isEmpty();
+    }
+
+    // Getters pour les informations de parking
+
+    public String getParkingNom() {
+        return parkingNom;
+    }
+
+    public String getParkingAdresse() {
+        return parkingAdresse;
+    }
+
+    public String getParkingVille() {
+        return parkingVille;
+    }
+
+    public String getParkingCodeAcces() {
+        return parkingCodeAcces;
+    }
+
+    public String getParkingProcedureAcces() {
+        return parkingProcedureAcces;
+    }
+
+    public String getParkingInstructionsSpeciales() {
+        return parkingInstructionsSpeciales;
+    }
+
+    // Setters pour les informations de parking (si besoin de modification manuelle)
+
+    public void setParkingNom(String parkingNom) {
+        this.parkingNom = parkingNom;
+    }
+
+    public void setParkingAdresse(String parkingAdresse) {
+        this.parkingAdresse = parkingAdresse;
+    }
+
+    public void setParkingVille(String parkingVille) {
+        this.parkingVille = parkingVille;
+    }
+
+    public void setParkingCodeAcces(String parkingCodeAcces) {
+        this.parkingCodeAcces = parkingCodeAcces;
+    }
+
+    public void setParkingProcedureAcces(String parkingProcedureAcces) {
+        this.parkingProcedureAcces = parkingProcedureAcces;
+    }
+
+    public void setParkingInstructionsSpeciales(String parkingInstructionsSpeciales) {
+        this.parkingInstructionsSpeciales = parkingInstructionsSpeciales;
     }
 }
