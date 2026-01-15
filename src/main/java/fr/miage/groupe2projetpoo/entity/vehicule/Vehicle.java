@@ -119,9 +119,6 @@ public abstract class Vehicle {
     }
 
     /********************** SETTER **********************/
-    public void setIdVehicule(String idV) {
-        this.idVehicule = idV;
-    }
 
     /*
      * public void setTypeVehicule(String type) {
@@ -162,10 +159,6 @@ public abstract class Vehicle {
 
     public void setKilometrageActuel(int kilometrageActuel) {
         this.kilometrageActuel = kilometrageActuel;
-    }
-
-    public String getDernierLieuDepose() {
-        return dernierLieuDepose;
     }
 
     public void setDernierLieuDepose(String dernierLieuDepose) {
@@ -220,7 +213,6 @@ public abstract class Vehicle {
         this.historiqueContrats.add(contrat);
     }
 
-
     // === Calendrier === a ne pas utiliser pour l'instant
     public boolean estDisponibleMap(LocalDate debut, LocalDate fin) {
         LocalDate d = debut;
@@ -235,13 +227,13 @@ public abstract class Vehicle {
     }
 
     // === Ajouter planning de disponibilité ===
-    public void addPlanningDispo(LocalDate debut, LocalDate fin){
-        for(Disponibilite d : planningDisponible){
-            if(d.chevauchement(debut, fin)){
+    public void addPlanningDispo(LocalDate debut, LocalDate fin) {
+        for (Disponibilite d : planningDisponible) {
+            if (d.chevauchement(debut, fin)) {
                 throw new IllegalArgumentException("Créneau déjà occupé");
             }
         }
-        planningDisponible.add(new Disponibilite(debut,fin));
+        planningDisponible.add(new Disponibilite(debut, fin));
     }
 
     // verifier la disponibilité dans planning
