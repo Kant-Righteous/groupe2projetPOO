@@ -18,16 +18,7 @@ public class InMemoryMaintenanceRepository implements MaintenanceRepository {
 
     @PostConstruct
     public void init() {
-        // Ajouter une entreprise de test référencée
-        MaintenanceCompany cleanCar = new MaintenanceCompany("CleanCar", "Jean", "password", "cleancar@test.com", "0123456789");
-        cleanCar.setEstRefere(true);
-        cleanCar.getGrilleTarifaire().add(new fr.miage.groupe2projetpoo.entity.entretien.MaintenancePrice(fr.miage.groupe2projetpoo.entity.vehicule.TypeVehicule.VOITURE, null, 40.0));
-        cleanCar.getGrilleTarifaire().add(new fr.miage.groupe2projetpoo.entity.entretien.MaintenancePrice(fr.miage.groupe2projetpoo.entity.vehicule.TypeVehicule.MOTO, null, 25.0));
-        saveCompany(cleanCar);
-
-        // Ajouter une autre entreprise non référencée pour tester
-        MaintenanceCompany dirtyWash = new MaintenanceCompany("DirtyWash", "Marc", "password", "dirtywash@test.com", "0987654321");
-        saveCompany(dirtyWash);
+        // Laisser vide pour permettre un test à partir de zéro comme demandé par l'utilisateur
     }
 
     @Override

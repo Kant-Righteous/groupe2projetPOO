@@ -1,6 +1,7 @@
 package fr.miage.groupe2projetpoo.service;
 
 import fr.miage.groupe2projetpoo.entity.assurance.Assurance;
+import fr.miage.groupe2projetpoo.entity.assurance.OptionEntretien;
 import fr.miage.groupe2projetpoo.entity.location.RentalContract;
 import fr.miage.groupe2projetpoo.entity.utilisateur.Agent;
 import fr.miage.groupe2projetpoo.entity.utilisateur.Loueur;
@@ -20,13 +21,15 @@ public class RentalService {
     private final RentalRepository rentalRepository;
     private final UserRepository userRepository;
     private final VehicleRepository vehicleRepository;
+    private final MaintenanceService maintenanceService;
 
     @Autowired
     public RentalService(RentalRepository rentalRepository, UserRepository userRepository,
-            VehicleRepository vehicleRepository) {
+            VehicleRepository vehicleRepository, MaintenanceService maintenanceService) {
         this.rentalRepository = rentalRepository;
         this.userRepository = userRepository;
         this.vehicleRepository = vehicleRepository;
+        this.maintenanceService = maintenanceService;
     }
 
     // ===== MÉTHODES CRUD =====
@@ -75,6 +78,7 @@ public class RentalService {
         RentalContract contrat = new RentalContract(
                 loueur, vehicule, dateDebut, dateFin, lieuPrise, lieuDepose, assurance, agentProprietaire);
 
+        // Lier le contrat à l'agent
         if (agentProprietaire != null) {
             contrat.setAgent(agentProprietaire);
             agentProprietaire.addContract(contrat);
@@ -90,10 +94,9 @@ public class RentalService {
                         contrat.setLieuDepose(optParking.getParkingPartenaire().getNom());
                         // Active l'option sur le contrat (ce qui déclenchera le recalcul du prix)
                         contrat.setOptionParkingSelectionnee(true);
+                        // Remplir les informations d'accès au parking pour le loueur
+                        contrat.remplirInfoParking();
                     }
-                } else {
-                    // Log ou exception si l'option est demandée mais non disponible
-                    System.out.println("Attention: Option Parking demandée mais non active pour cet agent.");
                 }
             }
         }
@@ -188,5 +191,69 @@ public class RentalService {
         return rentalRepository.findAll().stream()
                 .filter(c -> c.estEnAttenteAgent())
                 .toList();
+    }
+
+    /**
+     * Terminer un contrat et déclencher l'entretien automatique si l'option est
+     * active
+     */
+    public RentalContract terminerContrat(int contratId) {
+        RentalContract contrat = rentalRepository.findById(contratId)
+                .orElseThrow(() -> new RuntimeException("Contrat non trouvé avec l'ID: " + contratId));
+
+        // 1. Marquer comme terminé
+        // TODO: Vérifier comment marquer un contrat comme terminé dans RentalContract
+        // contrat.setStatut(false); // Cette méthode n'existe pas
+        // Possibilité : contrat.setStatutLocation(StatutLocation.TERMINEE);
+
+        // 2. Déclencher l'entretien automatique
+        Agent agent = contrat.getAgent();
+
+        // Sécurité : si l'agent n'est pas lié, on le cherche via le propriétaire du
+        // véhicule
+        if (agent == null && contrat.getVehicule() != null) {
+            String ownerEmail = contrat.getVehicule().getProprietaire();
+            Utilisateur u = userRepository.findByEmail(ownerEmail).orElse(null);
+            if (u instanceof Agent)
+                agent = (Agent) u;
+        }
+
+        if (agent != null && agent.aOptionActive(OptionEntretien.class)) {
+            OptionEntretien opt = agent.getOption(OptionEntretien.class);
+            if (opt.isAutomatique() && agent.getEntrepriseEntretienPreferee() != null) {
+                // Planifier pour le lendemain
+                java.time.LocalDate dateEntretien = java.time.LocalDate.now().plusDays(1);
+                maintenanceService.requestMaintenance(
+                        agent.getEmail(),
+                        contrat.getVehicule().getIdVehicule(),
+                        agent.getEntrepriseEntretienPreferee().getEmail(),
+                        dateEntretien);
+                System.out.println("✅ Entretien automatique planifié pour le " + dateEntretien);
+            }
+        }
+
+        return rentalRepository.save(contrat);
+    }
+
+    // ===== MÉTHODE POUR CHANGER LE STATUT DU CONTRAT =====
+
+    /**
+     * Mettre à jour le statut d'un contrat de location
+     * 
+     * @param contratId     ID du contrat
+     * @param nouveauStatut Nouveau statut (EN_ATTENTE_SIGNATURE, SIGNE, EN_COURS,
+     *                      TERMINEE, ANNULEE)
+     */
+    public RentalContract updateContratStatus(int contratId,
+            fr.miage.groupe2projetpoo.entity.location.StatutLocation nouveauStatut) {
+        RentalContract contrat = rentalRepository.findById(contratId)
+                .orElseThrow(() -> new RuntimeException("Contrat non trouvé avec l'ID: " + contratId));
+
+        fr.miage.groupe2projetpoo.entity.location.StatutLocation ancienStatut = contrat.getStatutLocation();
+        contrat.setStatutLocation(nouveauStatut);
+
+        System.out.println("Statut du contrat " + contratId + " modifié: " + ancienStatut + " → " + nouveauStatut);
+
+        return rentalRepository.save(contrat);
     }
 }

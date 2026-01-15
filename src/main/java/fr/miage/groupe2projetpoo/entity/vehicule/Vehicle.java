@@ -24,6 +24,11 @@ public abstract class Vehicle {
     private double prixVehiculeParJour;
     private String Proprietaire;
     private int kilometrageActuel; // US.A.11 et US.L.10
+
+    // Coordonnées GPS du véhicule (pour la recherche par proximité)
+    private Double latitude;
+    private Double longitude;
+
     // Maintenance (US.A.8, US.A.10)
     private ControleTechnique controleTechnique;
     private List<Entretien> historiqueEntretiens = new ArrayList<>();
@@ -97,11 +102,9 @@ public abstract class Vehicle {
         return Proprietaire;
     }
 
-    /*
-     * public Map<LocalDate, Boolean> getDisponibilites() {
-     * return disponibilites;
-     * }
-     */
+    public Map<LocalDate, Boolean> getDisponibilites() {
+        return disponibilites;
+    }
 
     public boolean getEstEnpause() {
         return estEnpause;
@@ -116,6 +119,9 @@ public abstract class Vehicle {
     }
 
     /********************** SETTER **********************/
+    public void setIdVehicule(String idV) {
+        this.idVehicule = idV;
+    }
 
     /*
      * public void setTypeVehicule(String type) {
@@ -167,7 +173,7 @@ public abstract class Vehicle {
     }
 
     /************************** Methodes ******************************/
-    // === Méthodes pour les notations ===
+    // Méthodes pour les notations
     public void ajouterNotation(NoteVehicule notation) {
         this.notations.add(notation);
     }
@@ -214,7 +220,8 @@ public abstract class Vehicle {
         this.historiqueContrats.add(contrat);
     }
 
-    // === Calendrier === (utilise la Map de disponibilités)
+
+    // === Calendrier === a ne pas utiliser pour l'instant
     public boolean estDisponibleMap(LocalDate debut, LocalDate fin) {
         LocalDate d = debut;
         while (!d.isAfter(fin)) {
@@ -228,17 +235,17 @@ public abstract class Vehicle {
     }
 
     // === Ajouter planning de disponibilité ===
-    public void addPlanningDispo(LocalDate debut, LocalDate fin) {
-        for (Disponibilite d : planningDisponible) {
-            if (d.chevauchement(debut, fin)) {
+    public void addPlanningDispo(LocalDate debut, LocalDate fin){
+        for(Disponibilite d : planningDisponible){
+            if(d.chevauchement(debut, fin)){
                 throw new IllegalArgumentException("Créneau déjà occupé");
             }
         }
-        planningDisponible.add(new Disponibilite(debut, fin));
+        planningDisponible.add(new Disponibilite(debut,fin));
     }
 
-    // Vérifier la disponibilité dans le planning
-    public boolean estDisponible(LocalDate debut, LocalDate fin) {
+    // verifier la disponibilité dans planning
+    public boolean estDisponiblePlanning(LocalDate debut, LocalDate fin) {
         for (Disponibilite d : planningDisponible) {
             if (d.chevauchement(debut, fin)) {
                 return false;
@@ -247,13 +254,61 @@ public abstract class Vehicle {
         return true;
     }
 
-    // Alias pour compatibilité
-    public boolean estDisponiblePlanning(LocalDate debut, LocalDate fin) {
-        return estDisponible(debut, fin);
-    }
-
-    // Supprimer un créneau du planning
+    // Suprimer Planning
     public void removeCreneauPlanning(int index) {
         planningDisponible.remove(index);
+    }
+
+    /**
+     * Récupère le dernier lieu de dépose du véhicule basé sur l'historique des
+     * contrats.
+     * Si aucun contrat terminé n'est trouvé, retourne la ville du véhicule.
+     */
+    public String getDernierLieuDepose() {
+        if (historiqueContrats == null || historiqueContrats.isEmpty()) {
+            return this.villeVehicule;
+        }
+
+        RentalContract dernierContrat = null;
+        for (RentalContract c : historiqueContrats) {
+            // On cherche le contrat terminé le plus récent
+            if (c.estTerminee()) {
+                if (dernierContrat == null || c.getDateFin().after(dernierContrat.getDateFin())) {
+                    dernierContrat = c;
+                }
+            }
+        }
+
+        if (dernierContrat != null) {
+            return dernierContrat.getLieuDepose();
+        }
+
+        return this.villeVehicule;
+    }
+
+    // === Coordonnées GPS ===
+
+    public Double getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(Double latitude) {
+        this.latitude = latitude;
+    }
+
+    public Double getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(Double longitude) {
+        this.longitude = longitude;
+    }
+
+    /**
+     * Définit les coordonnées GPS en une seule opération
+     */
+    public void setCoordonnees(double latitude, double longitude) {
+        this.latitude = latitude;
+        this.longitude = longitude;
     }
 }
