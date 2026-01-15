@@ -169,6 +169,12 @@ public class VehicleService {
         return v.estDisponibleMap(deb, fin);
     }
 
+    public void setvehiculeEnPause(String id,boolean status){
+        Vehicle v = vehiculeRepository.getVehiculeByID(id);
+        v.setEstEnpause(status);
+    }
+
+
     // -----------------------------------------------
     // Planning
     // -----------------------------------------------
