@@ -10,6 +10,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import fr.miage.groupe2projetpoo.entity.location.StatutLocation;
+
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -110,7 +112,8 @@ public class RentalController {
     }
 
     /**
-     * PUT /api/rentals/{id}/termine - Terminer une location (déclenche l'entretien auto si option active)
+     * PUT /api/rentals/{id}/termine - Terminer une location (déclenche l'entretien
+     * auto si option active)
      */
     @PutMapping("/{id}/termine")
     public ResponseEntity<?> terminerContrat(@PathVariable int id) {
@@ -287,6 +290,99 @@ public class RentalController {
                         "distanceParcourue",
                         contrat.calculerDistanceParcourue() != null ? contrat.calculerDistanceParcourue() + " km"
                                 : "Non disponible")))
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    // ===== ENDPOINT POUR CHANGER LE STATUT DU CONTRAT =====
+
+    /**
+     * PUT /api/rentals/{id}/status - Mettre à jour le statut d'un contrat
+     * 
+     * Body JSON:
+     * {
+     * "statutLocation": "TERMINEE"
+     * }
+     * 
+     * Valeurs possibles: EN_ATTENTE_SIGNATURE, SIGNE, EN_COURS, TERMINEE, ANNULEE
+     */
+    @PutMapping("/{id}/status")
+    public ResponseEntity<?> updateContratStatus(
+            @PathVariable int id,
+            @RequestBody Map<String, String> request) {
+        try {
+            String statutStr = request.get("statutLocation");
+            if (statutStr == null || statutStr.isBlank()) {
+                return ResponseEntity.badRequest().body(Map.of(
+                        "error", "Le champ 'statutLocation' est requis",
+                        "valeursAcceptees", "EN_ATTENTE_SIGNATURE, SIGNE, EN_COURS, TERMINEE, ANNULEE"));
+            }
+
+            StatutLocation nouveauStatut;
+            try {
+                nouveauStatut = StatutLocation.valueOf(statutStr.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                return ResponseEntity.badRequest().body(Map.of(
+                        "error", "Statut invalide: " + statutStr,
+                        "valeursAcceptees", "EN_ATTENTE_SIGNATURE, SIGNE, EN_COURS, TERMINEE, ANNULEE"));
+            }
+
+            RentalContract contrat = rentalService.updateContratStatus(id, nouveauStatut);
+
+            return ResponseEntity.ok(Map.of(
+                    "message", "Statut du contrat mis à jour avec succès",
+                    "contratId", id,
+                    "nouveauStatut", contrat.getStatutLocation().toString(),
+                    "contrat", contrat));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    // ===== ENDPOINT POUR LES INFORMATIONS PARKING VIENCI =====
+
+    /**
+     * GET /api/rentals/{id}/parking-info - Obtenir les informations d'accès au
+     * parking Vienci
+     * 
+     * Ce endpoint permet au loueur de recevoir les informations d'accès au parking
+     * partenaire (adresse, code, procédure) lors de la validation du contrat.
+     */
+    @GetMapping("/{id}/parking-info")
+    public ResponseEntity<?> getParkingInfo(@PathVariable int id) {
+        return rentalService.getContratById(id)
+                .map(contrat -> {
+                    if (!contrat.isOptionParkingSelectionnee()) {
+                        return ResponseEntity.ok(Map.of(
+                                "contratId", id,
+                                "parkingDisponible", false,
+                                "message", "Aucun parking partenaire associé à ce contrat"));
+                    }
+
+                    if (!contrat.hasParkingInfo()) {
+                        return ResponseEntity.ok(Map.of(
+                                "contratId", id,
+                                "parkingDisponible", false,
+                                "message", "Les informations du parking ne sont pas encore disponibles"));
+                    }
+
+                    return ResponseEntity.ok(Map.of(
+                            "contratId", id,
+                            "parkingDisponible", true,
+                            "parking", Map.of(
+                                    "nom", contrat.getParkingNom() != null ? contrat.getParkingNom() : "",
+                                    "adresse", contrat.getParkingAdresse() != null ? contrat.getParkingAdresse() : "",
+                                    "ville", contrat.getParkingVille() != null ? contrat.getParkingVille() : "",
+                                    "codeAcces",
+                                    contrat.getParkingCodeAcces() != null ? contrat.getParkingCodeAcces() : "",
+                                    "procedureAcces",
+                                    contrat.getParkingProcedureAcces() != null ? contrat.getParkingProcedureAcces()
+                                            : "",
+                                    "instructionsSpeciales",
+                                    contrat.getParkingInstructionsSpeciales() != null
+                                            ? contrat.getParkingInstructionsSpeciales()
+                                            : ""),
+                            "message", "Veuillez déposer le véhicule à ce parking pour bénéficier de la réduction"));
+                })
                 .orElse(ResponseEntity.notFound().build());
     }
 }

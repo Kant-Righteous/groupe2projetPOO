@@ -13,6 +13,11 @@ public abstract class Utilisateur {
     private String password;
     private String email;
     private String tel;
+    private String ville; // Ville de résidence de l'utilisateur
+
+    // Coordonnées GPS pour la géolocalisation
+    private Double latitude;
+    private Double longitude;
 
     public Utilisateur() {
     }
@@ -70,5 +75,37 @@ public abstract class Utilisateur {
 
     public void setTel(String tel) {
         this.tel = tel;
+    }
+
+    public String getVille() {
+        return ville;
+    }
+
+    public void setVille(String ville) {
+        this.ville = ville;
+    }
+
+    public Double getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(Double latitude) {
+        this.latitude = latitude;
+    }
+
+    public Double getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(Double longitude) {
+        this.longitude = longitude;
+    }
+
+    /**
+     * Définit les coordonnées GPS en une seule opération
+     */
+    public void setCoordonnees(double latitude, double longitude) {
+        this.latitude = latitude;
+        this.longitude = longitude;
     }
 }

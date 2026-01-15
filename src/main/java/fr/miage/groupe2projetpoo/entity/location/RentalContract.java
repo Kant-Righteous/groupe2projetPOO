@@ -57,6 +57,15 @@ public class RentalContract {
     // Statut du contrat de location (cycle de vie)
     private StatutLocation statutLocation = StatutLocation.EN_ATTENTE_SIGNATURE;
 
+    // Informations d'accès au parking Vienci (remplies lors de la validation si
+    // optionParking active)
+    private String parkingNom;
+    private String parkingAdresse;
+    private String parkingVille;
+    private String parkingCodeAcces;
+    private String parkingProcedureAcces;
+    private String parkingInstructionsSpeciales;
+
     // Constructeur par défaut (nécessaire pour Jackson JSON)
     public RentalContract() {
     }
@@ -385,7 +394,8 @@ public class RentalContract {
     }
 
     /**
-     * Applique une réduction sur la commission variable en fonction de la durée de location.
+     * Applique une réduction sur la commission variable en fonction de la durée de
+     * location.
      * US.A.7 - Réduction longue durée pour fidéliser les agents.
      * 
      * Barème de réduction sur la commission variable :
@@ -732,6 +742,90 @@ public class RentalContract {
             throw new IllegalStateException("Impossible d'annuler un contrat déjà terminé.");
         }
         this.statutLocation = StatutLocation.ANNULEE;
-        System.out.println("Contrat annulé. Statut: " + this.statutLocation);
+    }
+
+    // ===== GESTION DES INFORMATIONS PARKING VIENCI =====
+
+    /**
+     * Remplit les informations d'accès au parking partenaire Vienci.
+     * Cette méthode doit être appelée lors de la validation du contrat
+     * si l'option parking est sélectionnée.
+     */
+    public void remplirInfoParking() {
+        if (this.optionParkingSelectionnee && this.agent != null) {
+            fr.miage.groupe2projetpoo.entity.assurance.OptionParking optParking = this.agent
+                    .getOption(fr.miage.groupe2projetpoo.entity.assurance.OptionParking.class);
+
+            if (optParking != null && optParking.isEstActive()) {
+                fr.miage.groupe2projetpoo.entity.infrastructure.Parking parking = optParking.getParkingPartenaire();
+                if (parking != null) {
+                    this.parkingNom = parking.getNom();
+                    this.parkingAdresse = parking.getAdresse();
+                    this.parkingVille = parking.getVille();
+                    this.parkingCodeAcces = parking.getCodeAcces();
+                    this.parkingProcedureAcces = parking.getProcedureAcces();
+                    this.parkingInstructionsSpeciales = parking.getInstructionsSpeciales();
+                }
+            }
+        }
+    }
+
+    /**
+     * Vérifie si les informations de parking sont disponibles
+     */
+    public boolean hasParkingInfo() {
+        return this.parkingNom != null && !this.parkingNom.isEmpty();
+    }
+
+    // Getters pour les informations de parking
+
+    public String getParkingNom() {
+        return parkingNom;
+    }
+
+    public String getParkingAdresse() {
+        return parkingAdresse;
+    }
+
+    public String getParkingVille() {
+        return parkingVille;
+    }
+
+    public String getParkingCodeAcces() {
+        return parkingCodeAcces;
+    }
+
+    public String getParkingProcedureAcces() {
+        return parkingProcedureAcces;
+    }
+
+    public String getParkingInstructionsSpeciales() {
+        return parkingInstructionsSpeciales;
+    }
+
+    // Setters pour les informations de parking (si besoin de modification manuelle)
+
+    public void setParkingNom(String parkingNom) {
+        this.parkingNom = parkingNom;
+    }
+
+    public void setParkingAdresse(String parkingAdresse) {
+        this.parkingAdresse = parkingAdresse;
+    }
+
+    public void setParkingVille(String parkingVille) {
+        this.parkingVille = parkingVille;
+    }
+
+    public void setParkingCodeAcces(String parkingCodeAcces) {
+        this.parkingCodeAcces = parkingCodeAcces;
+    }
+
+    public void setParkingProcedureAcces(String parkingProcedureAcces) {
+        this.parkingProcedureAcces = parkingProcedureAcces;
+    }
+
+    public void setParkingInstructionsSpeciales(String parkingInstructionsSpeciales) {
+        this.parkingInstructionsSpeciales = parkingInstructionsSpeciales;
     }
 }

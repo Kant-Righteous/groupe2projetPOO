@@ -8,6 +8,11 @@ public class Parking {
     private int capacite;
     private double tarifJournalierAgent;
 
+    // Informations d'accès au parking (US Vienci)
+    private String codeAcces; // Code d'accès / digicode
+    private String procedureAcces; // Procédure d'accès détaillée
+    private String instructionsSpeciales; // Instructions spéciales (horaires, contact, etc.)
+
     // Constructeur complet
     public Parking(int idParking, String nom, String adresse, String ville, int capacite, double tarifJournalierAgent) {
         this.idParking = idParking;
@@ -82,11 +87,38 @@ public class Parking {
         this.tarifJournalierAgent = tarifJournalierAgent;
     }
 
+    // Getters et Setters pour les informations d'accès
+
+    public String getCodeAcces() {
+        return codeAcces;
+    }
+
+    public void setCodeAcces(String codeAcces) {
+        this.codeAcces = codeAcces;
+    }
+
+    public String getProcedureAcces() {
+        return procedureAcces;
+    }
+
+    public void setProcedureAcces(String procedureAcces) {
+        this.procedureAcces = procedureAcces;
+    }
+
+    public String getInstructionsSpeciales() {
+        return instructionsSpeciales;
+    }
+
+    public void setInstructionsSpeciales(String instructionsSpeciales) {
+        this.instructionsSpeciales = instructionsSpeciales;
+    }
+
     @Override
     public String toString() {
         return "Parking{" +
                 "id=" + idParking +
                 ", nom='" + nom + '\'' +
+                ", adresse='" + adresse + '\'' +
                 ", ville='" + ville + '\'' +
                 ", tarif=" + tarifJournalierAgent +
                 '}';
