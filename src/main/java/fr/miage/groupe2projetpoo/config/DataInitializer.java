@@ -55,13 +55,19 @@ public class DataInitializer {
                 // === 3. Créer les Loueurs ===
                 Loueur loueur1 = new Loueur("Bernard", "Luc", "123456", "loueur1@test.com", "0633333333",
                                 "FR7630001007941234567890185", "Bernard Auto");
+                loueur1.setVille("Paris"); // Ville de résidence pour suggestions de véhicules
+
                 Loueur loueur2 = new Loueur("Petit", "Sophie", "123456", "loueur2@test.com", "0644444444",
                                 "FR7630004000031234567890143", "Sophie Location");
+                loueur2.setVille("Marseille"); // Ville de résidence pour suggestions de véhicules
 
                 // Ajouter aussi les loueurs "Legacy" du RentalRepository pour éviter de casser
                 // des tests existants s'ils dépendent de ces noms
                 Loueur loueurJean = new Loueur("Dupont", "Jean", "pass123", "jean@email.com", "0601020304");
+                loueurJean.setVille("Lyon");
+
                 Loueur loueurMarie = new Loueur("Martin", "Marie", "pass456", "marie@email.com", "0605060708");
+                loueurMarie.setVille("Nice");
 
                 // Sauvegarder les users
                 userRepository.save(agentPart1);
@@ -76,44 +82,44 @@ public class DataInitializer {
                 // === 4. Créer les Véhicules ===
                 // Véhicules d'Alice
                 Voiture voiture1 = new Voiture("1", "Renault", "Bleu", "Clio", "Paris", 45.0, "alice@test.com", false);
+                voiture1.setCoordonnees(48.8566, 2.3522); // Paris centre
+
                 Voiture voiture2 = new Voiture("2", "Peugeot", "Noir", "308", "Lyon", 55.0, "alice@test.com", false);
+                voiture2.setCoordonnees(45.7640, 4.8357); // Lyon centre
 
                 // Véhicules de Bob
                 Voiture voiture3 = new Voiture("3", "BMW", "Blanc", "Serie 3", "Marseille", 85.0, "bob@test.com",
                                 false);
+                voiture3.setCoordonnees(43.2965, 5.3698); // Marseille centre
+
                 Moto moto1 = new Moto("4", "Yamaha", "Rouge", "MT-07", "Nice", 60.0, "bob@test.com", false);
+                moto1.setCoordonnees(43.7102, 7.2620); // Nice centre
 
                 // Véhicules de Durand SA
                 Voiture voiture4 = new Voiture("5", "Mercedes", "Gris", "Classe A", "Paris", 90.0,
-                                "enterprise1@test.com",
-                                false);
+                                "enterprise1@test.com", false);
+                voiture4.setCoordonnees(48.8738, 2.2950); // Paris 16e (La Défense)
+
                 Camion camion1 = new Camion("6", "Renault", "Blanc", "Master", "Paris", 120.0, "enterprise1@test.com",
                                 false);
+                camion1.setCoordonnees(48.9362, 2.3574); // Saint-Denis (près Paris)
+
                 Camion camion2 = new Camion("7", "Mercedes", "Jaune", "Sprinter", "Lyon", 135.0, "enterprise1@test.com",
                                 false);
+                camion2.setCoordonnees(45.7485, 4.8467); // Lyon Villeurbanne
 
                 // Véhicules de Moreau SARL
-                Moto moto2 = new Moto("8", "Honda", "Noir", "CB650R", "Bordeaux", 65.0, "bob@test.com", false); // Note:
-                                                                                                                // Code
-                                                                                                                // original
-                                                                                                                // avait
-                                                                                                                // bob@test.com
-                                                                                                                // pour
-                                                                                                                // moto2,
-                                                                                                                // je
-                                                                                                                // laisse
-                                                                                                                // tel
-                                                                                                                // quel.
+                Moto moto2 = new Moto("8", "Honda", "Noir", "CB650R", "Bordeaux", 65.0, "bob@test.com", false);
+                moto2.setCoordonnees(44.8378, -0.5792); // Bordeaux centre
 
                 // Véhicules "Legacy" de RentalRepository (V001, V002)
                 Voiture voitureV1 = new Voiture("V001", "Bleu", "Renault", "Clio", "Paris", 30.0, "jean@email.com",
-                                false); // Assigné
-                                        // à
-                                        // Jean
+                                false);
+                voitureV1.setCoordonnees(48.8606, 2.3376); // Paris Louvre
+
                 Voiture voitureV2 = new Voiture("V002", "Peugeot", "Noir", "3008", "Lyon", 50.0, "marie@email.com",
-                                false); // Assigné
-                                        // à
-                                        // Marie
+                                false);
+                voitureV2.setCoordonnees(45.7578, 4.8320); // Lyon Part-Dieu
 
                 vehicleRepository.save(voiture1);
                 vehicleRepository.save(voiture2);
@@ -144,6 +150,20 @@ public class DataInitializer {
                 // Option 2: Entretien automatique pour Durand SA
                 OptionEntretien optEntretien = new OptionEntretien(true);
                 agentPro1.ajouterOption(optEntretien);
+
+                // Option 3: Parking Vienci pour Bob (test US parking)
+                fr.miage.groupe2projetpoo.entity.infrastructure.Parking parkingVienci = new fr.miage.groupe2projetpoo.entity.infrastructure.Parking(
+                                1, "Vienci Parking Montparnasse", "15 Boulevard du Montparnasse", "Paris", 200, 8.0);
+                parkingVienci.setCodeAcces("4521#");
+                parkingVienci.setProcedureAcces(
+                                "1. Entrez le code 4521# sur le digicode à l'entrée\n2. Suivez les panneaux 'Location Véhicules'\n3. Garez le véhicule sur un emplacement marqué 'VIENCI'\n4. Déposez les clés dans la boîte aux lettres n°12");
+                parkingVienci.setInstructionsSpeciales(
+                                "Parking ouvert 24h/24. En cas de problème, contactez le 01 23 45 67 89.");
+
+                fr.miage.groupe2projetpoo.entity.assurance.OptionParking optParking = new fr.miage.groupe2projetpoo.entity.assurance.OptionParking(
+                                "Option Vienci Parking", 25.0, 7, 3, 5.0, parkingVienci);
+                optParking.setEstActive(true);
+                agentPart2.ajouterOption(optParking);
 
                 loueurJean.addVehicle(voitureV1); // C'est un loueur mais il agit comme agent ici dans l'ancien code ?
                 loueurMarie.addVehicle(voitureV2);

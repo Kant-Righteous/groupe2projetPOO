@@ -28,6 +28,11 @@ public abstract class Vehicle {
     private double prixVehiculeParJour;
     private String Proprietaire;
     private int kilometrageActuel; // US.A.11 et US.L.10
+
+    // Coordonnées GPS du véhicule (pour la recherche par proximité)
+    private Double latitude;
+    private Double longitude;
+
     // Maintenance (US.A.8, US.A.10)
     private ControleTechnique controleTechnique;
     private List<Entretien> historiqueEntretiens = new ArrayList<>();
@@ -210,7 +215,6 @@ public abstract class Vehicle {
         this.historiqueContrats.add(contrat);
     }
 
-
     // === Calendrier === a ne pas utiliser pour l'instant
     public boolean estDisponibleMap(LocalDate debut, LocalDate fin) {
         LocalDate d = debut;
@@ -225,19 +229,19 @@ public abstract class Vehicle {
     }
 
     // === Ajouter planning de disponibilité ===
-    public void addPlanningDispo(LocalDate debut, LocalDate fin){
-        for(Disponibilite d : planningDisponible){
-            if(d.chevauchement(debut, fin)){
+    public void addPlanningDispo(LocalDate debut, LocalDate fin) {
+        for (Disponibilite d : planningDisponible) {
+            if (d.chevauchement(debut, fin)) {
                 throw new IllegalArgumentException("Créneau déjà occupé");
             }
         }
-        planningDisponible.add(new Disponibilite(debut,fin));
+        planningDisponible.add(new Disponibilite(debut, fin));
     }
 
     // verifier la disponibilité dans planning
     public boolean estDisponiblePlanning(LocalDate debut, LocalDate fin) {
-        for(Disponibilite d: planningDisponible){
-            if(d.chevauchement(debut, fin)){
+        for (Disponibilite d : planningDisponible) {
+            if (d.chevauchement(debut, fin)) {
                 return false;
             }
         }
@@ -245,7 +249,7 @@ public abstract class Vehicle {
     }
 
     // Suprimer Planning
-    public void removeCreneauPlanning(int index){
+    public void removeCreneauPlanning(int index) {
         planningDisponible.remove(index);
     }
 
@@ -274,5 +278,31 @@ public abstract class Vehicle {
         }
 
         return this.villeVehicule;
+    }
+
+    // === Coordonnées GPS ===
+
+    public Double getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(Double latitude) {
+        this.latitude = latitude;
+    }
+
+    public Double getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(Double longitude) {
+        this.longitude = longitude;
+    }
+
+    /**
+     * Définit les coordonnées GPS en une seule opération
+     */
+    public void setCoordonnees(double latitude, double longitude) {
+        this.latitude = latitude;
+        this.longitude = longitude;
     }
 }

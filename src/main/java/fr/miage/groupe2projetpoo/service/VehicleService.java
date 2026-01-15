@@ -211,19 +211,152 @@ public class VehicleService {
         return vehiculeRepository.estDisponiblePlanning(idVehicule, debut, fin);
     }
 
-    // Mise ajour de la liste des disponibilités
-    /*
-     * public void upDateDisponibilites(String id, Map<String, Boolean> dispoRquest)
-     * {
-     * Vehicle v = vehiculeRepository.findById(id)
-     * .orElseThrow(() -> new IllegalArgumentException("Véhicule introuvable"));
-     * // Entry permet de recupere key + value
-     * for (Map.Entry<String, Boolean> keyVal : dispoRquest.entrySet()) {
-     * LocalDate date = LocalDate.parse(keyVal.getKey());
-     * Boolean dispo = keyVal.getValue();
-     * v.getDisponibilites().put(date, dispo);
-     * }
-     * }
+    // ===== VÉRIFICATION RÉDUCTION PARKING VIENCI =====
+
+    /**
+     * Vérifie si un véhicule bénéficie d'une réduction parking partenaire (Vienci).
+     * Retourne true si le propriétaire (Agent) a l'option OptionParking activée.
+     * 
+     * @param vehicule Le véhicule à vérifier
+     * @return true si réduction disponible, false sinon
      */
+    public boolean hasParkingReduction(Vehicle vehicule) {
+        if (vehicule == null || vehicule.getProprietaire() == null) {
+            return false;
+        }
+
+        Optional<Utilisateur> userOpt = userRepository.findByEmail(vehicule.getProprietaire());
+        if (userOpt.isEmpty() || !(userOpt.get() instanceof Agent)) {
+            return false;
+        }
+
+        Agent agent = (Agent) userOpt.get();
+        fr.miage.groupe2projetpoo.entity.assurance.OptionParking optParking = agent
+                .getOption(fr.miage.groupe2projetpoo.entity.assurance.OptionParking.class);
+
+        return optParking != null && optParking.isEstActive() && optParking.getParkingPartenaire() != null;
+    }
+
+    /**
+     * Retourne le taux de réduction parking si disponible.
+     * 
+     * @param vehicule Le véhicule à vérifier
+     * @return Le taux de réduction (ex: 0.20 pour 20%), ou 0 si pas de réduction
+     */
+    public double getParkingReductionRate(Vehicle vehicule) {
+        if (vehicule == null || vehicule.getProprietaire() == null) {
+            return 0;
+        }
+
+        Optional<Utilisateur> userOpt = userRepository.findByEmail(vehicule.getProprietaire());
+        if (userOpt.isEmpty() || !(userOpt.get() instanceof Agent)) {
+            return 0;
+        }
+
+        Agent agent = (Agent) userOpt.get();
+        fr.miage.groupe2projetpoo.entity.assurance.OptionParking optParking = agent
+                .getOption(fr.miage.groupe2projetpoo.entity.assurance.OptionParking.class);
+
+        if (optParking != null && optParking.isEstActive()) {
+            return optParking.getTauxReduction();
+        }
+        return 0;
+    }
+
+    // ===== RECOMMANDATION DE VÉHICULES PAR PROXIMITÉ (GPS) =====
+
+    // Rayon de la Terre en km
+    private static final double EARTH_RADIUS_KM = 6371.0;
+
+    /**
+     * Calcule la distance entre deux points GPS en utilisant la formule Haversine.
+     * 
+     * @return Distance en kilomètres
+     */
+    public double calculerDistanceHaversine(double lat1, double lon1, double lat2, double lon2) {
+        double dLat = Math.toRadians(lat2 - lat1);
+        double dLon = Math.toRadians(lon2 - lon1);
+
+        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2)
+                + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
+                        * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+        return EARTH_RADIUS_KM * c;
+    }
+
+    /**
+     * Trouve les véhicules disponibles dans un rayon donné autour d'un point GPS.
+     * 
+     * @param latitude  Latitude de l'utilisateur
+     * @param longitude Longitude de l'utilisateur
+     * @param rayonKm   Rayon de recherche en km
+     * @return Liste des véhicules proches avec leur distance
+     */
+    public List<java.util.Map<String, Object>> getVehiculesProchesGPS(double latitude, double longitude, int rayonKm) {
+        List<Vehicle> tousVehicules = vehiculeRepository.findByEnPause();
+        List<java.util.Map<String, Object>> resultats = new java.util.ArrayList<>();
+
+        for (Vehicle v : tousVehicules) {
+            // Vérifier si le véhicule a des coordonnées GPS
+            if (v.getLatitude() != null && v.getLongitude() != null) {
+                double distance = calculerDistanceHaversine(
+                        latitude, longitude,
+                        v.getLatitude(), v.getLongitude());
+
+                if (distance <= rayonKm) {
+                    java.util.Map<String, Object> vehiculeAvecDistance = new java.util.HashMap<>();
+                    vehiculeAvecDistance.put("vehicule", v);
+                    vehiculeAvecDistance.put("distanceKm", Math.round(distance * 10.0) / 10.0);
+                    resultats.add(vehiculeAvecDistance);
+                }
+            }
+        }
+
+        // Trier par distance croissante
+        resultats.sort((a, b) -> Double.compare(
+                (Double) a.get("distanceKm"),
+                (Double) b.get("distanceKm")));
+
+        return resultats;
+    }
+
+    /**
+     * Trouve les véhicules disponibles à proximité (compatible avec l'ancienne
+     * API).
+     * Utilise GPS si disponible, sinon fallback sur le nom de ville.
+     */
+    public List<Vehicle> getVehiculesProches(String villeUtilisateur, int rayonKm) {
+        if (villeUtilisateur == null || villeUtilisateur.isBlank()) {
+            throw new IllegalArgumentException("La ville de l'utilisateur doit être renseignée");
+        }
+
+        List<Vehicle> tousVehicules = vehiculeRepository.findByEnPause();
+        if (tousVehicules.isEmpty()) {
+            return new java.util.ArrayList<>();
+        }
+
+        List<Vehicle> vehiculesProches = new java.util.ArrayList<>();
+        String villeNormalisee = normaliserVille(villeUtilisateur);
+
+        for (Vehicle v : tousVehicules) {
+            String villeVehicule = normaliserVille(v.getVilleVehicule());
+
+            // Correspondance exacte de ville
+            if (villeNormalisee.equalsIgnoreCase(villeVehicule)) {
+                vehiculesProches.add(v);
+            }
+        }
+
+        return vehiculesProches;
+    }
+
+    private String normaliserVille(String ville) {
+        if (ville == null || ville.isBlank())
+            return "";
+        String trimmed = ville.trim();
+        return trimmed.substring(0, 1).toUpperCase() + trimmed.substring(1).toLowerCase();
+    }
 
 }
