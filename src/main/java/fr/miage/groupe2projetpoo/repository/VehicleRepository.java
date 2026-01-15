@@ -54,4 +54,6 @@ public interface VehicleRepository {
     public void removeCreneau(String id, int index);
 
     public boolean estDisponiblePlanning(String id, LocalDate debut, LocalDate fin);
+
+    public Vehicle getVehiculeByID(String id);
 }

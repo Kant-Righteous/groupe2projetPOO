@@ -83,7 +83,7 @@ public class RentalService {
             contrat.setAgent(agentProprietaire);
             agentProprietaire.addContract(contrat);
 
-            // GESTION OPTION PARKING (Vienci)
+            // GESTION OPTION PARKING
             if (avecOptionParking) {
                 fr.miage.groupe2projetpoo.entity.assurance.OptionParking optParking = agentProprietaire
                         .getOption(fr.miage.groupe2projetpoo.entity.assurance.OptionParking.class);
@@ -157,7 +157,7 @@ public class RentalService {
     }
 
     public List<Vehicle> getTousLesVehicules() {
-        return new ArrayList<>(vehicleRepository.findAll());
+        return (List<Vehicle>) vehicleRepository.findAll();
     }
 
     public List<Assurance> getToutesLesAssurances() {

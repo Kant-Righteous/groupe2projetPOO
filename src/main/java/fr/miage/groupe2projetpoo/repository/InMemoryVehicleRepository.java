@@ -34,6 +34,14 @@ public class InMemoryVehicleRepository implements VehicleRepository {
         return vehicules.values();
     }
 
+    // get vehicule by id
+    @Override
+    public Vehicle getVehiculeByID(String id) {
+        return vehicules.get(id);
+    }
+
+
+
     /***************************** Filtre ************************************/
 
     // Chercher par ID
@@ -174,4 +182,6 @@ public class InMemoryVehicleRepository implements VehicleRepository {
         }
         return v.estDisponiblePlanning(debut, fin);
     }
+
+
 }
