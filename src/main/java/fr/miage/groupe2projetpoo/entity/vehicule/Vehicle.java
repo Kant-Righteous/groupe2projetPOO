@@ -9,17 +9,13 @@ import java.util.*;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import fr.miage.groupe2projetpoo.entity.utilisateur.Agent;
-import org.slf4j.spi.LocationAwareLogger;
-import org.springframework.beans.propertyeditors.LocaleEditor;
-import org.springframework.cglib.core.Local;
 
 import java.time.LocalDate;
 import java.util.List;
 
 public abstract class Vehicle {
     // Propriétés
-    private String idVehicule;
-    // private String typeVehicule;
+    private final String idVehicule;
     private String marqueVehicule;
     private String couleurVehicule;
     private String modeleVehicule;
@@ -42,6 +38,7 @@ public abstract class Vehicle {
     private List<RentalContract> historiqueContrats = new ArrayList<>();
     private List<NoteVehicule> notations = new ArrayList<>();
     private List<Disponibilite> planningDisponible = new ArrayList<>();
+    private String dernierLieuDepose; // Dernier lieu où le véhicule a été déposé
 
     // Constructeur
     public Vehicle(String idVehicule, String marqueVehicule,
@@ -122,9 +119,6 @@ public abstract class Vehicle {
     }
 
     /********************** SETTER **********************/
-    public void setIdVehicule(String idV) {
-        this.idVehicule = idV;
-    }
 
     /*
      * public void setTypeVehicule(String type) {
@@ -165,6 +159,10 @@ public abstract class Vehicle {
 
     public void setKilometrageActuel(int kilometrageActuel) {
         this.kilometrageActuel = kilometrageActuel;
+    }
+
+    public void setDernierLieuDepose(String dernierLieuDepose) {
+        this.dernierLieuDepose = dernierLieuDepose;
     }
 
     /************************** Methodes ******************************/

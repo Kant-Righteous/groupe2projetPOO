@@ -19,6 +19,7 @@ import java.time.LocalDate;
 import java.util.*;
 
 @Configuration
+// Trigger rebuild
 public class DataInitializer {
 
         private final UserRepository userRepository;

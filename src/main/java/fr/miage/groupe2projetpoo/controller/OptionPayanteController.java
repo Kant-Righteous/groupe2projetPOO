@@ -3,14 +3,7 @@ package fr.miage.groupe2projetpoo.controller;
 import fr.miage.groupe2projetpoo.entity.assurance.*;
 import fr.miage.groupe2projetpoo.entity.utilisateur.Agent;
 import fr.miage.groupe2projetpoo.entity.utilisateur.Utilisateur;
-import fr.miage.groupe2projetpoo.entity.utilisateur.Role;
-import fr.miage.groupe2projetpoo.entity.utilisateur.Loueur;
 import fr.miage.groupe2projetpoo.service.UserService;
-import fr.miage.groupe2projetpoo.service.RentalService;
-import fr.miage.groupe2projetpoo.entity.vehicule.Vehicle;
-import fr.miage.groupe2projetpoo.entity.vehicule.Voiture;
-import fr.miage.groupe2projetpoo.repository.VehicleRepository;
-import fr.miage.groupe2projetpoo.entity.location.RentalContract;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,14 +17,9 @@ import java.util.*;
 public class OptionPayanteController {
 
     private final UserService userService;
-    private final RentalService rentalService;
-    private final VehicleRepository vehicleRepository;
 
-    public OptionPayanteController(UserService userService, RentalService rentalService,
-            VehicleRepository vehicleRepository) {
+    public OptionPayanteController(UserService userService) {
         this.userService = userService;
-        this.rentalService = rentalService;
-        this.vehicleRepository = vehicleRepository;
     }
 
     // Méthode utilitaire pour récupérer un agent
@@ -111,15 +99,6 @@ public class OptionPayanteController {
                 option = new OptionEntretien(true);
                 message = "Option Entretien Automatique ajoutée";
                 break;
-            case "PARKING":
-                // Création d'un parking fictif pour le test
-                fr.miage.groupe2projetpoo.entity.infrastructure.Parking parking = new fr.miage.groupe2projetpoo.entity.infrastructure.Parking(
-                        999, "Vienci Montpellier", "Montpellier", 15.0);
-                OptionParking optP = new OptionParking("Vienci Partenaire", 20.0, 7, 30, 0.0, parking);
-                optP.setTauxReduction(0.20); // 20%
-                option = optP;
-                message = "Option Parking (Vienci) ajoutée";
-                break;
             default:
                 return ResponseEntity.badRequest().body(Map.of("message",
                         "Type d'option invalide (MANUEL, ASSURANCE, ENTRETIEN_PONCTUEL, ENTRETIEN_AUTO)"));
@@ -184,82 +163,5 @@ public class OptionPayanteController {
                 "nombreOptions", agent.getOptionsPayantes().size(),
                 "details", details,
                 "totalFacture", total));
-    }
-
-    /**
-     * POST /api/options/test-contrat-assurance - Créer un contrat de test pour
-     * vérifier l'exception d'assurance personnalisée
-     */
-    @PostMapping("/test-contrat-assurance")
-    public ResponseEntity<Map<String, Object>> testContratAssurance(@RequestBody Map<String, String> request) {
-        String agentEmail = request.get("agentEmail");
-
-        // 1. Récupérer l'agent
-        Agent agent = getAgent(agentEmail);
-        if (agent == null)
-            return ResponseEntity.badRequest().body(Map.of("message", "Agent introuvable"));
-
-        // 2. S'assurer que l'agent a un véhicule
-        Vehicle vehicule = null;
-        if (agent.getVehicleList().isEmpty()) {
-            // Créer un véhicule factice
-            vehicule = new Voiture("V_TEST_" + System.currentTimeMillis(), "Peugeot", "Noir", "208", "Paris", 30.0,
-                    agent.getEmail(), false);
-            vehicleRepository.save(vehicule);
-            agent.addVehicle(vehicule);
-            // Note: userService.updateUser(agent) n'existe pas, mais en mémoire c'est bon
-        } else {
-            vehicule = agent.getVehicleList().get(0);
-        }
-
-        // 3. Récupérer ou créer un loueur de test
-        String loueurEmail = "loueur.test@demo.com";
-        Optional<Utilisateur> loueurOpt = userService.findByEmail(loueurEmail);
-        if (loueurOpt.isEmpty()) {
-            userService.register("Loueur", "Test", "pass123", loueurEmail, "0600000000", Role.LOUEUR);
-        }
-
-        try {
-            // 4. Créer un contrat avec "Assurance Basic" demandée
-            // Si l'agent a l'option perso, c'est celle-ci qui devrait être appliquée par le
-            // RentalService/RentalContract
-            RentalContract contrat = rentalService.creerContrat(
-                    loueurEmail,
-                    vehicule.getIdVehicule(),
-                    new Date(),
-                    new Date(System.currentTimeMillis() + 86400000 * 5), // +5 jours
-                    "Paris", "Lyon",
-                    "Assurance Basic",
-                    false);
-
-            // 5. Renvoyer les résultats
-            boolean aOption = agent.aAssurancePersonnalisee();
-            String assuranceNom = contrat.getAssurance().getNom();
-            boolean succesOp = aOption ? !assuranceNom.equals("Assurance Basic")
-                    : assuranceNom.equals("Assurance Basic");
-
-            Map<String, Object> response = new LinkedHashMap<>();
-            response.put("message", "Test création contrat terminé");
-            response.put("agentEmail", agent.getEmail());
-            response.put("agentAOption", aOption);
-            response.put("assuranceDemandee", "Assurance Basic");
-            response.put("assuranceObtenue", assuranceNom);
-            response.put("testReussi", succesOp);
-            response.put("coutTotal", contrat.getPrixTotal());
-
-            if (aOption) {
-                response.put("infoOption", "L'agent a l'option perso, donc 'Assurance Basic' a dû être remplacée par '"
-                        + agent.getAssurancePersonnalisee().getNom() + "'");
-            } else {
-                response.put("infoOption",
-                        "L'agent n'a pas l'option, donc le loueur a bien eu l'assurance demandée.");
-            }
-
-            return ResponseEntity.ok(response);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
-        }
     }
 }
