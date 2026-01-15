@@ -108,6 +108,30 @@ public class VehicleController {
 
     }
 
+    // Modifier status de vehicule
+    @PutMapping("/updateEstEnPause")
+    public ResponseEntity<?> updateVehiculeEnPause(@RequestBody Map<String, String> request) {
+        try {
+            String id = request.get("idVehicule");
+            boolean estEnPause = Boolean.parseBoolean(request.get("estEnPause"));
+            vehicleService.setvehiculeEnPause(id, estEnPause);
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "Statut de pause modifié avec succès",
+                    "idVehicule", id,
+                    "estEnPause", estEnPause));
+        }catch(IllegalArgumentException e){
+            return ResponseEntity.status(404).body(Map.of(
+                    "success", false,
+                    "message", e.getMessage()));
+        }
+    }
+
+
+
+
+
+
     // voir tout les vehicules
     @GetMapping("/all")
     public ResponseEntity<?> getAllVehicules() {

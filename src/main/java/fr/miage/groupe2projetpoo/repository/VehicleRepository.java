@@ -55,4 +55,5 @@ public interface VehicleRepository {
 
     public boolean estDisponiblePlanning(String id, LocalDate debut, LocalDate fin);
 
+    public Vehicle getVehiculeByID(String id);
 }
