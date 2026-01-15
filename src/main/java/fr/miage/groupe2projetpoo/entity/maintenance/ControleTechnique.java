@@ -9,15 +9,38 @@ import java.time.LocalDate;
 public class ControleTechnique {
 
     private LocalDate datePassage;
+    private LocalDate dateExpiration; // Date d'expiration du CT (généralement 2 ans après passage)
     private boolean estValide; // true = OK, false = Contre-visite requise
     private String centreControle;
     private String remarques;
+    private String resultat; // "Favorable", "Défavorable", "Contre-visite"
+    private String observations; // Observations du contrôleur
 
+    // Constructeur complet
     public ControleTechnique(LocalDate datePassage, boolean estValide, String centreControle, String remarques) {
         this.datePassage = datePassage;
         this.estValide = estValide;
         this.centreControle = centreControle;
         this.remarques = remarques;
+        // Par défaut, expiration = 2 ans après passage
+        this.dateExpiration = datePassage.plusYears(2);
+        this.resultat = estValide ? "Favorable" : "Défavorable";
+    }
+
+    // Constructeur simplifié
+    public ControleTechnique() {
+        this.estValide = true;
+    }
+
+    /**
+     * Vérifie si le contrôle technique est expiré
+     * @return true si la date d'expiration est dépassée
+     */
+    public boolean estExpire() {
+        if (dateExpiration == null) {
+            return true; // Pas de date d'expiration = expiré
+        }
+        return LocalDate.now().isAfter(dateExpiration);
     }
 
     public boolean estAjour() {
@@ -32,6 +55,14 @@ public class ControleTechnique {
 
     public void setDatePassage(LocalDate datePassage) {
         this.datePassage = datePassage;
+    }
+
+    public LocalDate getDateExpiration() {
+        return dateExpiration;
+    }
+
+    public void setDateExpiration(LocalDate dateExpiration) {
+        this.dateExpiration = dateExpiration;
     }
 
     public boolean isEstValide() {
@@ -56,5 +87,21 @@ public class ControleTechnique {
 
     public void setRemarques(String remarques) {
         this.remarques = remarques;
+    }
+
+    public String getResultat() {
+        return resultat;
+    }
+
+    public void setResultat(String resultat) {
+        this.resultat = resultat;
+    }
+
+    public String getObservations() {
+        return observations;
+    }
+
+    public void setObservations(String observations) {
+        this.observations = observations;
     }
 }
