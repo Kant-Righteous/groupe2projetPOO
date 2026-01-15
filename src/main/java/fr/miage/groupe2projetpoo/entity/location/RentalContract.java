@@ -414,18 +414,12 @@ public class RentalContract {
         if (nbJours >= 30) {
             // Location mensuelle : -15% sur la commission
             this.commissionPourcentage = 0.10 * 0.85; // 10% × 85% = 8.5%
-            System.out.println("✅ Réduction longue durée appliquée : -15% (location ≥30 jours)");
-            System.out.println("   Commission variable : 10% → 8.5%");
         } else if (nbJours >= 14) {
             // Location bi-hebdomadaire : -10% sur la commission
             this.commissionPourcentage = 0.10 * 0.90; // 10% × 90% = 9%
-            System.out.println("✅ Réduction longue durée appliquée : -10% (location ≥14 jours)");
-            System.out.println("   Commission variable : 10% → 9%");
         } else if (nbJours >= 7) {
             // Location hebdomadaire : -5% sur la commission
             this.commissionPourcentage = 0.10 * 0.95; // 10% × 95% = 9.5%
-            System.out.println("✅ Réduction longue durée appliquée : -5% (location ≥7 jours)");
-            System.out.println("   Commission variable : 10% → 9.5%");
         }
         // Sinon (< 7 jours), pas de réduction : commission reste à 10%
     }
@@ -474,13 +468,11 @@ public class RentalContract {
         // CAS 1 : Agent a l'option Parking active
         OptionParking optParking = this.agent.getOption(OptionParking.class);
         if (optParking != null && optParking.isEstActive()) {
-            System.out.println("✅ Dépose différente autorisée (Option Parking active)");
             return;
         }
         
         // CAS 2 : Agent est professionnel
         if (this.agent instanceof AgentProfessionnel) {
-            System.out.println("✅ Dépose différente autorisée (Agent Professionnel)");
             return;
         }
         
