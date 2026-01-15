@@ -2,8 +2,10 @@ package fr.miage.groupe2projetpoo.entity.location;
 
 import fr.miage.groupe2projetpoo.entity.assurance.Assurance;
 import fr.miage.groupe2projetpoo.entity.assurance.OptionAcceptationManuelle;
+import fr.miage.groupe2projetpoo.entity.assurance.OptionParking;
 import fr.miage.groupe2projetpoo.entity.maintenance.ControleTechnique;
 import fr.miage.groupe2projetpoo.entity.utilisateur.Agent;
+import fr.miage.groupe2projetpoo.entity.utilisateur.AgentProfessionnel;
 import fr.miage.groupe2projetpoo.entity.utilisateur.Loueur;
 import fr.miage.groupe2projetpoo.entity.vehicule.Vehicle;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -265,7 +267,10 @@ public class RentalContract {
             this.assurance = assurance;
         }
 
-        // 3. Initialisation automatique des champs système
+        // 3. Validation des lieux de prise et dépose (US.L.2)
+        validerLieuxPriseDepose();
+
+        // 4. Initialisation automatique des champs système
         this.dateCréationContrat = new Date();
         this.statut = false;
         this.SignatureLoueur = false;
@@ -274,7 +279,7 @@ public class RentalContract {
         this.dateSignatureAgent = null;
         this.fichierPDF = null;
 
-        // 4. Calcul automatique des montants
+        // 5. Calcul automatique des montants
         this.calculerPrix();
     }
 
@@ -441,6 +446,49 @@ public class RentalContract {
 
     public String getDetailsReduction() {
         return detailsReduction;
+    }
+
+    /**
+     * Valide que le lieu de dépose est autorisé (US.L.2).
+     * 
+     * Règle simplifiée :
+     * - Si option parking active OU agent professionnel → lieu dépose peut être différent
+     * - Sinon → lieu dépose DOIT être identique au lieu de prise
+     * 
+     * @throws IllegalStateException si le lieu de dépose n'est pas autorisé
+     */
+    private void validerLieuxPriseDepose() {
+        // Si même lieu, toujours OK
+        if (this.lieuPrise.equalsIgnoreCase(this.lieuDepose)) {
+            return;
+        }
+        
+        // Si lieux différents, vérifier les autorisations
+        if (this.agent == null) {
+            throw new IllegalStateException(
+                "❌ Lieu de dépose différent non autorisé sans agent. " +
+                "Choisissez le même lieu : '" + this.lieuPrise + "'"
+            );
+        }
+        
+        // CAS 1 : Agent a l'option Parking active
+        OptionParking optParking = this.agent.getOption(OptionParking.class);
+        if (optParking != null && optParking.isEstActive()) {
+            System.out.println("✅ Dépose différente autorisée (Option Parking active)");
+            return;
+        }
+        
+        // CAS 2 : Agent est professionnel
+        if (this.agent instanceof AgentProfessionnel) {
+            System.out.println("✅ Dépose différente autorisée (Agent Professionnel)");
+            return;
+        }
+        
+        // Aucune autorisation → ERREUR
+        throw new IllegalStateException(
+            "❌ Le lieu de dépose '" + this.lieuDepose + "' doit être identique au lieu de prise '" + this.lieuPrise + "'.\n" +
+            "Pour déposer ailleurs, activez l'option Parking Vienci ou utilisez un agent professionnel."
+        );
     }
 
     /**

@@ -185,28 +185,28 @@ public class DataInitializer {
                 cal.add(Calendar.DAY_OF_MONTH, -5);
                 Date fiveDaysAgo = cal.getTime();
 
-                // Contrat 1: Loueur1 loue voiture1 (Alice)
-                RentalContract contract1 = new RentalContract(loueur1, voiture1, today_date, nextWeek,
-                                "Paris - Gare du Nord",
-                                "Paris - Aéroport CDG", assuranceBasic);
+                // Contrat 1: Loueur1 loue voiture1 (Alice) - Même lieu
+        RentalContract contract1 = new RentalContract(loueur1, voiture1, today_date, nextWeek,
+                        "Paris - Gare du Nord",
+                        "Paris - Gare du Nord", assuranceBasic, agentPart1);
                 contract1.setIdC(1);
 
-                // Contrat 2: Loueur2 loue voiture3 (Bob)
-                RentalContract contract2 = new RentalContract(loueur2, voiture3, fiveDaysAgo, today_date,
-                                "Marseille Centre",
-                                "Marseille Aéroport", assuranceComplete);
+                // Contrat 2: Loueur2 loue voiture3 (Bob) - Même lieu
+        RentalContract contract2 = new RentalContract(loueur2, voiture3, fiveDaysAgo, today_date,
+                        "Marseille Centre",
+                        "Marseille Centre", assuranceComplete, agentPart2);
                 contract2.setIdC(2);
                 contract2.setStatut(true);
 
-                // Contrat 3: Loueur1 loue camion1 (Durand SA)
-                RentalContract contract3 = new RentalContract(loueur1, camion1, today_date, twoWeeksLater,
-                                "Paris - Entrepôt",
-                                "Lyon - Centre", assurancePremium);
+                // Contrat 3: Loueur1 loue camion1 (Durand SA) - Agent Pro → lieux différents OK
+        RentalContract contract3 = new RentalContract(loueur1, camion1, today_date, twoWeeksLater,
+                        "Paris - Entrepôt",
+                        "Lyon - Centre", assurancePremium, agentPro1);
                 contract3.setIdC(3);
 
-                // Contrat 4: Loueur2 loue moto2 (Moreau SARL)
-                RentalContract contract4 = new RentalContract(loueur2, moto2, nextWeek, twoWeeksLater,
-                                "Bordeaux - Centre Ville", "Bordeaux - Gare", assuranceBasic);
+                // Contrat 4: Loueur2 loue moto2 (Moreau SARL) - Même lieu
+        RentalContract contract4 = new RentalContract(loueur2, moto2, nextWeek, twoWeeksLater,
+                        "Bordeaux - Centre Ville", "Bordeaux - Centre Ville", assuranceBasic, agentPro2);
                 contract4.setIdC(4);
 
                 rentalRepository.save(contract1);
@@ -222,7 +222,7 @@ public class DataInitializer {
                 Date historyEnd = calHist.getTime();
 
                 RentalContract contractHistorique = new RentalContract(loueur1, voiture1, historyStart, historyEnd,
-                                "Paris - Centre", "Paris - Gare", assuranceBasic);
+                        "Paris - Centre", "Paris - Centre", assuranceBasic, agentPart1);
                 contractHistorique.setIdC(100);
                 contractHistorique.setStatut(true);
                 contractHistorique.setSignatureLoueur(true);
