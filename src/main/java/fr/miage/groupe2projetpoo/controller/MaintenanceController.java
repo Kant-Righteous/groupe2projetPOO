@@ -86,4 +86,50 @@ public class MaintenanceController {
                 "vehicule", v.getModeleVehicule(),
                 "historique", v.getHistoriqueEntretiens());
     }
+
+    /**
+     * Endpoint pour obtenir l'historique des maintenances
+     */
+    @GetMapping("/historique")
+    public Map<String, Object> getHistoriqueMaintenance() {
+        // Création d'un véhicule de démonstration avec historique
+        Vehicle v = new Voiture("DEMO-01", "Toyota", "Grise", "Yaris", "Paris", 40.0, "demo@test.com", false);
+
+        // Ajout d'entretiens de démonstration
+        fr.miage.groupe2projetpoo.entity.maintenance.Entretien e1 = new fr.miage.groupe2projetpoo.entity.maintenance.Entretien(
+                "Vidange huile moteur", LocalDate.now().minusMonths(3), 45000, 89.0, "Speedy");
+
+        fr.miage.groupe2projetpoo.entity.maintenance.Entretien e2 = new fr.miage.groupe2projetpoo.entity.maintenance.Entretien(
+                "Remplacement plaquettes de frein", LocalDate.now().minusMonths(6), 42000, 180.0, "Midas");
+
+        fr.miage.groupe2projetpoo.entity.maintenance.Entretien e3 = new fr.miage.groupe2projetpoo.entity.maintenance.Entretien(
+                "Révision complète", LocalDate.now().minusYears(1), 30000, 450.0, "Toyota Garage");
+
+        v.getHistoriqueEntretiens().add(e1);
+        v.getHistoriqueEntretiens().add(e2);
+        v.getHistoriqueEntretiens().add(e3);
+
+        // Contrôle technique
+        v.setControleTechnique(new ControleTechnique(LocalDate.now().minusMonths(8), true, "Dekra", "RAS"));
+
+        // Utiliser des HashMap pour éviter les limitations de Map.of avec les Maps imbriqués
+        java.util.HashMap<String, Object> result = new java.util.HashMap<>();
+        
+        java.util.HashMap<String, Object> vehiculeInfo = new java.util.HashMap<>();
+        vehiculeInfo.put("id", v.getIdVehicule());
+        vehiculeInfo.put("marque", v.getMarqueVehicule());
+        vehiculeInfo.put("modele", v.getModeleVehicule());
+        vehiculeInfo.put("kilometrage", v.getKilometrageActuel());
+        
+        java.util.HashMap<String, Object> ctInfo = new java.util.HashMap<>();
+        ctInfo.put("date", v.getControleTechnique().getDatePassage().toString());
+        ctInfo.put("valide", v.getControleTechnique().isEstValide());
+        ctInfo.put("centre", v.getControleTechnique().getCentreControle());
+        
+        result.put("vehicule", vehiculeInfo);
+        result.put("historique_entretiens", v.getHistoriqueEntretiens());
+        result.put("controle_technique", ctInfo);
+        
+        return result;
+    }
 }
