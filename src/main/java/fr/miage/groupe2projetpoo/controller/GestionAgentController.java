@@ -9,16 +9,21 @@ import fr.miage.groupe2projetpoo.entity.maintenance.ControleTechnique;
 import fr.miage.groupe2projetpoo.entity.utilisateur.Agent;
 import fr.miage.groupe2projetpoo.entity.utilisateur.AgentParticulier;
 import fr.miage.groupe2projetpoo.entity.utilisateur.Loueur;
+import fr.miage.groupe2projetpoo.entity.utilisateur.Utilisateur;
 import fr.miage.groupe2projetpoo.entity.vehicule.Vehicle;
 import fr.miage.groupe2projetpoo.entity.vehicule.Voiture;
+import fr.miage.groupe2projetpoo.repository.UserRepository;
 import fr.miage.groupe2projetpoo.service.MaintenanceService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -31,9 +36,11 @@ import java.util.Map;
 public class GestionAgentController {
 
     private final MaintenanceService maintenanceService;
+    private final UserRepository userRepository;
 
-    public GestionAgentController(MaintenanceService maintenanceService) {
+    public GestionAgentController(MaintenanceService maintenanceService, UserRepository userRepository) {
         this.maintenanceService = maintenanceService;
+        this.userRepository = userRepository;
     }
 
     // ============================================================
@@ -41,7 +48,8 @@ public class GestionAgentController {
     // ============================================================
 
     /**
-     * Voir les alertes et recommandations de maintenance pour la flotte.
+     * Voir les alertes et recommandations de maintenance pour la flotte (données de
+     * test / simulation).
      */
     @GetMapping("/maintenance/alertes")
     public Map<String, Object> consulterAlertesMaintenance() {
@@ -72,6 +80,83 @@ public class GestionAgentController {
                 "agent", agent.getNom(),
                 "alertes_ct", rappels,
                 "conseils_entretien_km", conseils);
+    }
+
+    /**
+     * US.A.11 : Obtenir les recommandations d'entretien basées sur le kilométrage
+     * pour un Agent réel.
+     * 
+     * @param email Email de l'Agent
+     * @return Alertes CT (US.A.9) + Recommandations entretien (US.A.11)
+     */
+    @GetMapping("/maintenance/recommandations/{email:.+}")
+    public ResponseEntity<?> getRecommandationsEntretien(@PathVariable String email) {
+        try {
+            Utilisateur user = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable: " + email));
+
+            if (!(user instanceof Agent)) {
+                return ResponseEntity.badRequest().body(Map.of(
+                        "success", false,
+                        "message", "L'utilisateur n'est pas un Agent"));
+            }
+
+            Agent agent = (Agent) user;
+            List<Vehicle> vehicules = agent.getVehicleList();
+
+            if (vehicules == null || vehicules.isEmpty()) {
+                return ResponseEntity.ok(Map.of(
+                        "success", true,
+                        "agent", agent.getNom() + " " + agent.getPrenom(),
+                        "email", agent.getEmail(),
+                        "nombre_vehicules", 0,
+                        "alertes_ct", List.of(),
+                        "conseils_entretien_km", List.of(),
+                        "message", "Aucun véhicule enregistré pour cet agent"));
+            }
+
+            // Générer les alertes et recommandations
+            List<String> alertesCT = maintenanceService.genererRappelsControleTechnique(agent);
+            List<String> conseilsEntretien = maintenanceService.genererRecommandationsEntretien(agent);
+
+            // Construire les détails des véhicules
+            List<Map<String, Object>> vehiculesDetails = vehicules.stream().map(v -> {
+                Map<String, Object> details = new HashMap<>();
+                details.put("id", v.getIdVehicule());
+                details.put("modele", v.getModeleVehicule());
+                details.put("marque", v.getMarqueVehicule());
+                details.put("kilometrage", v.getKilometrageActuel());
+                if (v.getControleTechnique() != null) {
+                    details.put("ct_date", v.getControleTechnique().getDatePassage().toString());
+                    details.put("ct_valide", v.getControleTechnique().isEstValide());
+                    details.put("ct_remarques", v.getControleTechnique().getRemarques());
+                } else {
+                    details.put("ct_date", null);
+                    details.put("ct_valide", false);
+                    details.put("ct_remarques", "Aucun CT enregistré");
+                }
+                return details;
+            }).toList();
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("agent", agent.getNom() + " " + agent.getPrenom());
+            response.put("email", agent.getEmail());
+            response.put("nombre_vehicules", vehicules.size());
+            response.put("vehicules", vehiculesDetails);
+            response.put("alertes_ct", alertesCT);
+            response.put("conseils_entretien_km", conseilsEntretien);
+
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(404).body(Map.of(
+                    "success", false,
+                    "message", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of(
+                    "success", false,
+                    "message", "Erreur interne: " + e.getMessage()));
+        }
     }
 
     /**

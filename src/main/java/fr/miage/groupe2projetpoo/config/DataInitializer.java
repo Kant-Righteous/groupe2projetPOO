@@ -17,6 +17,7 @@ import org.springframework.context.annotation.Configuration;
 import jakarta.annotation.PostConstruct;
 import java.time.LocalDate;
 import java.util.*;
+import fr.miage.groupe2projetpoo.entity.maintenance.ControleTechnique;
 
 @Configuration
 // Trigger rebuild
@@ -84,34 +85,64 @@ public class DataInitializer {
                 // Véhicules d'Alice
                 Voiture voiture1 = new Voiture("1", "Renault", "Bleu", "Clio", "Paris", 45.0, "alice@test.com", false);
                 voiture1.setCoordonnees(48.8566, 2.3522); // Paris centre
+                // US.A.9/11: CT récent + km proche vidange
+                voiture1.setKilometrageActuel(15200); // Proche du seuil 15000 km → vidange recommandée
+                voiture1.setControleTechnique(
+                                new ControleTechnique(LocalDate.now().minusMonths(6), true, "Dekra Paris", "RAS"));
 
                 Voiture voiture2 = new Voiture("2", "Peugeot", "Noir", "308", "Lyon", 55.0, "alice@test.com", false);
                 voiture2.setCoordonnees(45.7640, 4.8357); // Lyon centre
+                // US.A.9/11: CT expire bientôt + km proche changement pneus
+                voiture2.setKilometrageActuel(40500); // Proche du seuil 40000 km → vérifier pneus
+                voiture2.setControleTechnique(new ControleTechnique(LocalDate.now().minusYears(2).plusDays(20), true,
+                                "AutoSur Lyon", "Pneus légèrement usés"));
 
                 // Véhicules de Bob
                 Voiture voiture3 = new Voiture("3", "BMW", "Blanc", "Serie 3", "Marseille", 85.0, "bob@test.com",
                                 false);
                 voiture3.setCoordonnees(43.2965, 5.3698); // Marseille centre
+                // US.A.9/11: Haut kilométrage → courroie de distribution
+                voiture3.setKilometrageActuel(102000); // Proche du seuil 100000 km → courroie recommandée
+                voiture3.setControleTechnique(
+                                new ControleTechnique(LocalDate.now().minusMonths(10), true, "Dekra Marseille", "RAS"));
 
                 Moto moto1 = new Moto("4", "Yamaha", "Rouge", "MT-07", "Nice", 60.0, "bob@test.com", false);
                 moto1.setCoordonnees(43.7102, 7.2620); // Nice centre
+                // US.A.9: Jamais de CT enregistré (alerte attendue)
+                moto1.setKilometrageActuel(8500);
 
                 // Véhicules de Durand SA
                 Voiture voiture4 = new Voiture("5", "Mercedes", "Gris", "Classe A", "Paris", 90.0,
                                 "enterprise1@test.com", false);
                 voiture4.setCoordonnees(48.8738, 2.2950); // Paris 16e (La Défense)
+                // US.A.9/11: CT valide, kilométrage normal
+                voiture4.setKilometrageActuel(25000);
+                voiture4.setControleTechnique(new ControleTechnique(LocalDate.now().minusMonths(12), true,
+                                "AutoVision Paris", "RAS"));
 
                 Camion camion1 = new Camion("6", "Renault", "Blanc", "Master", "Paris", 120.0, "enterprise1@test.com",
                                 false);
                 camion1.setCoordonnees(48.9362, 2.3574); // Saint-Denis (près Paris)
+                // US.A.9: CT périmé (alerte urgente attendue)
+                camion1.setKilometrageActuel(75000);
+                camion1.setControleTechnique(new ControleTechnique(LocalDate.now().minusYears(2).minusMonths(1), true,
+                                "Norisko", "Freins limites"));
 
                 Camion camion2 = new Camion("7", "Mercedes", "Jaune", "Sprinter", "Lyon", 135.0, "enterprise1@test.com",
                                 false);
                 camion2.setCoordonnees(45.7485, 4.8467); // Lyon Villeurbanne
+                // US.A.9/11: Kilométrage vidange + CT OK
+                camion2.setKilometrageActuel(30200); // Proche du seuil 30000 km → vidange
+                camion2.setControleTechnique(
+                                new ControleTechnique(LocalDate.now().minusMonths(4), true, "Dekra Lyon", "RAS"));
 
                 // Véhicules de Moreau SARL
-                Moto moto2 = new Moto("8", "Honda", "Noir", "CB650R", "Bordeaux", 65.0, "bob@test.com", false);
+                Moto moto2 = new Moto("8", "Honda", "Noir", "CB650R", "Bordeaux", 65.0, "enterprise2@test.com", false);
                 moto2.setCoordonnees(44.8378, -0.5792); // Bordeaux centre
+                // US.A.9/11: Moto avec CT invalide (contre-visite)
+                moto2.setKilometrageActuel(12000);
+                moto2.setControleTechnique(new ControleTechnique(LocalDate.now().minusMonths(1), false,
+                                "Contrôle Auto Bordeaux", "Fuite d'huile - Contre-visite requise"));
 
                 // Véhicules "Legacy" de RentalRepository (V001, V002)
                 Voiture voitureV1 = new Voiture("V001", "Bleu", "Renault", "Clio", "Paris", 30.0, "jean@email.com",
@@ -186,27 +217,27 @@ public class DataInitializer {
                 Date fiveDaysAgo = cal.getTime();
 
                 // Contrat 1: Loueur1 loue voiture1 (Alice) - Même lieu
-        RentalContract contract1 = new RentalContract(loueur1, voiture1, today_date, nextWeek,
-                        "Paris - Gare du Nord",
-                        "Paris - Gare du Nord", assuranceBasic, agentPart1);
+                RentalContract contract1 = new RentalContract(loueur1, voiture1, today_date, nextWeek,
+                                "Paris - Gare du Nord",
+                                "Paris - Gare du Nord", assuranceBasic, agentPart1);
                 contract1.setIdC(1);
 
                 // Contrat 2: Loueur2 loue voiture3 (Bob) - Même lieu
-        RentalContract contract2 = new RentalContract(loueur2, voiture3, fiveDaysAgo, today_date,
-                        "Marseille Centre",
-                        "Marseille Centre", assuranceComplete, agentPart2);
+                RentalContract contract2 = new RentalContract(loueur2, voiture3, fiveDaysAgo, today_date,
+                                "Marseille Centre",
+                                "Marseille Centre", assuranceComplete, agentPart2);
                 contract2.setIdC(2);
                 contract2.setStatut(true);
 
                 // Contrat 3: Loueur1 loue camion1 (Durand SA) - Agent Pro → lieux différents OK
-        RentalContract contract3 = new RentalContract(loueur1, camion1, today_date, twoWeeksLater,
-                        "Paris - Entrepôt",
-                        "Lyon - Centre", assurancePremium, agentPro1);
+                RentalContract contract3 = new RentalContract(loueur1, camion1, today_date, twoWeeksLater,
+                                "Paris - Entrepôt",
+                                "Lyon - Centre", assurancePremium, agentPro1);
                 contract3.setIdC(3);
 
                 // Contrat 4: Loueur2 loue moto2 (Moreau SARL) - Même lieu
-        RentalContract contract4 = new RentalContract(loueur2, moto2, nextWeek, twoWeeksLater,
-                        "Bordeaux - Centre Ville", "Bordeaux - Centre Ville", assuranceBasic, agentPro2);
+                RentalContract contract4 = new RentalContract(loueur2, moto2, nextWeek, twoWeeksLater,
+                                "Bordeaux - Centre Ville", "Bordeaux - Centre Ville", assuranceBasic, agentPro2);
                 contract4.setIdC(4);
 
                 rentalRepository.save(contract1);
@@ -222,7 +253,7 @@ public class DataInitializer {
                 Date historyEnd = calHist.getTime();
 
                 RentalContract contractHistorique = new RentalContract(loueur1, voiture1, historyStart, historyEnd,
-                        "Paris - Centre", "Paris - Centre", assuranceBasic, agentPart1);
+                                "Paris - Centre", "Paris - Centre", assuranceBasic, agentPart1);
                 contractHistorique.setIdC(100);
                 contractHistorique.setStatut(true);
                 contractHistorique.setSignatureLoueur(true);
