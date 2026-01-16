@@ -178,4 +178,53 @@ public class OptionPayanteController {
                 "details", details,
                 "totalFacture", total));
     }
+
+    /**
+     * GET /api/options/catalogue - Voir toutes les options payantes disponibles
+     */
+    @GetMapping("/catalogue")
+    public ResponseEntity<Map<String, Object>> voirCatalogue() {
+        List<Map<String, Object>> catalogue = new ArrayList<>();
+        
+        catalogue.add(Map.of(
+            "type", "MANUEL",
+            "nom", "Acceptation Manuelle",
+            "description", "Valider manuellement chaque contrat (délai 6h)",
+            "tarifMensuel", 10.0
+        ));
+        
+        catalogue.add(Map.of(
+            "type", "ASSURANCE",
+            "nom", "Assurance Personnalisée",
+            "description", "Proposer votre propre assurance aux loueurs",
+            "tarifMensuel", 20.0
+        ));
+        
+        catalogue.add(Map.of(
+            "type", "ENTRETIEN_PONCTUEL",
+            "nom", "Entretien Ponctuel",
+            "description", "Service d'entretien sur demande",
+            "tarifMensuel", 5.0
+        ));
+        
+        catalogue.add(Map.of(
+            "type", "ENTRETIEN_AUTO",
+            "nom", "Entretien Automatique",
+            "description", "Entretien automatique après chaque location",
+            "tarifMensuel", 15.0
+        ));
+        
+        catalogue.add(Map.of(
+            "type", "PARKING",
+            "nom", "Option Parking Vienci",
+            "description", "Accès aux parkings partenaires pour dépose différente",
+            "tarifMensuel", 15.0
+        ));
+        
+        return ResponseEntity.ok(Map.of(
+            "message", "Catalogue des options payantes disponibles",
+            "nombreOptions", catalogue.size(),
+            "options", catalogue
+        ));
+    }
 }
