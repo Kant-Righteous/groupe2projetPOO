@@ -12,7 +12,7 @@ import java.util.Objects;
  * - Assurance personnalisée (agents pro)
  * - Service d'entretien
  */
-public abstract class OptionPayante {
+public class OptionPayante {
 
     protected String nom;
     protected double tarifMensuel;
