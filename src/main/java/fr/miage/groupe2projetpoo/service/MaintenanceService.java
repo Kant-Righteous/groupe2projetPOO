@@ -215,6 +215,25 @@ public class MaintenanceService {
             vehicleRepository.save(v);
         }
 
+        // Si l'entretien est réalisé, on ajoute l'historique et on libère le véhicule
+        if (status == MaintenanceStatus.REALISE && intervention.getStatut() != MaintenanceStatus.REALISE) {
+            Vehicle v = intervention.getVehicule();
+
+            // Création de l'enregistrement historique (Entretien)
+            fr.miage.groupe2projetpoo.entity.maintenance.Entretien entretien = new fr.miage.groupe2projetpoo.entity.maintenance.Entretien(
+                    "Maintenance par " + intervention.getEntreprise().getNom(),
+                    java.time.LocalDate.now(),
+                    v.getKilometrageActuel(),
+                    intervention.getPrixPaye(),
+                    intervention.getEntreprise().getNom());
+
+            v.ajouterEntretien(entretien);
+
+            // Le véhicule n'est plus en pause technique après réalisation
+            v.setEstEnpause(false);
+            vehicleRepository.save(v);
+        }
+
         intervention.setStatut(status);
         maintenanceRepository.saveIntervention(intervention);
     }
