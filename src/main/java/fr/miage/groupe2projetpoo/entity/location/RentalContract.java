@@ -533,15 +533,13 @@ public class RentalContract {
         verifierControleTechnique();
 
         // 3. Vérification que les dates appartiennent aux disponibilités du véhicule
-        LocalDate debutLocal = this.dateDebut.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-        LocalDate finLocal = this.dateFin.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+    LocalDate debutLocal = this.dateDebut.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+    LocalDate finLocal = this.dateFin.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
 
-        if (!this.Vehicule.estDisponibleMap(debutLocal, finLocal)) {
-            System.out.println(
-                    "Erreur : Le véhicule n'est pas disponible pour la période du " + debutLocal + " au " + finLocal);
-            return;
-        }
-
+    if (!this.Vehicule.estDisponiblePlanning(debutLocal, finLocal)) {
+        throw new IllegalStateException(
+                "❌ Le véhicule n'est pas disponible pour la période du " + debutLocal + " au " + finLocal);
+    }
         // 4. Application de la signature du loueur
         this.SignatureLoueur = true;
         this.dateSignatureLoueur = new Date();
@@ -598,12 +596,26 @@ public class RentalContract {
 
     /**
      * Valide le contrat : ajoute aux historiques du loueur et du véhicule.
+     * Bloque automatiquement la période dans le planning du véhicule.
      */
     private void validerContrat() {
         this.statut = true;
         this.loueur.addContract(this);
         this.Vehicule.ajouterContrat(this);
-        System.out.println("Contrat VALIDÉ et ACTIF.");
+        
+        // Bloquer la période dans le planning du véhicule
+        LocalDate debutLocal = this.dateDebut.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        LocalDate finLocal = this.dateFin.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        
+        try {
+            this.Vehicule.addPlanningDispo(debutLocal, finLocal);
+            System.out.println("Contrat VALIDÉ et ACTIF.");
+            System.out.println("✅ Véhicule " + this.Vehicule.getIdVehicule() + " bloqué du " 
+                               + debutLocal + " au " + finLocal);
+        } catch (IllegalArgumentException e) {
+            System.err.println("⚠️ Attention : période déjà réservée (doublon détecté)");
+            // Le contrat est déjà validé, on affiche juste un warning
+        }
     }
 
     /**
