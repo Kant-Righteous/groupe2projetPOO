@@ -1,5 +1,6 @@
 package fr.miage.groupe2projetpoo.controller;
 
+import fr.miage.groupe2projetpoo.entity.maintenance.ControleTechnique;
 import fr.miage.groupe2projetpoo.entity.vehicule.Disponibilite;
 import fr.miage.groupe2projetpoo.entity.vehicule.TypeVehicule;
 import fr.miage.groupe2projetpoo.entity.vehicule.Vehicle;
@@ -526,6 +527,24 @@ public class VehicleController {
         map.put("estEnPause", v.getEstEnpause());
         map.put("prixParJour", v.getPrixVehiculeParJour());
         map.put("Planning", v.getPlanningDisponible());
+        map.put("kilometrageActuel", v.getKilometrageActuel());
+        map.put("latitude", v.getLatitude());
+        map.put("longitude", v.getLongitude());
+        map.put("controleTechnique", v.getControleTechnique());
+        map.put("dernierLieuDepose", v.getDernierLieuDepose());
+
+
+        // Ajouter la listte des entretiens
+        List<Map<String, Object>> entretiensList = v.getHistoriqueEntretiens().stream().map(e -> {
+            Map<String, Object> entretienMap = new HashMap<>();
+            entretienMap.put("typeOperation", e.getTypeOperation());
+            entretienMap.put("dateRealisation", e.getDateRealisation());
+            entretienMap.put("kilometrageAuMoment", e.getKilometrageAuMoment());
+            entretienMap.put("cout", e.getCout());
+            entretienMap.put("garagePrestataire", e.getGaragePrestataire());
+            return entretienMap;
+        }).toList();
+        map.put("historiqueEntretiens",entretiensList);
 
         // Ajout des notations
         List<Map<String, Object>> notationsList = v.getNotations().stream().map(n -> {
