@@ -328,14 +328,29 @@ public class RentalContract {
         long diffInMillies = Math.abs(this.dateFin.getTime() - this.dateDebut.getTime());
         long diffInDays = (diffInMillies / (1000 * 60 * 60 * 24)) + 1;
 
-        // 2. Gestion des Tarifs et Réductions Vienci
+        // 2. Définition des règles de la plateforme
+        this.commissionPourcentage = 0.10; // 10%
+        this.commissionFixeParJour = 2.0; // 2€
+
+        // 2.1 Application de la réduction longue durée (US.A.7)
+        appliquerReductionLongueDuree(diffInDays);
+
+        // 3. Gestion des Tarifs et Réductions Vienci
         double prixJournalierBase = this.Vehicule.getPrixVehiculeParJour();
-        this.prixSansReduction = prixJournalierBase * diffInDays; // Prix total de base (part Agent) sur la durée
+
+        // Calcul du prix sans réduction (pour référence)
+        double montantAgentSansReduction = prixJournalierBase * diffInDays;
+        double partVariableSansReduction = montantAgentSansReduction * this.commissionPourcentage;
+        double partFixe = diffInDays * this.commissionFixeParJour;
+        double prixAssurance = (this.assurance != null) ? this.assurance.calculerPrime(this.Vehicule) : 0.0;
+
+        // prixSansReduction = Prix total AVANT réduction parking (车租 + 佣金 + 保险)
+        this.prixSansReduction = montantAgentSansReduction + partVariableSansReduction + partFixe + prixAssurance;
 
         double multiplicateur = 1.0;
         StringBuilder details = new StringBuilder();
 
-        // Vérification des options de l'agent
+        // Vérification des options de l'agent pour les réductions
         if (this.agent != null) {
             fr.miage.groupe2projetpoo.entity.assurance.OptionParking optParking = this.agent
                     .getOption(fr.miage.groupe2projetpoo.entity.assurance.OptionParking.class);
@@ -343,14 +358,15 @@ public class RentalContract {
             if (optParking != null && optParking.isEstActive()) {
                 double reduction = optParking.getTauxReduction();
 
-                // Cas A : Réduction si le Véhicule est récupéré depuis le Parking Partenaire
-                // (Incitation au départ)
+                // Cas A : Réduction si le Véhicule est récupéré depuis un Parking Partenaire
                 String lieuActuelVehicule = this.Vehicule.getDernierLieuDepose();
-                String nomParking = (optParking.getParkingPartenaire() != null)
-                        ? optParking.getParkingPartenaire().getNom()
-                        : "";
 
-                if (lieuActuelVehicule != null && lieuActuelVehicule.equalsIgnoreCase(nomParking)) {
+                // Vérifier si dernierLieuDepose est un parking partenaire
+                boolean estDansParking = lieuActuelVehicule != null
+                        && fr.miage.groupe2projetpoo.config.DataInitializer.PARKINGS_PARTENAIRES
+                                .contains(lieuActuelVehicule);
+
+                if (estDansParking) {
                     multiplicateur *= (1.0 - reduction);
                     if (details.length() > 0)
                         details.append(" + ");
@@ -376,25 +392,14 @@ public class RentalContract {
 
         double prixJournalierFinal = prixJournalierBase * multiplicateur;
 
-        // 3. Définition des règles de la plateforme
-        this.commissionPourcentage = 0.10; // 10%
-        this.commissionFixeParJour = 2.0; // 2€
-
-        // 3.1 Application de la réduction longue durée (US.A.7)
-        appliquerReductionLongueDuree(diffInDays);
-
-        // 4. Calcul de la part Agent
+        // 4. Calcul de la part Agent (avec réduction appliquée)
         this.montantAgent = prixJournalierFinal * diffInDays;
 
-        // 5. Calcul de la part Plateforme
+        // 5. Calcul de la part Plateforme (basée sur montantAgent réduit)
         double partVariable = this.montantAgent * this.commissionPourcentage;
-        double partFixe = diffInDays * this.commissionFixeParJour;
         this.montantPlatforme = partVariable + partFixe;
 
         // 6. Calcul du Total Final à payer par le loueur
-        // IL MANQUE CECI DANS VOTRE CLASSE ASSURANCE (si applicable) :
-        double prixAssurance = (this.assurance != null) ? this.assurance.calculerPrime(this.Vehicule) : 0.0;
-
         this.prixTotal = this.montantAgent + this.montantPlatforme + prixAssurance;
     }
 
@@ -446,7 +451,8 @@ public class RentalContract {
      * Valide que le lieu de dépose est autorisé (US.L.2).
      * 
      * Règle simplifiée :
-     * - Si option parking active OU agent professionnel → lieu dépose peut être différent
+     * - Si option parking active OU agent professionnel → lieu dépose peut être
+     * différent
      * - Sinon → lieu dépose DOIT être identique au lieu de prise
      * 
      * @throws IllegalStateException si le lieu de dépose n'est pas autorisé
@@ -456,31 +462,30 @@ public class RentalContract {
         if (this.lieuPrise.equalsIgnoreCase(this.lieuDepose)) {
             return;
         }
-        
+
         // Si lieux différents, vérifier les autorisations
         if (this.agent == null) {
             throw new IllegalStateException(
-                "❌ Lieu de dépose différent non autorisé sans agent. " +
-                "Choisissez le même lieu : '" + this.lieuPrise + "'"
-            );
+                    "❌ Lieu de dépose différent non autorisé sans agent. " +
+                            "Choisissez le même lieu : '" + this.lieuPrise + "'");
         }
-        
+
         // CAS 1 : Agent a l'option Parking active
         OptionParking optParking = this.agent.getOption(OptionParking.class);
         if (optParking != null && optParking.isEstActive()) {
             return;
         }
-        
+
         // CAS 2 : Agent est professionnel
         if (this.agent instanceof AgentProfessionnel) {
             return;
         }
-        
+
         // Aucune autorisation → ERREUR
         throw new IllegalStateException(
-            "❌ Le lieu de dépose '" + this.lieuDepose + "' doit être identique au lieu de prise '" + this.lieuPrise + "'.\n" +
-            "Pour déposer ailleurs, activez l'option Parking Vienci ou utilisez un agent professionnel."
-        );
+                "❌ Le lieu de dépose '" + this.lieuDepose + "' doit être identique au lieu de prise '" + this.lieuPrise
+                        + "'.\n" +
+                        "Pour déposer ailleurs, activez l'option Parking Vienci ou utilisez un agent professionnel.");
     }
 
     /**
@@ -492,24 +497,22 @@ public class RentalContract {
     private void verifierControleTechnique() {
         // 1. Récupérer le contrôle technique du véhicule
         ControleTechnique ct = this.Vehicule.getControleTechnique();
-        
+
         // 2. Vérifier qu'un CT existe
         if (ct == null) {
             throw new IllegalStateException(
-                "❌ Le véhicule " + this.Vehicule.getIdVehicule() + 
-                " ne peut pas être loué : aucun contrôle technique enregistré"
-            );
+                    "❌ Le véhicule " + this.Vehicule.getIdVehicule() +
+                            " ne peut pas être loué : aucun contrôle technique enregistré");
         }
-        
+
         // 3. Vérifier que le CT n'est pas expiré
         if (ct.estExpire()) {
             throw new IllegalStateException(
-                "❌ Le véhicule " + this.Vehicule.getIdVehicule() + 
-                " ne peut pas être loué : contrôle technique expiré depuis le " + 
-                ct.getDateExpiration()
-            );
+                    "❌ Le véhicule " + this.Vehicule.getIdVehicule() +
+                            " ne peut pas être loué : contrôle technique expiré depuis le " +
+                            ct.getDateExpiration());
         }
-        
+
         // 4. Tout est OK !
         System.out.println("✅ Contrôle technique valide jusqu'au " + ct.getDateExpiration());
     }

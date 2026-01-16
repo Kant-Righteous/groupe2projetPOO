@@ -252,29 +252,32 @@ public abstract class Vehicle {
     }
 
     /**
-     * Récupère le dernier lieu de dépose du véhicule basé sur l'historique des
-     * contrats.
-     * Si aucun contrat terminé n'est trouvé, retourne la ville du véhicule.
+     * Récupère le dernier lieu de dépose du véhicule.
+     * Priorité: champ dernierLieuDepose > dernier contrat terminé > ville du
+     * véhicule
      */
     public String getDernierLieuDepose() {
-        if (historiqueContrats == null || historiqueContrats.isEmpty()) {
-            return this.villeVehicule;
+        // 1. Si le champ est défini manuellement, le retourner
+        if (dernierLieuDepose != null && !dernierLieuDepose.isEmpty()) {
+            return dernierLieuDepose;
         }
 
-        RentalContract dernierContrat = null;
-        for (RentalContract c : historiqueContrats) {
-            // On cherche le contrat terminé le plus récent
-            if (c.estTerminee()) {
-                if (dernierContrat == null || c.getDateFin().after(dernierContrat.getDateFin())) {
-                    dernierContrat = c;
+        // 2. Sinon, chercher dans l'historique des contrats
+        if (historiqueContrats != null && !historiqueContrats.isEmpty()) {
+            RentalContract dernierContrat = null;
+            for (RentalContract c : historiqueContrats) {
+                if (c.estTerminee()) {
+                    if (dernierContrat == null || c.getDateFin().after(dernierContrat.getDateFin())) {
+                        dernierContrat = c;
+                    }
                 }
+            }
+            if (dernierContrat != null) {
+                return dernierContrat.getLieuDepose();
             }
         }
 
-        if (dernierContrat != null) {
-            return dernierContrat.getLieuDepose();
-        }
-
+        // 3. Par défaut, retourner la ville du véhicule
         return this.villeVehicule;
     }
 

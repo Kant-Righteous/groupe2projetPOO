@@ -66,12 +66,18 @@ public class OptionPayanteController {
     /**
      * POST /api/options/add - Ajouter une option payante
      * Body: { "agentEmail": "...", "typeOption": "MANUEL" | "ASSURANCE" |
-     * "ENTRETIEN_PONCTUEL" | "ENTRETIEN_AUTO" }
+     * "ENTRETIEN_PONCTUEL" | "ENTRETIEN_AUTO" | "PARKING" }
+     * 
+     * Pour PARKING, on peut optionnellement passer:
+     * { "agentEmail": "...", "typeOption": "PARKING",
+     * "parkingNom": "...", "parkingVille": "...", "parkingCodeAcces": "...",
+     * "parkingProcedure": "...", "parkingInstructions": "...", "tarifMensuel": 15.0
+     * }
      */
     @PostMapping("/add")
-    public ResponseEntity<Map<String, Object>> ajouterOption(@RequestBody Map<String, String> request) {
-        String agentEmail = request.get("agentEmail");
-        String typeOption = request.get("typeOption");
+    public ResponseEntity<Map<String, Object>> ajouterOption(@RequestBody Map<String, Object> request) {
+        String agentEmail = (String) request.get("agentEmail");
+        String typeOption = (String) request.get("typeOption");
 
         Agent agent = getAgent(agentEmail);
         if (agent == null)
@@ -99,9 +105,17 @@ public class OptionPayanteController {
                 option = new OptionEntretien(true);
                 message = "Option Entretien Automatique ajoutée";
                 break;
+            case "PARKING":
+                double tarifMensuel = request.containsKey("tarifMensuel")
+                        ? ((Number) request.get("tarifMensuel")).doubleValue()
+                        : 15.0;
+
+                option = new OptionParking("Abonnement Parking", tarifMensuel, 24, 30, 8.0, null);
+                message = "Option Parking activée - Le loueur pourra choisir un parking lors de la location";
+                break;
             default:
                 return ResponseEntity.badRequest().body(Map.of("message",
-                        "Type d'option invalide (MANUEL, ASSURANCE, ENTRETIEN_PONCTUEL, ENTRETIEN_AUTO)"));
+                        "Type d'option invalide (MANUEL, ASSURANCE, ENTRETIEN_PONCTUEL, ENTRETIEN_AUTO, PARKING)"));
         }
 
         if (option != null) {

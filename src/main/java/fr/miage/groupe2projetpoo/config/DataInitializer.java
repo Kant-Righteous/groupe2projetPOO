@@ -9,6 +9,7 @@ import fr.miage.groupe2projetpoo.entity.vehicule.Vehicle;
 import fr.miage.groupe2projetpoo.entity.vehicule.Voiture;
 import fr.miage.groupe2projetpoo.entity.assurance.OptionAcceptationManuelle;
 import fr.miage.groupe2projetpoo.entity.assurance.OptionEntretien;
+import fr.miage.groupe2projetpoo.repository.ParkingRepository;
 import fr.miage.groupe2projetpoo.repository.RentalRepository;
 import fr.miage.groupe2projetpoo.repository.UserRepository;
 import fr.miage.groupe2projetpoo.repository.VehicleRepository;
@@ -23,19 +24,60 @@ import fr.miage.groupe2projetpoo.entity.maintenance.ControleTechnique;
 // Trigger rebuild
 public class DataInitializer {
 
+        public static final fr.miage.groupe2projetpoo.entity.infrastructure.Parking DEFAULT_PARKING;
+        public static final java.util.Set<String> PARKINGS_PARTENAIRES = new java.util.HashSet<>();
+
+        static {
+                DEFAULT_PARKING = new fr.miage.groupe2projetpoo.entity.infrastructure.Parking(
+                                99, "Parking Partenaire Vienci", "Paris", 5.0);
+                DEFAULT_PARKING.setCodeAcces("VIENCI2025");
+                DEFAULT_PARKING.setProcedureAcces("Présenter le code au lecteur de l'entrée principale");
+                DEFAULT_PARKING.setInstructionsSpeciales("Parking ouvert 24h/24. Service client: 01 23 45 67 89");
+
+                // Noms des parkings partenaires (pour réduction Cas A)
+                PARKINGS_PARTENAIRES.add("Parking Gare de Lyon");
+                PARKINGS_PARTENAIRES.add("Parking Aéroport CDG T2");
+                PARKINGS_PARTENAIRES.add("Parking Centre Commercial Lyon Part-Dieu");
+        }
+
         private final UserRepository userRepository;
         private final VehicleRepository vehicleRepository;
         private final RentalRepository rentalRepository;
+        private final ParkingRepository parkingRepository;
 
         public DataInitializer(UserRepository userRepository, VehicleRepository vehicleRepository,
-                        RentalRepository rentalRepository) {
+                        RentalRepository rentalRepository, ParkingRepository parkingRepository) {
                 this.userRepository = userRepository;
                 this.vehicleRepository = vehicleRepository;
                 this.rentalRepository = rentalRepository;
+                this.parkingRepository = parkingRepository;
         }
 
         @PostConstruct
         public void init() {
+                // === 0. Créer les Parkings partenaires ===
+                fr.miage.groupe2projetpoo.entity.infrastructure.Parking parking1 = new fr.miage.groupe2projetpoo.entity.infrastructure.Parking(
+                                1, "Parking Gare de Lyon", "18 Boulevard Diderot", "Paris", 350, 8.0);
+                parking1.setCodeAcces("LYON2025#");
+                parking1.setProcedureAcces("Entrer par l'entrée B, niveau -2, suivre les panneaux VIENCI");
+                parking1.setInstructionsSpeciales("Ouvert 24h/24. Contact: 01 43 43 43 43");
+                parkingRepository.save(parking1);
+
+                fr.miage.groupe2projetpoo.entity.infrastructure.Parking parking2 = new fr.miage.groupe2projetpoo.entity.infrastructure.Parking(
+                                2, "Parking Aéroport CDG T2", "Terminal 2E", "Roissy-en-France", 500, 12.0);
+                parking2.setCodeAcces("CDG2026*");
+                parking2.setProcedureAcces("Prendre la navette depuis le terminal, badge à l'entrée");
+                parking2.setInstructionsSpeciales("Navette gratuite toutes les 10 minutes. Contact: 01 48 62 00 00");
+                parkingRepository.save(parking2);
+
+                fr.miage.groupe2projetpoo.entity.infrastructure.Parking parking3 = new fr.miage.groupe2projetpoo.entity.infrastructure.Parking(
+                                3, "Parking Centre Commercial Lyon Part-Dieu", "17 Rue du Docteur Bouchut", "Lyon", 400,
+                                6.5);
+                parking3.setCodeAcces("PARTDIEU#");
+                parking3.setProcedureAcces("Entrée niveau 0, places réservées VIENCI au niveau -1");
+                parking3.setInstructionsSpeciales("Ouvert 6h-00h. Contact: 04 72 00 00 00");
+                parkingRepository.save(parking3);
+
                 // === 1. Assurances (Initialisées dans UserRepository pour le moment, ou à
                 // déplacer ici si Repository Assurance existe) ===
                 // Note: Si UserRepository gère les assurances en dur, on peut les laisser ou
@@ -92,6 +134,7 @@ public class DataInitializer {
 
                 Voiture voiture2 = new Voiture("2", "Peugeot", "Noir", "308", "Lyon", 55.0, "alice@test.com", false);
                 voiture2.setCoordonnees(45.7640, 4.8357); // Lyon centre
+                voiture2.setDernierLieuDepose("Parking Gare de Lyon"); // Pour tester Cas A (réduction départ parking)
                 // US.A.9/11: CT expire bientôt + km proche changement pneus
                 voiture2.setKilometrageActuel(40500); // Proche du seuil 40000 km → vérifier pneus
                 voiture2.setControleTechnique(new ControleTechnique(LocalDate.now().minusYears(2).plusDays(20), true,

@@ -75,20 +75,20 @@ public class RentalController {
             String lieuDepose = (String) request.get("lieuDepose");
             String assuranceNom = (String) request.get("assuranceNom");
 
-            // Nouveau paramètre optionnel
-            boolean avecOptionParking = false;
-            if (request.containsKey("avecOptionParking")) {
-                Object optVal = request.get("avecOptionParking");
-                if (optVal instanceof Boolean) {
-                    avecOptionParking = (Boolean) optVal;
-                } else if (optVal instanceof String) {
-                    avecOptionParking = Boolean.parseBoolean((String) optVal);
+            // Paramètre optionnel: parkingId (loueur choisit le parking)
+            Integer parkingId = null;
+            if (request.containsKey("parkingId")) {
+                Object parkingVal = request.get("parkingId");
+                if (parkingVal instanceof Number) {
+                    parkingId = ((Number) parkingVal).intValue();
+                } else if (parkingVal instanceof String) {
+                    parkingId = Integer.parseInt((String) parkingVal);
                 }
             }
 
             RentalContract contrat = rentalService.creerContrat(
                     loueurEmail, vehiculeId, dateDebut, dateFin, lieuPrise, lieuDepose, assuranceNom,
-                    avecOptionParking);
+                    parkingId);
 
             return ResponseEntity.status(HttpStatus.CREATED).body(contrat);
         } catch (ParseException e) {

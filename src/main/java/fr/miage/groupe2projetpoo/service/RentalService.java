@@ -2,11 +2,13 @@ package fr.miage.groupe2projetpoo.service;
 
 import fr.miage.groupe2projetpoo.entity.assurance.Assurance;
 import fr.miage.groupe2projetpoo.entity.assurance.OptionEntretien;
+import fr.miage.groupe2projetpoo.entity.infrastructure.Parking;
 import fr.miage.groupe2projetpoo.entity.location.RentalContract;
 import fr.miage.groupe2projetpoo.entity.utilisateur.Agent;
 import fr.miage.groupe2projetpoo.entity.utilisateur.Loueur;
 import fr.miage.groupe2projetpoo.entity.utilisateur.Utilisateur;
 import fr.miage.groupe2projetpoo.entity.vehicule.Vehicle;
+import fr.miage.groupe2projetpoo.repository.ParkingRepository;
 import fr.miage.groupe2projetpoo.repository.RentalRepository;
 import fr.miage.groupe2projetpoo.repository.UserRepository;
 import fr.miage.groupe2projetpoo.repository.VehicleRepository;
@@ -21,16 +23,18 @@ public class RentalService {
     private final RentalRepository rentalRepository;
     private final UserRepository userRepository;
     private final VehicleRepository vehicleRepository;
+    private final ParkingRepository parkingRepository;
     private final MaintenanceService maintenanceService;
     private final UserService userService;
 
     @Autowired
     public RentalService(RentalRepository rentalRepository, UserRepository userRepository,
-            VehicleRepository vehicleRepository, MaintenanceService maintenanceService,
-            UserService userService) {
+            VehicleRepository vehicleRepository, ParkingRepository parkingRepository,
+            MaintenanceService maintenanceService, UserService userService) {
         this.rentalRepository = rentalRepository;
         this.userRepository = userRepository;
         this.vehicleRepository = vehicleRepository;
+        this.parkingRepository = parkingRepository;
         this.maintenanceService = maintenanceService;
         this.userService = userService;
     }
@@ -47,11 +51,12 @@ public class RentalService {
      * @param lieuPrise    Lieu de prise
      * @param lieuDepose   Lieu de dépôt
      * @param assuranceNom Nom de l'assurance
+     * @param parkingId    ID du parking (optionnel, null si pas de parking)
      */
     public RentalContract creerContrat(String loueurEmail, String vehiculeId,
             Date dateDebut, Date dateFin,
             String lieuPrise, String lieuDepose,
-            String assuranceNom, boolean avecOptionParking) {
+            String assuranceNom, Integer parkingId) {
 
         Utilisateur user = userRepository.findByEmail(loueurEmail)
                 .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé avec l'email: " + loueurEmail));
@@ -86,20 +91,32 @@ public class RentalService {
             contrat.setAgent(agentProprietaire);
             agentProprietaire.addContract(contrat);
 
-            // GESTION OPTION PARKING
-            if (avecOptionParking) {
+            // GESTION OPTION PARKING - Loueur choisit un parking si l'agent a l'option
+            // activée
+            if (parkingId != null) {
                 fr.miage.groupe2projetpoo.entity.assurance.OptionParking optParking = agentProprietaire
                         .getOption(fr.miage.groupe2projetpoo.entity.assurance.OptionParking.class);
 
                 if (optParking != null && optParking.isEstActive()) {
-                    // Force le lieu de dépose au parking partenaire
-                    if (optParking.getParkingPartenaire() != null) {
-                        contrat.setLieuDepose(optParking.getParkingPartenaire().getNom());
-                        // Active l'option sur le contrat (ce qui déclenchera le recalcul du prix)
-                        contrat.setOptionParkingSelectionnee(true);
-                        // Remplir les informations d'accès au parking pour le loueur
-                        contrat.remplirInfoParking();
-                    }
+                    // Récupérer le parking choisi par le loueur
+                    Parking parkingChoisi = parkingRepository.findById(parkingId)
+                            .orElseThrow(() -> new RuntimeException("Parking non trouvé avec l'ID: " + parkingId));
+
+                    // Associer le parking à l'option et au contrat
+                    optParking.setParkingPartenaire(parkingChoisi);
+                    contrat.setLieuDepose(parkingChoisi.getNom());
+                    contrat.setOptionParkingSelectionnee(true);
+
+                    // Remplir les informations d'accès au parking pour le loueur
+                    contrat.setParkingNom(parkingChoisi.getNom());
+                    contrat.setParkingAdresse(parkingChoisi.getAdresse());
+                    contrat.setParkingVille(parkingChoisi.getVille());
+                    contrat.setParkingCodeAcces(parkingChoisi.getCodeAcces());
+                    contrat.setParkingProcedureAcces(parkingChoisi.getProcedureAcces());
+                    contrat.setParkingInstructionsSpeciales(parkingChoisi.getInstructionsSpeciales());
+                } else {
+                    throw new RuntimeException(
+                            "L'agent n'a pas activé l'option Parking. Le loueur ne peut pas choisir de parking.");
                 }
             }
         }
