@@ -466,8 +466,8 @@ public class RentalContract {
         // Si lieux différents, vérifier les autorisations
         if (this.agent == null) {
             throw new IllegalStateException(
-                    "❌ Lieu de dépose différent non autorisé sans agent. " +
-                            "Choisissez le même lieu : '" + this.lieuPrise + "'");
+                    "ERREUR: Lieu de depose different non autorise sans agent. " +
+                            "Choisissez le meme lieu : '" + this.lieuPrise + "'");
         }
 
         // CAS 1 : Agent a l'option Parking active
@@ -483,9 +483,9 @@ public class RentalContract {
 
         // Aucune autorisation → ERREUR
         throw new IllegalStateException(
-                "❌ Le lieu de dépose '" + this.lieuDepose + "' doit être identique au lieu de prise '" + this.lieuPrise
+                "ERREUR: Le lieu de depose '" + this.lieuDepose + "' doit etre identique au lieu de prise '" + this.lieuPrise
                         + "'.\n" +
-                        "Pour déposer ailleurs, activez l'option Parking Vienci ou utilisez un agent professionnel.");
+                        "Pour deposer ailleurs, activez l'option Parking Vienci ou utilisez un agent professionnel.");
     }
 
     /**
@@ -501,20 +501,20 @@ public class RentalContract {
         // 2. Vérifier qu'un CT existe
         if (ct == null) {
             throw new IllegalStateException(
-                    "❌ Le véhicule " + this.Vehicule.getIdVehicule() +
-                            " ne peut pas être loué : aucun contrôle technique enregistré");
+                    "ERREUR: Le vehicule " + this.Vehicule.getIdVehicule() +
+                            " ne peut pas etre loue : aucun controle technique enregistre");
         }
 
         // 3. Vérifier que le CT n'est pas expiré
         if (ct.estExpire()) {
             throw new IllegalStateException(
-                    "❌ Le véhicule " + this.Vehicule.getIdVehicule() +
-                            " ne peut pas être loué : contrôle technique expiré depuis le " +
+                    "ERREUR: Le vehicule " + this.Vehicule.getIdVehicule() +
+                            " ne peut pas etre loue : controle technique expire depuis le " +
                             ct.getDateExpiration());
         }
 
         // 4. Tout est OK !
-        System.out.println("✅ Contrôle technique valide jusqu'au " + ct.getDateExpiration());
+        System.out.println("OK: Controle technique valide jusqu'au " + ct.getDateExpiration());
     }
 
     /**
@@ -538,7 +538,7 @@ public class RentalContract {
 
     if (!this.Vehicule.estDisponiblePlanning(debutLocal, finLocal)) {
         throw new IllegalStateException(
-                "❌ Le véhicule n'est pas disponible pour la période du " + debutLocal + " au " + finLocal);
+                "ERREUR: Le vehicule n'est pas disponible pour la periode du " + debutLocal + " au " + finLocal);
     }
         // 4. Application de la signature du loueur
         this.SignatureLoueur = true;
@@ -609,11 +609,11 @@ public class RentalContract {
         
         try {
             this.Vehicule.addPlanningDispo(debutLocal, finLocal);
-            System.out.println("Contrat VALIDÉ et ACTIF.");
-            System.out.println("✅ Véhicule " + this.Vehicule.getIdVehicule() + " bloqué du " 
+            System.out.println("Contrat VALIDE et ACTIF.");
+            System.out.println("INFO: Vehicule " + this.Vehicule.getIdVehicule() + " bloque du " 
                                + debutLocal + " au " + finLocal);
         } catch (IllegalArgumentException e) {
-            System.err.println("⚠️ Attention : période déjà réservée (doublon détecté)");
+            System.err.println("ATTENTION: Periode deja reservee (doublon detecte)");
             // Le contrat est déjà validé, on affiche juste un warning
         }
     }

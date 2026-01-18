@@ -223,7 +223,7 @@ public class UserService {
         userRepository.save(filleul);
         userRepository.save(parrain);
 
-        System.out.println("✅ Parrainage enregistré: " + parrainEmail + " parraine " + filleulEmail);
+        System.out.println("INFO: Parrainage enregistre: " + parrainEmail + " parraine " + filleulEmail);
         return true;
     }
 
@@ -299,7 +299,7 @@ public class UserService {
         userRepository.save(parrain);
 
         System.out.println(
-                "✅ Récompense de parrainage de " + MONTANT_RECOMPENSE_PARRAINAGE + "€ ajoutée à " + parrain.getEmail());
+                "INFO: Recompense de parrainage de " + MONTANT_RECOMPENSE_PARRAINAGE + " euros ajoutee a " + parrain.getEmail());
     }
 
     /**
@@ -356,7 +356,7 @@ public class UserService {
         userRepository.save(filleul);
         userRepository.save(parrain);
 
-        System.out.println("✅ Parrainage Agent enregistré: " + parrainEmail + " parraine " + filleulEmail);
+        System.out.println("INFO: Parrainage Agent enregistre: " + parrainEmail + " parraine " + filleulEmail);
         return true;
     }
 
@@ -433,7 +433,7 @@ public class UserService {
         userRepository.save(agent);
         userRepository.save(parrain);
 
-        System.out.println("✅ Récompense de parrainage Agent de " + MONTANT_RECOMPENSE_PARRAINAGE_AGENT
-                + "€ ajoutée à " + parrain.getEmail());
+        System.out.println("INFO: Recompense de parrainage Agent de " + MONTANT_RECOMPENSE_PARRAINAGE_AGENT
+                + " euros ajoutee a " + parrain.getEmail());
     }
 }

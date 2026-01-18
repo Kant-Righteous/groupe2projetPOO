@@ -23,7 +23,7 @@ import java.util.Map;
 public class RentalController {
 
     private final RentalService rentalService;
-    private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+    private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
 
     @Autowired
     public RentalController(RentalService rentalService) {

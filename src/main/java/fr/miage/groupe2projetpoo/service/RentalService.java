@@ -248,7 +248,7 @@ public class RentalService {
                         contrat.getVehicule().getIdVehicule(),
                         agent.getEntrepriseEntretienPreferee().getEmail(),
                         dateEntretien);
-                System.out.println("✅ Entretien automatique planifié pour le " + dateEntretien);
+                System.out.println("INFO: Entretien automatique planifie pour le " + dateEntretien);
             }
         }
 
