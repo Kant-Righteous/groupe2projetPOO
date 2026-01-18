@@ -7,12 +7,10 @@ import fr.miage.groupe2projetpoo.repository.VehicleRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.i18n.CookieLocaleResolver;
-
 import java.security.Key;
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -21,7 +19,6 @@ public class VehicleService {
     // Propriétés
     private final VehicleRepository vehiculeRepository;
     private final UserRepository userRepository;
-    private List<LocalDate> listeDisponibilites;
 
     // Constructeur
     public VehicleService(VehicleRepository vehiculeRepository, UserRepository userRepository) {
@@ -88,7 +85,7 @@ public class VehicleService {
         vehiculeRepository.deleteById(id);
     }
 
-    // recuperer tous les vehicules
+    // récuperer tous les vehicules
     public Collection<Vehicle> getAllVehicules() {
         return vehiculeRepository.findAll();
     }
@@ -157,17 +154,8 @@ public class VehicleService {
         return vehicules;
     }
 
-    /**
-     * @param id
-     * @param deb
-     * @param fin
-     * @return true si le vehicule est disponible entre date debut et date fin,
-     *         false sinon
-     */
-    public boolean verifierDisponibilite(String id, LocalDate deb, LocalDate fin) {
-        Vehicle v = getVehiculeByID(id);
-        return v.estDisponibleMap(deb, fin);
-    }
+
+
 
     public void setvehiculeEnPause(String id, boolean status) {
         Vehicle v = vehiculeRepository.getVehiculeByID(id);
