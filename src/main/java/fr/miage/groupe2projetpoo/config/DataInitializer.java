@@ -21,7 +21,6 @@ import java.util.*;
 import fr.miage.groupe2projetpoo.entity.maintenance.ControleTechnique;
 
 @Configuration
-// Trigger rebuild
 public class DataInitializer {
 
         public static final fr.miage.groupe2projetpoo.entity.infrastructure.Parking DEFAULT_PARKING;
