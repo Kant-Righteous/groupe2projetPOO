@@ -40,8 +40,6 @@ public class InMemoryVehicleRepository implements VehicleRepository {
         return vehicules.get(id);
     }
 
-
-
     /***************************** Filtre ************************************/
 
     // Chercher par ID
@@ -75,17 +73,10 @@ public class InMemoryVehicleRepository implements VehicleRepository {
     @Override
     public List<Vehicle> findByEnPause() {
         return vehicules.values().stream()
-                .filter(v -> !v.getEstEnpause()) // veicule disponible sur le marche
+                .filter(v -> !v.getEstEnpause()) // vehicule disponible sur le marche
                 .toList();
     }
 
-    // Chercher par disponibilité
-    @Override
-    public Optional<Vehicle> findByDisponibility(LocalDate debut, LocalDate fin) {
-        return vehicules.values().stream()
-                .filter(v -> v.estDisponibleMap(debut, fin))
-                .findFirst();
-    }
 
     // chercher par prix min-max
     @Override

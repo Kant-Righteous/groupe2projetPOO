@@ -33,8 +33,6 @@ public abstract class Vehicle {
     private ControleTechnique controleTechnique;
     private List<Entretien> historiqueEntretiens = new ArrayList<>();
     @JsonIgnore
-    private Map<LocalDate, Boolean> disponibilites = new HashMap<>();
-    @JsonIgnore
     private List<RentalContract> historiqueContrats = new ArrayList<>();
     private List<NoteVehicule> notations = new ArrayList<>();
     private List<Disponibilite> planningDisponible = new ArrayList<>();
@@ -53,17 +51,7 @@ public abstract class Vehicle {
         this.prixVehiculeParJour = prixVehiculeJour;
         this.Proprietaire = proprietaire;
         this.kilometrageActuel = 0; // Défaut
-        initiliserDisponibilites();
-    }
 
-    private void initiliserDisponibilites() {
-        LocalDate dateDeb = LocalDate.now().withDayOfYear(1);
-        LocalDate dateFin = dateDeb.plusYears(1);
-
-        while (!dateDeb.isAfter(dateFin)) {
-            disponibilites.put(dateDeb, true);
-            dateDeb = dateDeb.plusDays(1);
-        }
     }
 
     // Getters
@@ -102,10 +90,6 @@ public abstract class Vehicle {
         return Proprietaire;
     }
 
-    public Map<LocalDate, Boolean> getDisponibilites() {
-        return disponibilites;
-    }
-
     public boolean getEstEnpause() {
         return estEnpause;
     }
@@ -120,11 +104,7 @@ public abstract class Vehicle {
 
     /********************** SETTER **********************/
 
-    /*
-     * public void setTypeVehicule(String type) {
-     * this.typeVehicule = type;
-     * }
-     */
+
     public void setMarqueVehicule(String marque) {
         this.marqueVehicule = marque;
     }
@@ -213,18 +193,7 @@ public abstract class Vehicle {
         this.historiqueContrats.add(contrat);
     }
 
-    // === Calendrier === a ne pas utiliser pour l'instant
-    public boolean estDisponibleMap(LocalDate debut, LocalDate fin) {
-        LocalDate d = debut;
-        while (!d.isAfter(fin)) {
-            Boolean dispo = disponibilites.get(d);
-            if (dispo == null || !dispo) {
-                return false;
-            }
-            d = d.plusDays(1);
-        }
-        return true;
-    }
+
 
     // === Ajouter planning de disponibilité ===
     public void addPlanningDispo(LocalDate debut, LocalDate fin) {

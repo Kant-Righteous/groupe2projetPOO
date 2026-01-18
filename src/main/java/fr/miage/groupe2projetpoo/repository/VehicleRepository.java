@@ -39,7 +39,7 @@ public interface VehicleRepository {
     public boolean existsById(String id);
 
     // Chercher par disponibilité
-    public Optional<Vehicle> findByDisponibility(LocalDate debut, LocalDate fin);
+   // public Optional<Vehicle> findByDisponibility(LocalDate debut, LocalDate fin);
 
     // Suppression by Id
     public void deleteById(String id);

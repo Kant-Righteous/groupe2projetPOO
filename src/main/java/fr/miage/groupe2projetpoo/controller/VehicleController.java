@@ -61,7 +61,7 @@ public class VehicleController {
 
     // Suppression d'un vehicule
     @DeleteMapping("/delete")
-    public ResponseEntity<?> deleteVehicule(@RequestBody Map<String, String> request) {
+    public ResponseEntity<Map<String, Object>> deleteVehicule(@RequestBody Map<String, String> request) {
         try {
             String id = request.get("idVehicule");
             vehicleService.deleteVehicule(id);
@@ -78,7 +78,7 @@ public class VehicleController {
 
     // Modifier vehicule
     @PutMapping("/update")
-    public ResponseEntity<?> updateVehicule(@RequestBody Map<String, String> request) {
+    public ResponseEntity<Map<String, Object>> updateVehicule(@RequestBody Map<String, String> request) {
         try {
             String idV = request.get("idVehicule");
             String marque = request.get("marqueVehicule");
@@ -111,7 +111,7 @@ public class VehicleController {
 
     // Modifier status de vehicule
     @PutMapping("/updateEstEnPause")
-    public ResponseEntity<?> updateVehiculeEnPause(@RequestBody Map<String, String> request) {
+    public ResponseEntity<Map<String, Object>> updateVehiculeEnPause(@RequestBody Map<String, String> request) {
         try {
             String id = request.get("idVehicule");
             boolean estEnPause = Boolean.parseBoolean(request.get("estEnPause"));
@@ -128,14 +128,9 @@ public class VehicleController {
         }
     }
 
-
-
-
-
-
     // voir tout les vehicules
     @GetMapping("/all")
-    public ResponseEntity<?> getAllVehicules() {
+    public ResponseEntity<Map<String, Object>> getAllVehicules() {
         try {
             Collection<Vehicle> listV = vehicleService.getAllVehicules();
             List<Map<String, Object>> result = listV.stream().map(v -> {
@@ -231,7 +226,7 @@ public class VehicleController {
     // Par ville
     // http://localhost:8080/api/vehicules/
     @GetMapping("/parVille")
-    public ResponseEntity<?> getVehiculesByVille(@RequestBody Map<String, String> request) {
+    public ResponseEntity<Map<String, Object>> getVehiculesByVille(@RequestBody Map<String, String> request) {
         try {
             String ville = request.get("ville");
             List<Vehicle> listV = vehicleService.getVehiculeByVille(ville);
@@ -252,7 +247,7 @@ public class VehicleController {
     // chercher par type
     // http://localhost:8080/api/vehicules/type/{type}
     @GetMapping("/parType")
-    public ResponseEntity<?> getVehiculesByType(@RequestBody Map<String, String> request) {
+    public ResponseEntity<Map<String, Object>> getVehiculesByType(@RequestBody Map<String, String> request) {
         try {
             String type = (request.get("type"));
             List<Vehicle> listV = vehicleService.getVehiculesByType(type);
@@ -272,7 +267,7 @@ public class VehicleController {
 
     // chercher les vehicules qui ne sont pas en pause sur le marché: disponible
     @GetMapping("/parDisponibilité")
-    public ResponseEntity<?> getTousVehiculesDisponibles() {
+    public ResponseEntity<Map<String, Object>> getTousVehiculesDisponibles() {
 
         try {
             List<Vehicle> listV = vehicleService.getVehiculeByEnPause();
@@ -291,7 +286,7 @@ public class VehicleController {
 
     // par prix
     @GetMapping("/parPrix")
-    public ResponseEntity<?> getVehiculesByPrix(@RequestBody Map<String, String> request) {
+    public ResponseEntity<Map<String, Object>> getVehiculesByPrix(@RequestBody Map<String, String> request) {
 
         try {
             double min = Double.parseDouble(request.get("min"));
@@ -313,7 +308,7 @@ public class VehicleController {
 
     // par modele
     @GetMapping("/parModele")
-    public ResponseEntity<?> getVehiculesByModele(@RequestBody Map<String, String> request) {
+    public ResponseEntity<Map<String, Object>> getVehiculesByModele(@RequestBody Map<String, String> request) {
         try {
             String modele = request.get("modele");
             List<Vehicle> listV = vehicleService.getVehiculesByModele(modele);
@@ -333,7 +328,7 @@ public class VehicleController {
 
     // par marque
     @GetMapping("/parMarque")
-    public ResponseEntity<?> getVehiculesByMarque(@RequestBody Map<String, String> request) {
+    public ResponseEntity<Map<String, Object>> getVehiculesByMarque(@RequestBody Map<String, String> request) {
         try {
             String marque = request.get("marque");
             List<Vehicle> listV = vehicleService.getVehiculesByMarque(marque);
@@ -352,7 +347,7 @@ public class VehicleController {
     }
 
     @PostMapping("/MultiFiltrage")
-    public ResponseEntity<?> filtrerVehicules(@RequestBody Map<String, String> request) {
+    public ResponseEntity<Map<String, Object>> filtrerVehicules(@RequestBody Map<String, String> request) {
         try {
             List<Vehicle> vehicules = vehicleService.getAllVehicules().stream()
                     .filter(v -> request.get("ville") == null
@@ -392,17 +387,13 @@ public class VehicleController {
     }
 
 
-
-
-
-
     /************************************
      * Planning Disponibilités
      ********************************/
 
     // Récupérer le planning complet d’un véhicule
     @GetMapping("/planning")
-    public ResponseEntity<?> getPlanning(@RequestBody Map<String, String> request) {
+    public ResponseEntity<Map<String, Object>> getPlanning(@RequestBody Map<String, String> request) {
         try {
             String id = request.get("id");
             List<Disponibilite> planning = vehicleService.getPlanning(id);
@@ -429,7 +420,7 @@ public class VehicleController {
 
     // Ajouter un créneau de disponibilité
     @PostMapping("/planning/add")
-    public ResponseEntity<?> addDisponibilite(@RequestBody Map<String, String> request) {
+    public ResponseEntity<Map<String, Object>> addDisponibilite(@RequestBody Map<String, String> request) {
         try {
             String id = request.get("id");
             LocalDate debut = LocalDate.parse(request.get("debut"));
@@ -448,7 +439,7 @@ public class VehicleController {
     // Supprimer un créneau par index
     // http://localhost:8080/api/vehicules
     @DeleteMapping("/planning/delete")
-    public ResponseEntity<?> removeDisponibilite(@RequestBody Map<String, String> request) {
+    public ResponseEntity<Map<String, Object>> removeDisponibilite(@RequestBody Map<String, String> request) {
         try {
             String id = request.get("id");
             int index = Integer.parseInt(request.get("index"));
@@ -465,7 +456,7 @@ public class VehicleController {
 
     // Vérifier si un véhicule est disponible sur une période
     @PostMapping("/planning/verifDisponible")
-    public ResponseEntity<?> estDisponible(@RequestBody Map<String, String> request) {
+    public ResponseEntity<Map<String, Object>> estDisponible(@RequestBody Map<String, String> request) {
         try {
             String id = request.get("id");
             LocalDate debut = LocalDate.parse(request.get("debut"));
@@ -512,7 +503,6 @@ public class VehicleController {
             int pourcentage = (int) (tauxReduction * 100);
             map.put("labelReduction", "Tarif réduit - Retour en parking partenaire (-" + pourcentage + "%)");
         }
-
         return map;
     }
 
@@ -532,7 +522,6 @@ public class VehicleController {
         map.put("longitude", v.getLongitude());
         map.put("controleTechnique", v.getControleTechnique());
         map.put("dernierLieuDepose", v.getDernierLieuDepose());
-
 
         // Ajouter la listte des entretiens
         List<Map<String, Object>> entretiensList = v.getHistoriqueEntretiens().stream().map(e -> {
@@ -578,65 +567,6 @@ public class VehicleController {
         return map;
     }
 
-    // gere la liste des dates de disponibilité
-    /*
-     * @PostMapping("/{id}/disponibilites")
-     * public ResponseEntity<?> setDisponibilitesMap(@PathVariable String
-     * id, @RequestBody Map<String, Boolean> request) {
-     * try {
-     * vehicleService.upDateDisponibilites(id, request);
-     * return ResponseEntity.ok(Map.of(
-     * "message", "Disponibilités mises à jour",
-     * "success", true,
-     * "ID Vehicule", id));
-     * 
-     * } catch (Exception e) {
-     * return ResponseEntity.badRequest().body(Map.of(
-     * "Erreur", e.getMessage()));
-     * }
-     * }
-     */
-
-    // afficher le calendrier des disponibilites d'un vehicule
-    /*
-     * @GetMapping("/{id}/dispo")
-     * public ResponseEntity<Map<String, Object>>
-     * GetDispoListVehicules(@PathVariable String id) {
-     * try {
-     * Vehicle v = vehicleService.getVehiculeByID(id);
-     * 
-     * // Transformer les infos du véhicules en Map pour la réponse JSON
-     * Map<LocalDate, Boolean> map = new HashMap<>();
-     * map = v.getDisponibilites();
-     * return ResponseEntity.ok(Map.of(
-     * "success", true,
-     * "vehicule", map));
-     * } catch (IllegalArgumentException e) {
-     * return ResponseEntity.status(404).body(Map.of(
-     * "success", false,
-     * "message", e.getMessage()));
-     * }
-     * }
-     */
-
-    // verifier les disponibilites d'un vehicule
-    /*
-     * @GetMapping("/{id}/disponible")
-     * public ResponseEntity<?> estDisponible(@PathVariable String id, @RequestParam
-     * String debut,
-     * 
-     * @RequestParam String fin) {
-     * LocalDate d = LocalDate.parse(debut);
-     * LocalDate f = LocalDate.parse(fin);
-     * 
-     * boolean dispo = vehicleService.verifierDisponibilite(id, d, f);
-     * return ResponseEntity.ok(Map.of(
-     * "vehicule", id,
-     * "disponible", dispo,
-     * "debut", d,
-     * "fin", f));
-     * }
-     */
 
     // ===== RECOMMANDATION DE VÉHICULES PAR PROXIMITÉ =====
 
